@@ -48,18 +48,25 @@ GtH5Reference::GtH5Reference(const GtH5Location& location) :
 
     if (location.type() == ObjectType::Attribute)
     {
-        error = H5Rcreate_attr(location.file()->root().id(), location.path(),
+        error = H5Rcreate_attr(location.file()->id(), location.path(),
                                location.name(), H5P_DEFAULT, &m_ref);
     }
     else
     {
-        error = H5Rcreate_object(location.file()->root().id(), location.path(),
+        error = H5Rcreate_object(location.file()->id(), location.path(),
                                  H5P_DEFAULT, &m_ref);
     }
 
     if (error < 0)
     {
         qCritical() << "HDF5: Referencing location (attribute) failed!";
+        return;
+    }
+    // the file ref counter is incremented when creating a reference, however
+    // this is not necessary. Therefore we decrement the ref count
+    if (this->isValid())
+    {
+        H5Idec_ref(location.file()->id());
     }
 }
 

@@ -59,6 +59,9 @@ TEST_F(TestH5Reference, referenceGroup)
     EXPECT_EQ(grp.path(), group.path());
     EXPECT_EQ(grp.name(), group.name());
     EXPECT_EQ(grp.file(), group.file());
+
+    // check ref count of file
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceDataset)
@@ -75,6 +78,9 @@ TEST_F(TestH5Reference, referenceDataset)
     EXPECT_EQ(dset.path(), dataset.path());
     EXPECT_EQ(dset.name(), dataset.name());
     EXPECT_EQ(dset.file(), dataset.file());
+
+    // check ref count of file
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceAttribute)
@@ -92,7 +98,9 @@ TEST_F(TestH5Reference, referenceAttribute)
     EXPECT_EQ(attr.path(), attribute.path());
     EXPECT_EQ(attr.name(), attribute.name());
     EXPECT_EQ(attr.file(), attribute.file());
-}
 
+    // check ref count of file
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+}
 
 
