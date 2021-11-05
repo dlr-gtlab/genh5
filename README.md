@@ -46,7 +46,7 @@ if (!dataset.isValid()) {
 dataset.write(data);
 ```
 
-Reading a compound datatpye from a dataset (int, QString):
+Reading a list of compound datatypes from a dataset (int, QString):
 ```c++
 // open the file
 GtH5File file = GtH5File(QByteArrayLiteral("my_file.h5"), GtH5File::OpenReadOnly);

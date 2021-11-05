@@ -21,7 +21,7 @@
       void deserialize(QVector<Data>& data) {data = m_data;} \
     };
 
-/// "hides" the helper structs that are used internaly
+/// "hides" the datatype helper structs that are used internaly
 namespace GtH5T
 {
     /**

@@ -80,12 +80,12 @@ GtH5File::GtH5File(const QByteArray& path, AccessFlag flag) :
     {
         m_file = H5::H5File(path.constData(), accessMode(flag));
     }
-    catch (H5::FileIException e)
+    catch (H5::FileIException& e)
     {
         qCritical() << "HDF5: Accessing file failed!"
                     << path << flag;
     }
-    catch(H5::Exception e)
+    catch (H5::Exception& e)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5File:GtH5File failed!"
                     << path << flag;

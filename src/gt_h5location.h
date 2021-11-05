@@ -113,7 +113,8 @@ protected:
      */
     GtH5Location() : m_file(Q_NULLPTR), m_name(QByteArrayLiteral("")) {}
 
-    /// file instance of this object. Must be kept alive for the duration of any operation.
+    /// file instance of this object. Must be kept alive for the duration of
+    /// any operation.
     GtH5File* m_file;
     /// name of this location
     QByteArray m_name;

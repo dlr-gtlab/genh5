@@ -37,12 +37,12 @@ GtH5DataType::operator==(const GtH5DataType& other)
     {
         return this->id() == other.id() || this->toH5() == other.toH5();
     }
-    catch (H5::DataTypeIException e)
+    catch (H5::DataTypeIException& e)
     {
         qWarning() << "HDF5: Datatype comparisson failed! (invalid data type)";
         return false;
     }
-    catch (H5::Exception e)
+    catch (H5::Exception& e)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5DataType:operator== failed!";
         return false;

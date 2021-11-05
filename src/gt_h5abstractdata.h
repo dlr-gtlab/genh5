@@ -1,3 +1,11 @@
+/* GTlab - Gas Turbine laboratory
+ * copyright 2009-2021 by DLR
+ *
+ * Created on: 29.10.2021
+ * Author: Marius Bröcker
+ * Email: marius.broecker@dlr.de
+ */
+
 #ifndef GT_H5DABSTRACTDATA_H
 #define GT_H5DABSTRACTDATA_H
 
@@ -34,8 +42,8 @@ struct GtH5AbstractData
     virtual inline QVector<T>& data() { return m_data; }
 
     /**
-     * @brief dataPtr returns pointer to first element of data array. can be used
-     * to write and read data from a dataset
+     * @brief dataPtr returns pointer to first element of data array. can be
+     * used to write and read data from a dataset
      * @return pointer to data array
      */
     inline void* dataPtr() { return data().data(); }

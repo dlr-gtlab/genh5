@@ -27,7 +27,8 @@ public:
     ~GtH5TimeLogger()
     {
         uint us = nsecsElapsed() / 1000;
-        qDebug().noquote() << info << "- took" << QString::number(us/1000.0) << "ms";
+        qDebug().noquote() << info << "- took"
+                           << QString::number(us/1000.0) << "ms";
     };
 
 private:

@@ -29,12 +29,12 @@ GtH5Attribute::create(const GtH5Leaf& parent,
                                                         dtype.toH5(),
                                                         dspace.toH5());
         }
-        catch (H5::AttributeIException e)
+        catch (H5::AttributeIException& e)
         {
             qCritical() << "HDF5: Creating attribute failed!";
             return GtH5Attribute();
         }
-        catch(H5::Exception e)
+        catch (H5::Exception& e)
         {
             qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::create failed!";
             return GtH5Attribute();
@@ -74,12 +74,12 @@ GtH5Attribute::open(const GtH5Leaf& parent,
     {
         attr = parent.toH5Object()->openAttribute(name.constData());
     }
-    catch (H5::DataSetIException e)
+    catch (H5::DataSetIException& e)
     {
         qCritical() << "HDF5: Opening attribute failed!";
         return GtH5Attribute();
     }
-    catch(H5::Exception e)
+    catch (H5::Exception& e)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::open failed!";
         return GtH5Attribute();
@@ -131,11 +131,11 @@ GtH5Attribute::doWrite(void* data) const
         m_attribute.write(m_datatype.toH5(), data);
         return true;
     }
-    catch (H5::AttributeIException e)
+    catch (H5::AttributeIException& e)
     {
         qCritical() << "HDF5: Writing attribute failed!";
     }
-    catch (H5::Exception e)
+    catch (H5::Exception& e)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::doWrite failed!";
     }
@@ -150,11 +150,11 @@ GtH5Attribute::doRead(void* data) const
         m_attribute.read(m_datatype.toH5(), data);
         return true;
     }
-    catch (H5::AttributeIException e)
+    catch (H5::AttributeIException& e)
     {
         qCritical() << "HDF5: Reading attribute failed!";
     }
-    catch (H5::Exception e)
+    catch (H5::Exception& e)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::doRead failed!";
     }

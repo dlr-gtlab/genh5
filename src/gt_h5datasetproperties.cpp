@@ -16,13 +16,15 @@ GtH5DataSetProperties::GtH5DataSetProperties() :
     m_properties(H5::DSetCreatPropList::DEFAULT)
 {
 }
-GtH5DataSetProperties::GtH5DataSetProperties(const H5::DSetCreatPropList& properties) :
+
+GtH5DataSetProperties::GtH5DataSetProperties(
+        const H5::DSetCreatPropList& properties) :
     m_properties(properties)
 {
 }
 
-GtH5DataSetProperties::GtH5DataSetProperties(const QVector<uint64_t>& dimensions,
-                                             int compression)
+GtH5DataSetProperties::GtH5DataSetProperties(
+        const QVector<uint64_t>& dimensions, int compression)
 {
     setChunkDimensions(dimensions);
     setCompression(compression);
@@ -42,6 +44,7 @@ GtH5DataSetProperties::autoChunk(const GtH5DataSpace& dataspace, int maxChunks)
     }
 
     // TODO: implement logic to generate optimal chunking layout
+    Q_UNUSED(maxChunks);
 
     return dimensions;
 }
