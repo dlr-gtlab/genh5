@@ -10,6 +10,7 @@
 
 #### LOCAL SETTINGS
 include(local_settings.pri)
+include(deployment.pri)
 
 TARGET_DIR_NAME   = h5
 LIB_BUILD_DEST    = lib/$${TARGET_DIR_NAME}

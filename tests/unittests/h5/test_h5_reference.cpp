@@ -86,7 +86,6 @@ TEST_F(TestH5Reference, referenceDataset)
 TEST_F(TestH5Reference, referenceAttribute)
 {
     // datatset
-//    GtH5Reference ref (dataset, attribute.name());
     GtH5Reference ref = attribute.toReference();
     EXPECT_TRUE(ref.isValid());
     EXPECT_EQ(ref.type(), attribute.type());
