@@ -87,12 +87,7 @@ SOURCES += \
     gt_h5reference.cpp
 
 CONFIG(debug, debug|release) {
-    win32 {
-        LIBS += -lhdf5 -lhdf5_cpp
-    }
-    unix {
-        LIBS += -lhdf5_debug -lhdf5_cpp_debug
-    }
+    LIBS += -lhdf5 -lhdf5_cpp
 } else {
     LIBS += -lhdf5 -lhdf5_cpp
 }

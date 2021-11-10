@@ -69,13 +69,12 @@ LIBS        += -L$${GOOGLE_TEST_PATH}/lib
 DEPENDPATH  += $${GOOGLE_TEST_PATH}/lib
 
 CONFIG(debug, debug|release) {
+    LIBS += -lhdf5 -lhdf5_cpp
     # THIRD PARTY
     win32 {
-        LIBS += -lhdf5 -lhdf5_cpp
         LIBS += -lgtestd
     }
     unix {
-        LIBS += -lhdf5_debug -lhdf5_cpp_debug
         LIBS += -lgtest
     }
     # MODULES
