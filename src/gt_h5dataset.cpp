@@ -48,12 +48,12 @@ GtH5DataSet::create(const GtH5Node& parent,
                                                       dspace.toH5(),
                                                       properties.toH5());
         }
-        catch (H5::DataSetIException& e)
+        catch (H5::DataSetIException& /*e*/)
         {
             qCritical() << "HDF5: Creating dataset failed!";
             return GtH5DataSet();
         }
-        catch (H5::Exception& e)
+        catch (H5::Exception& /*e*/)
         {
             qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::create failed!";
             return GtH5DataSet();
@@ -107,12 +107,12 @@ GtH5DataSet::open(const GtH5Node& parent, const QByteArray& name)
     {
         dset = parent.toH5Object()->openDataSet(name.constData());
     }
-    catch (H5::DataSetIException& e)
+    catch (H5::DataSetIException& /*e*/)
     {
         qCritical() << "HDF5: Opening dataset failed!";
         return GtH5DataSet();
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::open failed!";
         return GtH5DataSet();
@@ -177,11 +177,11 @@ GtH5DataSet::doWrite(void* data) const
         m_dataset.write(data, m_datatype.toH5());
         return true;
     }
-    catch (H5::DataSetIException& e)
+    catch (H5::DataSetIException& /*e*/)
     {
         qCritical() << "HDF5: Writing dataset failed!";
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::doWrite failed!";
     }
@@ -196,12 +196,12 @@ GtH5DataSet::doRead(void* data) const
         m_dataset.read(data, m_datatype.toH5());
         return true;
     }
-    catch (H5::DataSetIException& e)
+    catch (H5::DataSetIException& /*e*/)
     {
         qCritical() << "HDF5: Reading dataset failed! ";
         return  false;
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::doRead failed!";
         return  false;
@@ -267,12 +267,12 @@ GtH5DataSet::resize(const QVector<uint64_t>& dimensions)
         // update dataspace
         m_dataspace = m_dataset.getSpace();
     }
-    catch (H5::DataSetIException& e)
+    catch (H5::DataSetIException& /*e*/)
     {
         qCritical() << "HDF5: Resizing dataset failed! ";
         return false;
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::resize";
         return false;

@@ -46,7 +46,31 @@ TEST_F(TestH5Data, isImplemented)
     EXPECT_TRUE((GtH5Data<double, int, QString>::isImplemented::value));
 
     // wrapper does not support more than 3 elements in comp type
-    EXPECT_FALSE((GtH5Data<double, QString, const char*, int>::isImplemented::value));
+    EXPECT_FALSE((GtH5Data<double, QString, const char*, int>
+                  ::isImplemented::value));
+}
+
+TEST_F(TestH5Data, isValid)
+{
+    // test simple types
+    EXPECT_TRUE(GtH5Data<int>().dataType().isValid());
+    EXPECT_TRUE(GtH5Data<long>().dataType().isValid());
+    EXPECT_TRUE(GtH5Data<float>().dataType().isValid());
+    EXPECT_TRUE(GtH5Data<double>().dataType().isValid());
+    EXPECT_TRUE(GtH5Data<const char*>().dataType().isValid());
+    EXPECT_TRUE(GtH5Data<QString>().dataType().isValid());
+    EXPECT_TRUE(GtH5Data<QByteArray>().dataType().isValid());
+
+    // test compound types
+    EXPECT_TRUE((GtH5Data<int, QString>().dataType().isValid()));
+    EXPECT_TRUE((GtH5Data<double, float>().dataType().isValid()));
+    EXPECT_TRUE((GtH5Data<QString, double, float>().dataType().isValid()));
+    EXPECT_TRUE((GtH5Data<QString, QString, double>().dataType().isValid()));
+    EXPECT_TRUE((GtH5Data<int, long, const char*>().dataType().isValid()));
+
+    // more than four members are not supported
+    EXPECT_FALSE((GtH5Data<QString, double, const char*, long>()
+                  .dataType().isValid()));
 }
 
 TEST_F(TestH5Data, serialization)
@@ -60,7 +84,18 @@ TEST_F(TestH5Data, serialization)
     // cannot be compared directly as stringlist is serialized to const char*
     GtH5Data<QString> strData(stringData);
     // data must be deserialized first
-    QStringList originalStrData;
-    strData.deserialize(originalStrData);
-    EXPECT_EQ(originalStrData, stringData);
+    QStringList orgStrData;
+    strData.deserialize(orgStrData);
+    EXPECT_EQ(orgStrData, stringData);
+
+    GtH5Data<QString, int, double> comData(stringData, intData, doubleData);
+    // data must be deserialized first
+    QStringList orgComStrData;
+    QVector<int> orgIntData;
+    QVector<double> orgDoubleData;
+    comData.deserialize(orgComStrData, orgIntData, orgDoubleData);
+
+    EXPECT_EQ(orgComStrData, stringData);
+    EXPECT_EQ(orgIntData, intData);
+    EXPECT_EQ(orgDoubleData, doubleData);
 }
