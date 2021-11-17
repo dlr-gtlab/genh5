@@ -28,11 +28,11 @@ GtH5DataSpace::GtH5DataSpace(const QVector<uint64_t>& dimensions)
                                     reinterpret_cast<const hsize_t*>
                                         (dimensions.constData()));
     }
-    catch (H5::DataSpaceIException& e)
+    catch (H5::DataSpaceIException& /*e*/)
     {
         qCritical() << "HDF5: Creating dataspace failed!";
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5DataSpace:GtH5DataSpace failed!";
     }

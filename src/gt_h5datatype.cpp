@@ -35,14 +35,16 @@ GtH5DataType::operator==(const GtH5DataType& other)
 {
     try
     {
-        return this->id() == other.id() || this->toH5() == other.toH5();
+        // check isValid to elimante "not a dtype" output from hdf5
+        return this->id() == other.id() || (this->isValid() && other.isValid()&&
+                                            this->toH5() == other.toH5());
     }
-    catch (H5::DataTypeIException& e)
+    catch (H5::DataTypeIException& /*e*/)
     {
         qWarning() << "HDF5: Datatype comparisson failed! (invalid data type)";
         return false;
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5DataType:operator== failed!";
         return false;
@@ -50,7 +52,7 @@ GtH5DataType::operator==(const GtH5DataType& other)
 }
 
 bool
-GtH5DataType::operator!=(const GtH5DataType &other)
+GtH5DataType::operator!=(const GtH5DataType& other)
 {
     return !operator==(other);
 }

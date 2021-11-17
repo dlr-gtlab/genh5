@@ -133,10 +133,20 @@ template<typename T1, typename T2>
 GtH5DataType GtH5Data<T1, T2>::dataType() const
 {
     H5::CompType dtype (sizeof (Data));
-    dtype.insertMember("type 1", offsetof(Data, a),
-                       m_buffer1.dataType().toH5());
-    dtype.insertMember("type 2", offsetof(Data, b),
-                       m_buffer2.dataType().toH5());
+
+    herr_t err;
+    err  = H5Tinsert(dtype.getId(), "type 1", offsetof(Data, a),
+                     m_buffer1.dataType().id());
+    err |= H5Tinsert(dtype.getId(), "type 2", offsetof(Data, b),
+                     m_buffer2.dataType().id());
+    if (err < 0)
+    {
+        return GtH5DataType();
+    }
+//    dtype.insertMember("type 1", offsetof(Data, a),
+//                       m_buffer1.dataType().toH5());
+//    dtype.insertMember("type 2", offsetof(Data, b),
+//                       m_buffer2.dataType().toH5());
     return dtype;
 }
 
@@ -191,12 +201,24 @@ template<typename T1, typename T2, typename T3>
 GtH5DataType GtH5Data<T1, T2, T3>::dataType() const
 {
     H5::CompType dtype (sizeof (Data));
-    dtype.insertMember("type 1", offsetof(Data, a),
-                       m_buffer1.dataType().toH5());
-    dtype.insertMember("type 2", offsetof(Data, b),
-                       m_buffer2.dataType().toH5());
-    dtype.insertMember("type 3", offsetof(Data, c),
-                       m_buffer3.dataType().toH5());
+
+    herr_t err;
+    err  = H5Tinsert(dtype.getId(), "type 1", offsetof(Data, a),
+              m_buffer1.dataType().id());
+    err |= H5Tinsert(dtype.getId(), "type 2", offsetof(Data, b),
+              m_buffer2.dataType().id());
+    err |= H5Tinsert(dtype.getId(), "type 3", offsetof(Data, c),
+              m_buffer3.dataType().id());
+    if (err < 0)
+    {
+        return GtH5DataType();
+    }
+//    dtype.insertMember("type-1", offsetof(Data, a),
+//                       m_buffer1.dataType().toH5());
+//    dtype.insertMember("type-2", offsetof(Data, b),
+//                       m_buffer2.dataType().toH5());
+//    dtype.insertMember("type-3", offsetof(Data, c),
+//                       m_buffer3.dataType().toH5());
     return dtype;
 }
 

@@ -109,12 +109,12 @@ GtH5Reference::toGroup(GtH5File& file) const
     {
         group.dereference(*file.root().toH5Object(), &m_ref);
     }
-    catch (H5::DataSetIException& e)
+    catch (H5::DataSetIException& /*e*/)
     {
         qCritical() << "HDF5: Derefernecing group failed!";
         return GtH5Group();
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5Reference::toGroup failed!";
         return GtH5Group();
@@ -138,12 +138,12 @@ GtH5Reference::toDataSet(GtH5File& file) const
     {
         dset.dereference(*file.root().toH5Object(), &m_ref);
     }
-    catch (H5::DataSetIException& e)
+    catch (H5::DataSetIException& /*e*/)
     {
         qCritical() << "HDF5: Derefernecing dataset failed!";
         return GtH5DataSet();
     }
-    catch (H5::Exception& e)
+    catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5Reference::toDataSet failed!";
         return GtH5DataSet();

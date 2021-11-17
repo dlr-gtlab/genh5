@@ -29,11 +29,11 @@ GtH5Group::create(const GtH5Node& parent,
         {
             group = parent.toH5Object()->createGroup(name.constData());
         }
-        catch (H5::GroupIException& e)
+        catch (H5::GroupIException& /*e*/)
         {
             qCritical() << "HDF5: Creating group failed!";
         }
-        catch (H5::Exception& e)
+        catch (H5::Exception& /*e*/)
         {
             qCritical() << "HDF5: [EXCEPTION] GtH5Group::create failed!";
         }
@@ -59,12 +59,12 @@ GtH5Group::open(const GtH5Node &parent,
     {
         group = parent.toH5Object()->openGroup(name.constData());
     }
-    catch (H5::GroupIException& e)
+    catch (H5::GroupIException& /*e*/)
     {
         qCritical() << "HDF5: Opening group failed!";
         return GtH5Group();
     }
-    catch(H5::Exception& e)
+    catch(H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5Group::open failed!";
         return GtH5Group();
@@ -87,11 +87,11 @@ GtH5Group::GtH5Group(GtH5File& file)
     {
         m_group = file.toH5().openGroup(m_name.constData());
     }
-    catch (H5::GroupIException& e)
+    catch (H5::GroupIException& /*e*/)
     {
         qCritical() << "HDF5: Opening group failed!";
     }
-    catch(H5::Exception& e)
+    catch(H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5Group::GtH5Group failed!";
     }
