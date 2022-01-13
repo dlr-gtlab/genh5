@@ -1,9 +1,10 @@
 # GTlab HDF5 Wrapper
 
-This wrapper is build upon the HDF5 C/C++ API. It does not aim to cover all functionalities of the HDF5 data format but the main aspects. However the wrapper is fully compatibel with the C/C++ API.
-A good introduction to the data format can be found here:
+This wrapper is build upon the HDF5 C/C++ API. It does not aim to cover all functionalities of the HDF5 data format but the main aspects. However the wrapper is fully compatibel with the C/C++ API. 
 
-https://portal.hdfgroup.org/display/HDF5/Introduction+to+HDF5
+The online documentation can be found here: https://at-twk.pages.gitlab.dlr.de/gtlab-hdf5-wrapper/index.html
+
+A good introduction to the data format can be found here: https://portal.hdfgroup.org/display/HDF5/Introduction+to+HDF5
 
 ## Functionalities
 
