@@ -6,11 +6,10 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GT_H5COMPOUNDDATA_H
-#define GT_H5COMPOUNDDATA_H
+#ifndef GT_H5DATA_COMP_H
+#define GT_H5DATA_COMP_H
 
-#include "gt_h5data.h"
-
+#include "gt_h5data_simple.h"
 
 /// "hides" the helper structs that are used internaly
 namespace GtH5T
@@ -50,6 +49,14 @@ struct GtH5Data<T1, T2> :
     using Data = GtH5T::CompData2D<T1, T2>;
 
     /**
+     * @brief helper struct to check at build time whether this datatype has a
+    /// valid implementation
+     */
+    struct isImplemented :
+            std::integral_constant<bool,
+                                   GtH5Data<T1>::isImplemented::value &&
+                                   GtH5Data<T2>::isImplemented::value> {};
+    /**
      * @brief dataType
      * @return GtH5DataType
      */
@@ -61,7 +68,7 @@ struct GtH5Data<T1, T2> :
      * @param IN: t2
      */
     template<typename T1vec, typename T2vec>
-    GtH5Data(const T1vec& t1, const T2vec& t2);
+    explicit GtH5Data(T1vec const& t1, T2vec const& t2);
     GtH5Data() = default;
 
     /**
@@ -75,9 +82,9 @@ struct GtH5Data<T1, T2> :
 private:
 
     /// internal buffer for T1
-    GtH5Data<T1> m_buffer1;
+    GtH5Data<T1> m_buffer1{};
     /// internal buffer for T2
-    GtH5Data<T2> m_buffer2;
+    GtH5Data<T2> m_buffer2{};
 };
 
 /* 3D Comp Data */
@@ -93,6 +100,16 @@ struct GtH5Data<T1, T2, T3> :
     using Data = GtH5T::CompData3D<T1, T2, T3>;
 
     /**
+     * @brief helper struct to check at build time whether this datatype has a
+    /// valid implementation
+     */
+    struct isImplemented :
+            std::integral_constant<bool,
+                                   GtH5Data<T1>::isImplemented::value &&
+                                   GtH5Data<T2>::isImplemented::value &&
+                                   GtH5Data<T3>::isImplemented::value> {};
+
+    /**
      * @brief dataType
      * @return GtH5DataType
      */
@@ -105,7 +122,7 @@ struct GtH5Data<T1, T2, T3> :
      * @param IN: t3
      */
     template<typename T1vec, typename T2vec, typename T3vec>
-    GtH5Data(const T1vec& t1, const T2vec& t2, const T3vec& t3);
+    explicit GtH5Data(T1vec const& t1, T2vec const& t2, T3vec const& t3);
     GtH5Data() = default;
 
     /**
@@ -120,11 +137,11 @@ struct GtH5Data<T1, T2, T3> :
 private:
 
     /// internal buffer for T1
-    GtH5Data<T1> m_buffer1;
+    GtH5Data<T1> m_buffer1{};
     /// internal buffer for T2
-    GtH5Data<T2> m_buffer2;
+    GtH5Data<T2> m_buffer2{};
     /// internal buffer for T3
-    GtH5Data<T3> m_buffer3;
+    GtH5Data<T3> m_buffer3{};
 };
 
 
@@ -143,17 +160,13 @@ GtH5DataType GtH5Data<T1, T2>::dataType() const
     {
         return GtH5DataType();
     }
-//    dtype.insertMember("type 1", offsetof(Data, a),
-//                       m_buffer1.dataType().toH5());
-//    dtype.insertMember("type 2", offsetof(Data, b),
-//                       m_buffer2.dataType().toH5());
-    return dtype;
+    return GtH5DataType(dtype);
 }
 
 template<typename T1, typename T2>
 template<typename T1vec, typename T2vec>
-GtH5Data<T1, T2>::GtH5Data(const T1vec& t1,
-                           const T2vec& t2) :
+GtH5Data<T1, T2>::GtH5Data(T1vec const& t1,
+                           T2vec const& t2) :
     m_buffer1(t1),
     m_buffer2(t2)
 {
@@ -165,15 +178,15 @@ GtH5Data<T1, T2>::GtH5Data(const T1vec& t1,
         return;
     }
 
-    auto& buffer1 = m_buffer1.data();
-    auto& buffer2 = m_buffer2.data();
+    const auto& buffer1 = m_buffer1.data();
+    const auto& buffer2 = m_buffer2.data();
 
     this->m_data.clear();
     this->m_data.reserve(length);
 
     for (int i = 0; i < length; ++i)
     {
-        this->m_data.append({ buffer1.at(i), buffer2.at(i) });
+        this->m_data.append(Data{ buffer1.at(i), buffer2.at(i) });
     }
 }
 
@@ -183,7 +196,7 @@ void
 GtH5Data<T1, T2>::deserialize(T1vec& t1,
                               T2vec& t2)
 {
-    const int length(this->m_data.length());
+    const int length{this->m_data.length()};
     t1.clear();
     t2.clear();
     t1.reserve(length);
@@ -191,7 +204,7 @@ GtH5Data<T1, T2>::deserialize(T1vec& t1,
 
     for (int i = 0; i < length; ++i)
     {
-        const Data& data(this->m_data.at(i));
+        Data const& data{this->m_data.at(i)};
         t1.append(data.a);
         t2.append(data.b);
     }
@@ -213,20 +226,14 @@ GtH5DataType GtH5Data<T1, T2, T3>::dataType() const
     {
         return GtH5DataType();
     }
-//    dtype.insertMember("type-1", offsetof(Data, a),
-//                       m_buffer1.dataType().toH5());
-//    dtype.insertMember("type-2", offsetof(Data, b),
-//                       m_buffer2.dataType().toH5());
-//    dtype.insertMember("type-3", offsetof(Data, c),
-//                       m_buffer3.dataType().toH5());
-    return dtype;
+    return GtH5DataType(dtype);
 }
 
 template<typename T1, typename T2, typename T3>
 template<typename T1vec, typename T2vec, typename T3vec>
-GtH5Data<T1, T2, T3>::GtH5Data(const T1vec& t1,
-                               const T2vec& t2,
-                               const T3vec& t3) :
+GtH5Data<T1, T2, T3>::GtH5Data(T1vec const& t1,
+                               T2vec const& t2,
+                               T3vec const& t3) :
     m_buffer1(t1),
     m_buffer2(t2),
     m_buffer3(t3)
@@ -239,16 +246,16 @@ GtH5Data<T1, T2, T3>::GtH5Data(const T1vec& t1,
         return;
     }
 
-    auto& buffer1 = m_buffer1.data();
-    auto& buffer2 = m_buffer2.data();
-    auto& buffer3 = m_buffer3.data();
+    const auto& buffer1 = m_buffer1.data();
+    const auto& buffer2 = m_buffer2.data();
+    const auto& buffer3 = m_buffer3.data();
 
     this->m_data.clear();
     this->m_data.reserve(length);
 
     for (int i = 0; i < length; ++i)
     {
-        this->m_data.append({ buffer1.at(i), buffer2.at(i), buffer3.at(i)});
+        this->m_data.append(Data{ buffer1.at(i), buffer2.at(i), buffer3.at(i)});
     }
 }
 
@@ -259,7 +266,7 @@ GtH5Data<T1, T2, T3>::deserialize(T1vec& t1,
                                   T2vec& t2,
                                   T3vec& t3)
 {
-    const int length(this->m_data.length());
+    const int length{this->m_data.length()};
     t1.clear();
     t3.clear();
     t2.clear();
@@ -269,11 +276,11 @@ GtH5Data<T1, T2, T3>::deserialize(T1vec& t1,
 
     for (int i = 0; i < length; ++i)
     {
-        const Data& data(this->m_data.at(i));
+        Data const& data{this->m_data.at(i)};
         t1.append(data.a);
         t2.append(data.b);
         t3.append(data.c);
     }
 }
 
-#endif // GT_H5COMPOUNDDATA_H
+#endif // GT_H5DATA_COMP_H

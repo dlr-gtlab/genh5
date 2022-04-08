@@ -11,6 +11,7 @@
 #include "gt_h5file.h"
 #include "gt_h5group.h"
 #include "gt_h5dataset.h"
+#include "gt_h5data.h"
 
 #include "testhelper.h"
 
@@ -19,7 +20,7 @@ class TestH5Attribute : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         doubleData = QVector<double>{1, 2, 3, 4, 5};
         intData    = QVector<int>{1, 2, 3, 4, 5};
@@ -33,7 +34,7 @@ protected:
         ASSERT_TRUE(group.isValid());
 
         dataset = group.createDataset(QByteArrayLiteral("dataset"),
-                                      intData.dataType(), 0);
+                                      intData.dataType(), GtH5DataSpace{0});
         ASSERT_TRUE(dataset.isValid());
     }
 
@@ -56,19 +57,19 @@ TEST_F(TestH5Attribute, isValid)
     // create and test various attributes
     attr = file.root().createAttribute(QByteArrayLiteral("testA"),
                                        intData.dataType(),
-                                       intData.length());
+                                       intData.dataSpace());
     EXPECT_TRUE(attr.isValid());
     EXPECT_TRUE(file.root().hasAttribute(QByteArrayLiteral("testA")));
 
     attr = group.createAttribute(QByteArrayLiteral("testB"),
                                  doubleData.dataType(),
-                                 doubleData.length());
+                                 doubleData.dataSpace());
     EXPECT_TRUE(attr.isValid());
     EXPECT_TRUE(group.hasAttribute(QByteArrayLiteral("testB")));
 
     attr = dataset.createAttribute(QByteArrayLiteral("testC"),
                                    stringData.dataType(),
-                                   stringData.length());
+                                   stringData.dataSpace());
     EXPECT_TRUE(attr.isValid());
     EXPECT_TRUE(dataset.hasAttribute(QByteArrayLiteral("testC")));
 }
@@ -78,16 +79,16 @@ TEST_F(TestH5Attribute, RW)
     // create new dataset
     GtH5Attribute attr = group.createAttribute(QByteArrayLiteral("test"),
                                                doubleData.dataType(),
-                                               doubleData.length());
+                                               doubleData.dataSpace());
     ASSERT_TRUE(attr.isValid());
 
     // write data
-    EXPECT_FALSE(attr.write(Q_NULLPTR));
+    EXPECT_FALSE(attr.write(nullptr));
     EXPECT_TRUE(attr.write(doubleData));
 
     GtH5Data<double> readData;
     // read data
-    EXPECT_FALSE(attr.read(Q_NULLPTR));
+    EXPECT_FALSE(attr.read(nullptr));
     EXPECT_TRUE(attr.read(readData));
 
     // compare data
@@ -103,7 +104,7 @@ TEST_F(TestH5Attribute, deleteLink)
     // create valid attribute
     attr = dataset.createAttribute(QByteArrayLiteral("test"),
                                    intData.dataType(),
-                                   intData.length());
+                                   intData.dataSpace());
     EXPECT_TRUE(attr.isValid());
 
     // delete dataset

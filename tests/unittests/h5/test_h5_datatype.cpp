@@ -15,7 +15,7 @@
 class TestH5DataType : public testing::Test
 {
 protected:
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         dtypeInt    = GtH5Data<int>().dataType();
         dtypeDouble = GtH5Data<double>().dataType();
@@ -59,8 +59,9 @@ TEST_F(TestH5DataType, equal)
 
 TEST_F(TestH5DataType, hdf5)
 {
-    EXPECT_TRUE(dtypeEmpty  == H5::DataType());
-    EXPECT_TRUE(dtypeInt    == H5::PredType::NATIVE_INT);
-    EXPECT_TRUE(dtypeDouble == H5::PredType::NATIVE_DOUBLE);
-    EXPECT_TRUE(dtypeString == H5::StrType(H5::PredType::C_S1, H5T_VARIABLE));
+    EXPECT_TRUE(dtypeEmpty  == GtH5DataType(H5::DataType()));
+    EXPECT_TRUE(dtypeInt    == GtH5DataType(H5::PredType::NATIVE_INT));
+    EXPECT_TRUE(dtypeDouble == GtH5DataType(H5::PredType::NATIVE_DOUBLE));
+    EXPECT_TRUE(dtypeString == GtH5DataType(H5::StrType(H5::PredType::C_S1,
+                                                        H5T_VARIABLE)));
 }

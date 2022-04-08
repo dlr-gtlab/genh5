@@ -12,7 +12,7 @@
 #include "gt_h5location.h"
 #include "gt_h5abtsractdataset.h"
 
-class GtH5Leaf;
+class GtH5Node;
 
 /**
  * @brief The GtH5Attribute class
@@ -22,22 +22,26 @@ class GT_H5_EXPORT GtH5Attribute : public GtH5Location,
 {
 public:
 
-    static GtH5Attribute create(const GtH5Leaf& parent,
-                                const QByteArray& name,
-                                const GtH5DataType& dtype,
-                                const GtH5DataSpace& dspace,
-                                AccessFlag flag);
+    static GtH5Attribute create(GtH5Node const& parent,
+                                QByteArray const& name,
+                                GtH5DataType const& dtype,
+                                GtH5DataSpace const& dspace);
 
-    static GtH5Attribute open(const GtH5Leaf& parent,
-                              const QByteArray& name);
+    static GtH5Attribute open(GtH5Node const& parent,
+                              QByteArray const& name);
 
     /**
      * @brief GtH5Attribute
      */
-    GtH5Attribute() {}
-    GtH5Attribute(GtH5File& file,
-                  const H5::Attribute& attr,
-                  const QByteArray& name = QByteArray());
+    GtH5Attribute();
+    GtH5Attribute(std::shared_ptr<GtH5File> file,
+                  H5::Attribute const& attr,
+                  QByteArray const& name = {});
+
+    GtH5Attribute(GtH5Attribute const& other);
+    GtH5Attribute(GtH5Attribute&& other) noexcept;
+    GtH5Attribute& operator=(GtH5Attribute const& other);
+    GtH5Attribute& operator=(GtH5Attribute&& other)  noexcept;
 
     /**
      * @brief allows access of the base hdf5 object
@@ -74,24 +78,28 @@ public:
      * @brief returns the hdf5 object as a h5location.
      * @return h5location
      */
-    const H5::H5Location* toH5Location() const override;
+    H5::H5Location const* toH5Location() const override;
 
     /**
      * @brief explicitly closes the resource handle
      */
     void close();
 
+    void swap(GtH5Attribute& other) noexcept;
+
 protected:
 
-    bool doWrite(void* data) const override;
+    bool doWrite(void const* data) const override;
     bool doRead(void* data) const override;
 
 private:
 
     /// hdf5 base instance
-    H5::Attribute m_attribute;
+    H5::Attribute m_attribute{};
 
     friend class GtH5Reference;
 };
+
+GT_H5_EXPORT void swap(GtH5Attribute& first, GtH5Attribute& other) noexcept;
 
 #endif // GTH5ATTRIBUTE_H

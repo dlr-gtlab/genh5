@@ -27,11 +27,15 @@ public:
     /**
      * @brief GtH5DataSpace
      */
-    GtH5DataSpace() {}
-    GtH5DataSpace(uint64_t simpleLength);
-    GtH5DataSpace(std::initializer_list<uint64_t> dimensions);
-    GtH5DataSpace(const QVector<uint64_t>& dimensions);
-    GtH5DataSpace(const H5::DataSpace& dataspace);
+    GtH5DataSpace();
+    explicit GtH5DataSpace(uint64_t simpleLength);
+    explicit GtH5DataSpace(QVector<uint64_t> const& dimensions);
+    explicit GtH5DataSpace(H5::DataSpace const& dataspace);
+
+    GtH5DataSpace(GtH5DataSpace const& other);
+    GtH5DataSpace(GtH5DataSpace&& other) noexcept;
+    GtH5DataSpace& operator=(GtH5DataSpace const& other);
+    GtH5DataSpace& operator=(GtH5DataSpace&& other) noexcept;
 
     /**
      * @brief allows access of the base hdf5 object
@@ -58,9 +62,7 @@ public:
      */
     QVector<uint64_t> dimensions() const;
 
-    // operators
-    bool operator==(const GtH5DataSpace& other);
-    bool operator!=(const GtH5DataSpace& other);
+   void swap(GtH5DataSpace& other) noexcept;
 
 private:
 
@@ -68,16 +70,21 @@ private:
     H5::DataSpace m_dataspace;
 };
 
+// operators
+GT_H5_EXPORT bool operator==(GtH5DataSpace const& first,
+                             GtH5DataSpace const& other);
+GT_H5_EXPORT bool operator!=(GtH5DataSpace const& first,
+                             GtH5DataSpace const& other);
+
+GT_H5_EXPORT void swap(GtH5DataSpace& first, GtH5DataSpace& other) noexcept;
+
 template<typename Tin, typename Tout> Tout inline
 GtH5DataSpace::sum(const QVector<Tin>& dimensions)
 {
-    // convert boolean to Tout
-    Tout sum(!dimensions.isEmpty());
-    for (auto dim : dimensions)
-    {
-        sum *= dim;
-    }
-    return sum;
+    return std::accumulate(std::begin(dimensions), std::end(dimensions),
+                    Tout{!dimensions.isEmpty()}, [](Tout sum, Tin dim){
+        return sum * dim;
+    });
 }
 
 template<typename Tout> Tout inline

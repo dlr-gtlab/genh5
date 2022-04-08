@@ -10,24 +10,27 @@
 #define GT_H5DABSTRACTDATA_H
 
 #include "gt_h5datatype.h"
+#include "gt_h5dataspace.h"
 #include <QByteArray>
 #include <QVector>
 
 /**
  * @brief The GtH5AbstractData struct
  */
-template<typename T>
+template<typename Tdata>
 struct GtH5AbstractData
 {
+    virtual ~GtH5AbstractData() = default;
+
     /// typedef for T
-    using Data = T;
+    using Data = Tdata;
 
     /**
-     * @brief The isImplemented struct helper struct to check whether a datatype
-     * has a valid implementation
+     * @brief helper struct to check at build time whether this datatype has a
+     * valid implementation
      */
     struct isImplemented :
-            std::integral_constant<bool, !std::is_empty<T>::value> {};
+            std::integral_constant<bool, !std::is_empty<Data>::value> {};
 
     /**
      * @brief dataType
@@ -35,30 +38,40 @@ struct GtH5AbstractData
      */
     virtual GtH5DataType dataType() const = 0;
 
+    GtH5DataSpace dataSpace() const {
+        return GtH5DataSpace{static_cast<uint64_t>(m_data.length())};
+    }
+
     /**
      * @brief reference to data array
      * @return reference to data array
      */
-    virtual inline QVector<T>& data() { return m_data; }
+    /**@{*/
+    QVector<Data> const& data() const { return m_data; }
+    QVector<Data>& data() { return m_data; }
+    /**@}*/
 
     /**
-     * @brief dataPtr returns pointer to first element of data array. can be
+     * @brief Returns pointer to first element of data array. Can be
      * used to write and read data from a dataset
      * @return pointer to data array
      */
-    inline void* dataPtr() { return data().data(); }
+    /**@{*/
+    void const* dataPtr() const { return data().constData(); }
+    void* dataPtr() { return data().data(); }
+    /**@}*/
 
     /**
      * @brief isEmpty
      * @return
      */
-    inline bool isEmpty() { return data().isEmpty(); }
+    inline bool isEmpty() const { return data().isEmpty(); }
 
     /**
      * @brief length
      * @return
      */
-    inline int length() { return data().length(); }
+    inline int length() const { return data().length(); }
 
     /**
      * @brief resize used to pre allocate the data array. This is used for
@@ -73,35 +86,44 @@ struct GtH5AbstractData
 
     /**
      * @brief reseve
-     * @param length
+     * @param length length
      */
     inline void reserve(const int length) { data().reserve(length); }
 
     /**
      * @brief append
-     * @param data
+     * @param d data
      */
-    inline void append(const T& d) { data().append(d); }
-    inline void append(const QVector<T>& d) { data().append(d); }
+     /**@{*/
+    inline void append(const Data& d) { data().append(d); }
+    inline void append(const QVector<Data>& d) { data().append(d); }
+    /**@}*/
 
     /**
      * @brief clear
      */
     inline void clear() { data().clear(); }
 
-    // operators
-    operator QVector<T>&() { return data(); }
-    operator GtH5DataType() { return dataType(); }
+    /**
+     * @brief operator QVector<T> &
+     */
+    operator QVector<Data>&() { return data(); }
 
 protected:
 
     /**
      * @brief GtH5AbstractData
      */
-    GtH5AbstractData() {}
+    GtH5AbstractData() = default;
+    GtH5AbstractData(const QVector<Data>& data) : m_data{data} {}
+
+    GtH5AbstractData(GtH5AbstractData const& other) = default;
+    GtH5AbstractData(GtH5AbstractData&& other) = default;
+    GtH5AbstractData& operator=(GtH5AbstractData const& other) = default;
+    GtH5AbstractData& operator=(GtH5AbstractData&& other) = default;
 
     /// internal data array
-    QVector<T> m_data;
+    QVector<Data> m_data{};
 };
 
 #endif // GT_H5DABSTRACTDATA_H

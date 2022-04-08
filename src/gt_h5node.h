@@ -6,73 +6,61 @@
  * Email: marius.broecker@dlr.de
  */
 
+#include "gt_h5location.h"
+
 #ifndef GTH5NODE_H
 #define GTH5NODE_H
 
-#include "gt_h5leaf.h"
-
 class GtH5DataType;
 class GtH5DataSpace;
-class GtH5DataSet;
-class GtH5Group;
+class GtH5Attribute;
 
 /**
- * @brief The GtH5Node class
+ * @brief The GtH5Leaf class
  */
-class GT_H5_EXPORT GtH5Node : public GtH5Leaf
+class GT_H5_EXPORT GtH5Node : public GtH5Location
 {
 public:
-
-    /**
-     * @brief id or handle of the hdf5 resource
-     * @return id
-     */
-    virtual int64_t id() const override = 0;
-
-    /**
-     * @brief returns whether the object id is valid and can be used for further
-     * actions. Call this after instantion to verify the resource allocation.
-     * @return whether object id is valid
-     */
-    virtual bool isValid() const override { return GtH5Leaf::isValid(); }
-
-    /**
-     * @brief deletes the object
-     * @return success
-     */
-    virtual bool deleteLink() override = 0;
-
-    /**
-     * @brief type of the object
-     * @return type
-     */
-    virtual ObjectType type() const override = 0;
 
     /**
      * @brief returns the hdf5 object as a h5object
      * @return h5object
      */
-    virtual const H5::H5Object* toH5Object() const override = 0;
+    virtual H5::H5Object const* toH5Object() const = 0;
 
-    // groups
-    GtH5Group createGroup(const QString& name);
-    GtH5Group createGroup(const QByteArray& name);
-    GtH5Group openGroup(const QString& name);
-    GtH5Group openGroup(const QByteArray& name);
+    /**
+     * @brief returns the hdf5 object as a h5location.
+     * @return h5location
+     */
+    H5::H5Location const* toH5Location() const override;
 
-    // datasets
-    GtH5DataSet createDataset(const QString& name,
-                              const GtH5DataType& dtype,
-                              const GtH5DataSpace& dspace);
-    GtH5DataSet createDataset(const QByteArray& name,
-                              const GtH5DataType& dtype,
-                              const GtH5DataSpace& dspace);
-    GtH5DataSet openDataset(const QString& name);
-    GtH5DataSet openDataset(const QByteArray& name);
+    /**
+     * @brief returns whether the attribute exists at this node
+     * @param name of the attribute
+     * @return whether attibuet exists
+     */
+    bool hasAttribute(QByteArray const& name) const;
+
+    GtH5Attribute createAttribute(QString const& name,
+                                  GtH5DataType const& dtype,
+                                  GtH5DataSpace const& dspace) const;
+    GtH5Attribute createAttribute(QByteArray const& name,
+                                  GtH5DataType const& dtype,
+                                  GtH5DataSpace const& dspace) const;
+
+    GtH5Attribute openAttribute(QString const& name) const;
+    GtH5Attribute openAttribute(QByteArray const& name) const;
 
 protected:
 
-    GtH5Node() {}
+    /**
+     * @brief GtH5Leaf
+     */
+    GtH5Node(std::shared_ptr<GtH5File> file = {},
+                 QByteArray const& name = {});
+
+    GtH5Node(GtH5Node const& other) = default;
+    GtH5Node(GtH5Node&& other)  = default;
 };
 
 #endif // GTH5NODE_H

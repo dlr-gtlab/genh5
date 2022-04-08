@@ -8,62 +8,53 @@
 
 #include "gt_h5node.h"
 
-#include "gt_h5group.h"
 #include "gt_h5attribute.h"
-#include "gt_h5dataset.h"
-#include "gt_h5reference.h"
+#include "gt_h5dataspace.h"
+#include "gt_h5datatype.h"
 
-#include <QDebug>
 
-GtH5Group
-GtH5Node::createGroup(const QString& name)
+GtH5Node::GtH5Node(std::shared_ptr<GtH5File> file, QByteArray const& name) :
+    GtH5Location(std::move(file), name)
 {
-    return createGroup(name.toUtf8());
+
 }
 
-GtH5Group
-GtH5Node::createGroup(const QByteArray& name)
+const H5::H5Location*
+GtH5Node::toH5Location() const
 {
-    return GtH5Group::create(*this, name, GtH5Group::CreateOpen);
+    return this->toH5Object();
 }
 
-GtH5Group
-GtH5Node::openGroup(const QString& name)
+bool
+GtH5Node::hasAttribute(QByteArray const& name) const
 {
-    return openGroup(name.toUtf8());
+    return this->toH5Object()->attrExists(name.constData());
 }
 
-GtH5Group
-GtH5Node::openGroup(const QByteArray& name)
+GtH5Attribute
+GtH5Node::createAttribute(QString const& name,
+                              GtH5DataType const& dtype,
+                              GtH5DataSpace const& dspace) const
 {
-    return GtH5Group::open(*this, name);
+    return createAttribute(name.toUtf8(), dtype, dspace);
 }
 
-GtH5DataSet
-GtH5Node::createDataset(const QString& name,
-                        const GtH5DataType& dtype,
-                        const GtH5DataSpace& dspace)
+GtH5Attribute
+GtH5Node::createAttribute(QByteArray const& name,
+                              GtH5DataType const& dtype,
+                              GtH5DataSpace const& dspace) const
 {
-    return createDataset(name.toUtf8(), dtype, dspace);
+    return GtH5Attribute::create(*this, name, dtype, dspace);
 }
 
-GtH5DataSet
-GtH5Node::createDataset(const QByteArray& name,
-                        const GtH5DataType& dtype,
-                        const GtH5DataSpace& dspace)
+GtH5Attribute
+GtH5Node::openAttribute(QString const& name) const
 {
-    return GtH5DataSet::create(*this, name, dtype, dspace,
-                               GtH5DataSet::CreateOpen);
+    return GtH5Attribute::open(*this, name.toUtf8());
 }
 
-GtH5DataSet
-GtH5Node::openDataset(const QString& name)
+GtH5Attribute
+GtH5Node::openAttribute(QByteArray const& name) const
 {
-    return openDataset(name.toUtf8());
-}
-
-GtH5DataSet
-GtH5Node::openDataset(const QByteArray& name)
-{
-    return GtH5DataSet::open(*this, name);
+    return GtH5Attribute::open(*this, name);
 }

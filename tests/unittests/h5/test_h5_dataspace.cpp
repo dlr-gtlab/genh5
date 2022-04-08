@@ -14,19 +14,13 @@
 class TestH5DataSpace : public testing::Test
 {
 protected:
-    virtual void SetUp()
-    {
-        dspaceEmpty  = GtH5DataSpace();
-        dspaceSimple = GtH5DataSpace(42);
-        dspaceMulti  = GtH5DataSpace({ 2, 21 });
-    }
 
     // null
-    GtH5DataSpace dspaceEmpty;
+    GtH5DataSpace dspaceEmpty{};
     // linear
-    GtH5DataSpace dspaceSimple;
+    GtH5DataSpace dspaceSimple{42};
     // two dim
-    GtH5DataSpace dspaceMulti;
+    GtH5DataSpace dspaceMulti{{ 2, 21 }};
 };
 
 TEST_F(TestH5DataSpace, isValid)

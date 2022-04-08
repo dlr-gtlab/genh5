@@ -19,7 +19,7 @@ class TestH5Group : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         file = GtH5File(TestHelper::instance()->newFilePath(),
                         GtH5File::CreateOverwrite);
@@ -36,7 +36,7 @@ TEST_F(TestH5Group, isValid)
     EXPECT_FALSE(root.isValid());
 
     // open the file as a root group
-    root = file;
+    root = GtH5Group(file);
     EXPECT_TRUE(root.isValid());
 
     // create a first sub group

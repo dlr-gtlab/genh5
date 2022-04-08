@@ -12,7 +12,7 @@ include(settings.pri)
 
 TEMPLATE = subdirs
 CONFIG += ordered console
-CONFIG += c++11
+CONFIG += c++14
 
 #### Interface ####
 contains(BUILD_HDF5, true) {

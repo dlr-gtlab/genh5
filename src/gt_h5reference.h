@@ -28,9 +28,11 @@ public:
     using ObjectType = GtH5Location::ObjectType;
 
     GtH5Reference();
-    GtH5Reference(int64_t data, ObjectType type = ObjectType::Unkown);
-    GtH5Reference(const H5R_ref_t& ref, ObjectType type = ObjectType::Unkown);
-    GtH5Reference(const GtH5Location& location);
+    explicit GtH5Reference(int64_t data,
+                           ObjectType type = ObjectType::Unkown);
+    explicit GtH5Reference(H5R_ref_t const& ref,
+                           ObjectType type = ObjectType::Unkown);
+    explicit GtH5Reference(GtH5Location const& location);
 
     /**
      * @brief allows access of the base hdf5 object
@@ -62,28 +64,28 @@ public:
      * @param file in which the object is located
      * @return group
      */
-    GtH5Group toGroup(GtH5File& file) const;
+    GtH5Group toGroup(GtH5File const& file) const;
 
     /**
      * @brief try dereferencing the object to a dataset.
      * @param file in which the object is located
      * @return dataset
      */
-    GtH5DataSet toDataSet(GtH5File& file) const;
+    GtH5DataSet toDataSet(GtH5File const& file) const;
 
     /**
      * @brief try dereferencing the object to a attribute.
      * @param file in which the object is located
      * @return attribute
      */
-    GtH5Attribute toAttribute(GtH5File& file) const;
+    GtH5Attribute toAttribute(GtH5File const& file) const;
 
 private:
 
     /// hdf5 base instance
-    H5R_ref_t m_ref;
+    H5R_ref_t m_ref{};
     /// type of the referenced object
-    ObjectType m_type;
+    ObjectType m_type{ObjectType::Unkown};
 };
 
 #endif // GTH5REFERENCE_H

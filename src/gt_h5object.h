@@ -20,6 +20,8 @@ class GT_H5_EXPORT GtH5Object
 {
 public:
 
+    virtual ~GtH5Object() = default;
+
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
@@ -37,10 +39,15 @@ public:
 
 protected:
 
+    GtH5Object(GtH5Object const& other) = delete;
+    GtH5Object(GtH5Object&& other) = delete;
+    GtH5Object& operator=(GtH5Object const& other) = delete;
+    GtH5Object& operator=(GtH5Object&& other) = delete;
+
     /**
      * @brief GtH5Object
      */
-    GtH5Object() {}
+    GtH5Object();
 };
 
 #endif // GTH5OBJECT_H

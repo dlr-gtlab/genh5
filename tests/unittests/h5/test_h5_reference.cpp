@@ -12,6 +12,7 @@
 #include "gt_h5dataset.h"
 #include "gt_h5attribute.h"
 #include "gt_h5reference.h"
+#include "gt_h5data.h"
 
 #include "testhelper.h"
 
@@ -21,7 +22,7 @@ class TestH5Reference : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         file = GtH5File(TestHelper::instance()->newFilePath(),
                         GtH5File::CreateOverwrite);
@@ -31,11 +32,13 @@ protected:
         ASSERT_TRUE(group.isValid());
 
         dataset = group.createDataset(QByteArrayLiteral("dataset"),
-                                      GtH5Data<int>(), 0);
+                                      GtH5Data<int>().dataType(),
+                                      GtH5DataSpace{0});
         ASSERT_TRUE(dataset.isValid());
 
         attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
-                                            GtH5Data<double>(), 0);
+                                            GtH5Data<int>().dataType(),
+                                            GtH5DataSpace{0});
         ASSERT_TRUE(attribute.isValid());
     }
 
@@ -60,8 +63,8 @@ TEST_F(TestH5Reference, referenceGroup)
     EXPECT_EQ(grp.name(), group.name());
     EXPECT_EQ(grp.file(), group.file());
 
-    // check ref count of file
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
 }
 
 TEST_F(TestH5Reference, referenceDataset)
@@ -79,13 +82,13 @@ TEST_F(TestH5Reference, referenceDataset)
     EXPECT_EQ(dset.name(), dataset.name());
     EXPECT_EQ(dset.file(), dataset.file());
 
-    // check ref count of file
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
 }
 
 TEST_F(TestH5Reference, referenceAttribute)
 {
-    // datatset
+    // reference
     GtH5Reference ref = attribute.toReference();
     EXPECT_TRUE(ref.isValid());
     EXPECT_EQ(ref.type(), attribute.type());
@@ -98,8 +101,8 @@ TEST_F(TestH5Reference, referenceAttribute)
     EXPECT_EQ(attr.name(), attribute.name());
     EXPECT_EQ(attr.file(), attribute.file());
 
-    // check ref count of file
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
 }
 
 

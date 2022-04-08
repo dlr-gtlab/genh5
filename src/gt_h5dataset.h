@@ -9,7 +9,7 @@
 #ifndef GTH5DATASET_H
 #define GTH5DATASET_H
 
-#include "gt_h5leaf.h"
+#include "gt_h5node.h"
 #include "gt_h5abtsractdataset.h"
 #include "gt_h5reference.h"
 #include "gt_h5datasetproperties.h"
@@ -21,32 +21,32 @@ class GtH5Reference;
 /**
  * @brief The GtH5DataSet class
  */
-class GT_H5_EXPORT GtH5DataSet : public GtH5Leaf,
+class GT_H5_EXPORT GtH5DataSet : public GtH5Node,
                                  public GtH5AbtsractDataSet
 {
 public:
 
-    static GtH5DataSet create(const GtH5Node& parent,
-                              const QByteArray& name,
-                              const GtH5DataType& dtype,
-                              const GtH5DataSpace& dspace,
-                              AccessFlag flag);
-    static GtH5DataSet create(const GtH5Node& parent,
-                              const QByteArray& name,
-                              const GtH5DataType& dtype,
-                              const GtH5DataSpace& dspace,
-                              const GtH5DataSetProperties& properties,
-                              AccessFlag flag);
-    static GtH5DataSet open(const GtH5Node& parent,
-                            const QByteArray& name);
+    static GtH5DataSet create(GtH5Group const& parent,
+                              QByteArray const& name,
+                              GtH5DataType const& dtype,
+                              GtH5DataSpace const& dspace,
+                              GtH5DataSetProperties const& properties = {});
+
+    static GtH5DataSet open(GtH5Group const& parent,
+                            QByteArray const& name);
 
     /**
      * @brief GtH5DataSet
      */
-    GtH5DataSet() {}
-    GtH5DataSet(GtH5File& file,
-                const H5::DataSet& dset,
-                const QByteArray& name = QByteArray());
+    GtH5DataSet();
+    GtH5DataSet(std::shared_ptr<GtH5File> file,
+                H5::DataSet const & dset,
+                QByteArray const& name = {});
+
+    GtH5DataSet(GtH5DataSet const& other);
+    GtH5DataSet(GtH5DataSet&& other) noexcept;
+    GtH5DataSet& operator=(GtH5DataSet const& other);
+    GtH5DataSet& operator=(GtH5DataSet&& other) noexcept;
 
     /**
      * @brief allows access of the base hdf5 object
@@ -83,18 +83,18 @@ public:
      * @brief returns the hdf5 object as a h5object
      * @return h5object
      */
-    const H5::H5Object* toH5Object() const override;
+    H5::H5Object const* toH5Object() const override;
 
     /**
      * @brief properties used to create this object.
      * @return create properties
      */
-    GtH5DataSetProperties properties() const;
+    GtH5DataSetProperties const& properties() const;
 
     /**
      * @brief resizes this dataset.
-     * @param new dimensions. Cannot exceed the original dimensions. Number of
-     * dimensions must match the current number
+     * @param dimensions new dimensions. Cannot exceed the original dimensions.
+     * Number of dimensions must match the current number
      * @return success
      */
     bool resize(const QVector<uint64_t>& dimensions);
@@ -104,19 +104,23 @@ public:
      */
     void close();
 
+    void swap(GtH5DataSet& other) noexcept;
+
 protected:
 
-    bool doWrite(void* data) const override;
+    bool doWrite(void const* data) const override;
     bool doRead(void* data) const override;
 
 private:
 
     /// hdf5 base instance
-    H5::DataSet m_dataset;
+    H5::DataSet m_dataset{};
     /// dataset create properties associated with this object
-    GtH5DataSetProperties m_properties;
+    GtH5DataSetProperties m_properties{};
 
     friend class GtH5Reference;
 };
+
+GT_H5_EXPORT void swap(GtH5DataSet& first, GtH5DataSet& other) noexcept;
 
 #endif // GTH5DATASET_H

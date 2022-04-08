@@ -10,14 +10,13 @@
 
 #include <QDebug>
 
+
+GtH5DataSpace::GtH5DataSpace() = default;
+
 GtH5DataSpace::GtH5DataSpace(uint64_t simpleLength) :
     GtH5DataSpace(QVector<uint64_t>{ simpleLength })
 {
-}
 
-GtH5DataSpace::GtH5DataSpace(std::initializer_list<uint64_t> dimensions):
-    GtH5DataSpace(QVector<uint64_t>(dimensions))
-{
 }
 
 GtH5DataSpace::GtH5DataSpace(const QVector<uint64_t>& dimensions)
@@ -39,8 +38,38 @@ GtH5DataSpace::GtH5DataSpace(const QVector<uint64_t>& dimensions)
 }
 
 GtH5DataSpace::GtH5DataSpace(const H5::DataSpace& dataspace) :
-    m_dataspace(dataspace)
+    m_dataspace{dataspace}
 {
+
+}
+
+GtH5DataSpace::GtH5DataSpace(GtH5DataSpace const& other) :
+    m_dataspace{other.m_dataspace}
+{
+//    qDebug() << "GtH5DataSpace::copy";
+}
+
+GtH5DataSpace::GtH5DataSpace(GtH5DataSpace&& other) noexcept :
+    m_dataspace{std::move(other.m_dataspace)}
+{
+//    qDebug() << "GtH5DataSpace::move";
+}
+
+GtH5DataSpace&
+GtH5DataSpace::operator=(GtH5DataSpace const& other)
+{
+//    qDebug() << "GtH5DataSpace::copy=";
+    auto tmp{other};
+    swap(tmp);
+    return *this;
+}
+
+GtH5DataSpace&
+GtH5DataSpace::operator=(GtH5DataSpace&& other) noexcept
+{
+//    qDebug() << "GtH5DataSpace::move=";
+    swap(other);
+    return *this;
 }
 
 int64_t
@@ -70,13 +99,27 @@ GtH5DataSpace::toH5() const
 }
 
 bool
-GtH5DataSpace::operator==(const GtH5DataSpace& other)
+operator==(GtH5DataSpace const& first, GtH5DataSpace const& other)
 {
-    return this->dimensions() == other.dimensions();
+    return first.dimensions() == other.dimensions();
 }
 
 bool
-GtH5DataSpace::operator!=(const GtH5DataSpace& other)
+operator!=(GtH5DataSpace const& first, GtH5DataSpace const& other)
 {
-    return !operator==(other);
+    return !(first == other);
+}
+
+void
+GtH5DataSpace::swap(GtH5DataSpace& other) noexcept
+{
+    using std::swap;
+    swap(m_dataspace, other.m_dataspace);
+}
+
+void
+swap(GtH5DataSpace& first, GtH5DataSpace& other) noexcept
+{
+//    qDebug() << "swap(GtH5DataSpace)";
+    first.swap(other);
 }

@@ -8,6 +8,8 @@
 
 #include "gt_h5object.h"
 
+GtH5Object::GtH5Object() = default;
+
 bool
 GtH5Object::isValid() const
 {
@@ -19,4 +21,3 @@ GtH5Object::isValid(int64_t id)
 {
     return H5Iis_valid(id);
 }
-
