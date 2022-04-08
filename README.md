@@ -19,7 +19,7 @@ Currently not covered:
  - Accessing dataset regions
  - External HDF5 files and datasets
  - Creating soft/hard links to nodes
- - Certain datatpyes (eg. opaque types, compound types containing more than three components or arrays)
+ - Certain datatypes (eg. opaque types or compound types containing arrays or more than three components)
 
 ## How to use the wrapper
 
@@ -33,16 +33,16 @@ Writing a list of Integers to a dataset:
 // create simple int data
 GtH5Data<int> data( {1, 2, 3, 4} );
 
-// create the file (overwrite if it exists)
+// create the file or overwrite if it already exists
 GtH5File file = GtH5File(QByteArrayLiteral("my_file.h5"), GtH5File::CreateOverwrite);
+// validate the object
+if (!file.isValid()) {
+	return; // error handling
+}
 // access the root group of the file and create a subgroup
 GtH5Group group = file.root().createGroup(QByteArrayLiteral("my_group"));
 // create simple dataset at '/my_group/my_data'
 GtH5DataSet dataset = group.createDataset(QByteArrayLiteral("my_data"), data.dataType(), data.length());
-// validate the resource (should be called for each object)
-if (!dataset.isValid()) {	
-	return; // error handling
-}
 // write the data
 dataset.write(data);
 ```

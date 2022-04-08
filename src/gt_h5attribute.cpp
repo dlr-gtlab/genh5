@@ -7,20 +7,22 @@
  */
 
 #include "gt_h5attribute.h"
-#include "gt_h5leaf.h"
+#include "gt_h5node.h"
 #include "gt_h5file.h"
 
 #include <QDebug>
 
+
+GtH5Attribute::GtH5Attribute() = default;
+
 GtH5Attribute
-GtH5Attribute::create(const GtH5Leaf& parent,
-                      const QByteArray& name,
-                      const GtH5DataType& dtype,
-                      const GtH5DataSpace& dspace,
-                      AccessFlag flag)
+GtH5Attribute::create(GtH5Node const& parent,
+                      QByteArray const& name,
+                      GtH5DataType const& dtype,
+                      GtH5DataSpace const& dspace)
 {
     // create new attribute!
-    if (flag == AccessFlag::Create || !parent.hasAttribute(name))
+    if (!parent.hasAttribute(name))
     {
         H5::Attribute attr;
         try
@@ -31,16 +33,17 @@ GtH5Attribute::create(const GtH5Leaf& parent,
         }
         catch (H5::AttributeIException& /*e*/)
         {
-            qCritical() << "HDF5: Creating attribute failed!";
-            return GtH5Attribute();
+            qCritical() << "HDF5: Creating attribute failed! -" << name;
+            return {};
         }
         catch (H5::Exception& /*e*/)
         {
-            qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::create failed!";
-            return GtH5Attribute();
+            qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::create failed! -"
+                        << name;
+            return {};
         }
 
-        return GtH5Attribute(*parent.file(), attr, name);
+        return GtH5Attribute(parent.file(), attr, name);
     }
 
     // open existing attribute
@@ -53,21 +56,18 @@ GtH5Attribute::create(const GtH5Leaf& parent,
     }
 
     // attribute cannot be resized and must be deleted
-    if (flag != CreateOverwrite)
+    qWarning() << "HDF5: Invalid memory layout! Overwriting dataset! -" << name;
+    if (!attr.deleteLink())
     {
-        qDebug() << "HDF5: Overwriting attribute failed! "
-                    "(invalid memory layout)";
-        return GtH5Attribute();
+        return {};
     }
 
-    attr.deleteLink();
-
-    return create(parent, name, dtype, dspace, Create);
+    return create(parent, name, dtype, dspace);
 }
 
 GtH5Attribute
-GtH5Attribute::open(const GtH5Leaf& parent,
-                    const QByteArray& name)
+GtH5Attribute::open(GtH5Node const& parent,
+                    QByteArray const& name)
 {
     H5::Attribute attr;
     try
@@ -76,27 +76,62 @@ GtH5Attribute::open(const GtH5Leaf& parent,
     }
     catch (H5::DataSetIException& /*e*/)
     {
-        qCritical() << "HDF5: Opening attribute failed!";
+        qCritical() << "HDF5: Opening attribute failed! -" << name;
         return GtH5Attribute();
     }
     catch (H5::Exception& /*e*/)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::open failed!";
+        qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::open failed! -"
+                    << name;
         return GtH5Attribute();
     }
 
-    return GtH5Attribute(*parent.file(), attr, name);
+    return GtH5Attribute(parent.file(), attr, name);
 }
 
-GtH5Attribute::GtH5Attribute(GtH5File& file,
-                             const H5::Attribute& attr,
-                             const QByteArray& name) :
+GtH5Attribute::GtH5Attribute(std::shared_ptr<GtH5File> file,
+                             H5::Attribute const& attr,
+                             QByteArray const& name) :
+    GtH5Location(std::move(file), name),
+    GtH5AbtsractDataSet(GtH5DataType(attr.getDataType()),
+                        GtH5DataSpace(attr.getSpace())),
     m_attribute(attr)
 {
-    m_file = &file;
-    m_datatype  = GtH5DataType(attr.getDataType());
-    m_dataspace = GtH5DataSpace(attr.getSpace());
-    m_name = name.isEmpty() ? getAttrName(*this) : name;
+    if (m_name.isEmpty())
+    {
+        m_name = getAttrName(*this);
+    }
+}
+
+GtH5Attribute::GtH5Attribute(GtH5Attribute const& other) :
+    GtH5AbtsractDataSet(other),
+    m_attribute{other.m_attribute}
+{
+//    qDebug() << "GtH5Attribute::copy";
+}
+
+GtH5Attribute::GtH5Attribute(GtH5Attribute&& other) noexcept :
+    GtH5AbtsractDataSet(std::move(other)),
+    m_attribute{std::move(other.m_attribute)}
+{
+//    qDebug() << "GtH5Attribute::move";
+}
+
+GtH5Attribute&
+GtH5Attribute::operator=(GtH5Attribute const& other)
+{
+//    qDebug() << "GtH5Attribute::copy=";
+    auto dset{other};
+    swap(dset);
+    return *this;
+}
+
+GtH5Attribute&
+GtH5Attribute::operator=(GtH5Attribute&& other) noexcept
+{
+//    qDebug() << "GtH5Attribute::move=";
+    swap(other);
+    return *this;
 }
 
 int64_t
@@ -114,7 +149,7 @@ GtH5Attribute::toH5Location() const
 bool
 GtH5Attribute::isValid() const
 {
-    return GtH5Location::isValid(); // && m_datatype.isValid() && m_dataspace.isValid();
+    return GtH5Location::isValid();
 }
 
 H5::Attribute
@@ -124,7 +159,7 @@ GtH5Attribute::toH5() const
 }
 
 bool
-GtH5Attribute::doWrite(void* data) const
+GtH5Attribute::doWrite(void const* data) const
 {
     try
     {
@@ -133,11 +168,12 @@ GtH5Attribute::doWrite(void* data) const
     }
     catch (H5::AttributeIException& /*e*/)
     {
-        qCritical() << "HDF5: Writing attribute failed!";
+        qCritical() << "HDF5: Writing attribute failed! -" << m_name;
     }
     catch (H5::Exception& /*e*/)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::doWrite failed!";
+        qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::doWrite failed! -"
+                    << m_name;
     }
     return false;
 }
@@ -152,11 +188,12 @@ GtH5Attribute::doRead(void* data) const
     }
     catch (H5::AttributeIException& /*e*/)
     {
-        qCritical() << "HDF5: Reading attribute failed!";
+        qCritical() << "HDF5: Reading attribute failed! -" << m_name;
     }
     catch (H5::Exception& /*e*/)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::doRead failed!";
+        qCritical() << "HDF5: [EXCEPTION] GtH5Attribute::doRead failed! -"
+                    << m_name;
     }
     return false;
 }
@@ -164,7 +201,7 @@ GtH5Attribute::doRead(void* data) const
 bool
 GtH5Attribute::deleteLink()
 {
-    qDebug() << "HDF5: GtH5Attribute::delete";
+    qDebug() << "HDF5: Deleting attribute...";
 
     if (!this->isValid())
     {
@@ -194,4 +231,19 @@ void
 GtH5Attribute::close()
 {
     m_attribute.close();
+}
+
+void
+GtH5Attribute::swap(GtH5Attribute& other) noexcept
+{
+    using std::swap;
+    GtH5Location::swap(other);
+    GtH5AbtsractDataSet::swap(other);
+    swap(m_attribute, other.m_attribute);
+}
+
+void
+swap(GtH5Attribute& first, GtH5Attribute& other) noexcept
+{
+    first.swap(other);
 }

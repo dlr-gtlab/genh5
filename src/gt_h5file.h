@@ -28,50 +28,60 @@ public:
      */
     enum AccessFlag
     {
-        OpenReadOnly,
-        OpenReadWrite,
-        CreateReadWrite,
-        CreateNotExisting,
-        CreateOverwrite
+        OpenReadOnly = 1,
+        OpenReadWrite = 2,
+        CreateReadWrite = 4,
+        CreateNotExisting = 8,
+        CreateOverwrite = 16
     };
 
     /**
      * @brief translates the access flags to hdf5 compatible access flags
      * (eg. H5F_ACC_TRUNC).
-     * @param mode
+     * @param mode access mode
      * @return hdf5 access mode
      */
-    static uint accessMode(AccessFlag mode);
+    static uint32_t accessMode(AccessFlag mode);
 
     /**
      * @brief returns whether the file exists
-     * @param file path
+     * @param path file path
      * @return whether the file exists
      */
-    static bool fileExists(const QString& path);
+    static bool fileExists(QString const& path);
 
     /**
      * @brief returns whether the file is a valid hdf5 file. Does not check if
      * file is corrupted
-     * @param file path
+     * @param filePath file path
      * @return whether the file is a valid hdf5 file
      */
-    static bool isValidH5File(const QString& filePath);
-    static bool isValidH5File(const QByteArray& filePath);
+    static bool isValidH5File(QString const& filePath);
+    static bool isValidH5File(QByteArray const& filePath);
 
     /**
-     * @brief hdf5 file suffix including dot
-     * @return hdf5 file suffix including dot
+     * @brief hdf5 file suffix not including dot
+     * @return file suffix
      */
     static QByteArray fileSuffix();
+    /**
+     * @brief hdf5 file suffix not including dot
+     * @return file suffix
+     */
+    static QByteArray dotFileSuffix();
 
     /**
      * @brief GtH5File
      */
-    GtH5File() {}
-    GtH5File(const QFile& h5File, AccessFlag flag);
-    GtH5File(const QString& path, AccessFlag flag);
-    GtH5File(const QByteArray& path, AccessFlag flag);
+    GtH5File();
+    GtH5File(QFile const& h5File, AccessFlag flag);
+    GtH5File(QString const& path, AccessFlag flag);
+    GtH5File(QByteArray const& path, AccessFlag flag);
+
+    GtH5File(GtH5File const& other);
+    GtH5File(GtH5File&& other) noexcept;
+    GtH5File& operator=(GtH5File const& other);
+    GtH5File& operator=(GtH5File&& other) noexcept;
 
     /**
      * @brief allows access of the base hdf5 object.
@@ -108,21 +118,25 @@ public:
      * @brief file path used to create this file.
      * @return filepath
      */
-    QByteArray filePath() const;
+    QByteArray const& filePath() const;
 
     /**
      * @brief explicitly closes the resource handle.
      */
     void close();
 
+    void swap(GtH5File& other) noexcept;
+
 private:
 
     /// hdf5 base instance
-    H5::H5File m_file;
+    H5::H5File m_file{};
     /// stores the file path used to create this object
-    QByteArray m_filePath;
+    QByteArray m_filePath{};
     /// cashes the associated root group
-    mutable GtH5Group m_root;
+    mutable GtH5Group m_root{};
 };
+
+GT_H5_EXPORT void swap(GtH5File& first, GtH5File& other) noexcept;
 
 #endif // GTH5FILE_H

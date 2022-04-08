@@ -34,7 +34,7 @@ TestHelper::newFilePath() const
     }
 
     return dir.absoluteFilePath(QUuid::createUuid().toString() +
-                                GtH5File::fileSuffix());
+                                GtH5File::dotFileSuffix());
 }
 
 QString

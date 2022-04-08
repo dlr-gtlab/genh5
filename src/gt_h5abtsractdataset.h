@@ -12,9 +12,10 @@
 #include "gt_h5_exports.h"
 #include "gt_h5datatype.h"
 #include "gt_h5dataspace.h"
-#include "gt_h5data.h"
+#include "gt_h5abstractdata.h"
 
 #include <QVector>
+#include <QDebug>
 
 /**
  * @brief The GtH5AbtsractDataSet class
@@ -22,33 +23,24 @@
 class GT_H5_EXPORT GtH5AbtsractDataSet
 {
 public:
-
-    /**
-     * @brief The AccessFlag enum
-     */
-    enum AccessFlag
-    {
-        Create,             // fails if dataset does exist
-        CreateOpen,         // if dataset exists checks for equal dimensions
-        CreateOverwrite     // deletes the dataset if its exists
-    };
+    virtual ~GtH5AbtsractDataSet() = default;
 
     /**
      * @brief dataType of this dataset
      * @return dataType
      */
-    GtH5DataType dataType() const;
+    GtH5DataType const& dataType() const;
     /**
      * @brief dataSpace of this dataset
      * @return dataSpace
      */
-    GtH5DataSpace dataSpace() const;
+    GtH5DataSpace const& dataSpace() const;
 
-    bool write(void* data) const;
+    bool write(void const* data) const;
     template<typename T>
-    bool write(const QVector<T>& data) const;
+    bool write(QVector<T> const& data) const;
     template<typename T>
-    bool write(GtH5AbstractData<T>& data) const;
+    bool write(GtH5AbstractData<T> const& data) const;
 
     bool read(void* data) const;
     template<typename T>
@@ -61,48 +53,57 @@ protected:
     /**
      * @brief GtH5AbtsractDataSet
      */
-    GtH5AbtsractDataSet() {}
+    GtH5AbtsractDataSet(GtH5DataType const& dtype = {},
+                        GtH5DataSpace const& dspace = {});
+
+    GtH5AbtsractDataSet(GtH5AbtsractDataSet const& other) = default;
+    GtH5AbtsractDataSet(GtH5AbtsractDataSet&& other) = default;
+    GtH5AbtsractDataSet& operator=(GtH5AbtsractDataSet const& other) = default;
+    GtH5AbtsractDataSet& operator=(GtH5AbtsractDataSet&& other) = default;
 
     /// datatype of this dataset
-    GtH5DataType  m_datatype;
+    GtH5DataType  m_datatype{};
     /// dataspace of this dataset
-    GtH5DataSpace m_dataspace;
+    GtH5DataSpace m_dataspace{};
 
-    virtual bool doWrite(void* data) const = 0;
+    virtual bool doWrite(void const* data) const = 0;
     virtual bool doRead(void* data) const = 0;
+
+    void swap(GtH5AbtsractDataSet& other) noexcept;
 };
 
 
 
 template<typename T> bool
-GtH5AbtsractDataSet::write(const QVector<T>& data) const
+GtH5AbtsractDataSet::write(QVector<T> const& data) const
 {
     if (data.length() < dataSpace().sum())
     {
-        qCritical() << "HDF5: Writing data failed! (to few data elemts)";
+        qCritical() << "HDF5: Writing data failed!" <<
+                       "(To few data elements)";
         return false;
     }
 
-    return write((void*) data.constData());
+    return write(static_cast<const void*>(data.data()));
 }
 
 template<typename T> bool
-GtH5AbtsractDataSet::write(GtH5AbstractData<T>& data) const
+GtH5AbtsractDataSet::write(GtH5AbstractData<T> const& data) const
 {
     static_assert (GtH5AbstractData<T>::isImplemented::value,
-                   "HDF5: data vector specialization is not implemented!");
+                   "HDF5: Datavector specialization is not implemented!");
 
     if (data.dataType() != dataType())
     {
-        qCritical() << "HDF5: writing data vector failed! "
-                       "(datatypes mismatch)";
+        qCritical() << "HDF5: Writing datavector failed!"
+                    << "(Datatype mismatch)";
         return false;
     }
 
-    if (data.dataPtr() == Q_NULLPTR)
+    if (data.dataPtr() == nullptr)
     {
-        qCritical() << "HDF5: Writing data vector failed! "
-                       "(data vector is invalid)";
+        qCritical() << "HDF5: Writing datavector failed!"
+                    << "(Datavector is invalid)";
         return false;
     }
 
@@ -110,7 +111,8 @@ GtH5AbtsractDataSet::write(GtH5AbstractData<T>& data) const
 
     if (data.length() < size)
     {
-        qCritical() << "HDF5: Writing data vector failed! (to few data elemts:"
+        qCritical() << "HDF5: Writing datavector failed"
+                    << "(To few data elements for dataspace:"
                     << data.length() << "vs." << size << "elements)";
         return false;
     }
@@ -131,19 +133,19 @@ template<typename T> bool
 GtH5AbtsractDataSet::read(GtH5AbstractData<T>& data) const
 {
     static_assert (GtH5AbstractData<T>::isImplemented::value,
-                   "HDF5: data vector specialization is not implemented!");
+                   "HDF5: Datavector specialization is not implemented!");
 
     if (data.dataType() != dataType())
     {
-        qCritical() << "HDF5: Reading data vector failed! "
-                       "(datatypes mismatch)";
+        qCritical() << "HDF5: Reading datavector failed!"
+                    << "(Datatype mismatch)";
         return false;
     }
 
-    if (data.dataPtr() == Q_NULLPTR)
+    if (data.dataPtr() == nullptr)
     {
-        qCritical() << "HDF5: Reading data vector failed! "
-                       "(data vector is invalid)";
+        qCritical() << "HDF5: Reading datavector failed!"
+                    << "(Datavector is invalid)";
         return false;
     }
 
@@ -153,8 +155,8 @@ GtH5AbtsractDataSet::read(GtH5AbstractData<T>& data) const
 
     if (data.length() != size)
     {
-        qCritical() << "HDF5: Reading data vector failed! "
-                       "(data vector allocation failed:"
+        qCritical() << "HDF5: Reading datavector failed!"
+                    << "(Datavector allocation failed:"
                     << data.length() << "vs." << size << "elements)";
         return false;
     }

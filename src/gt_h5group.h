@@ -12,6 +12,9 @@
 #include "gt_h5node.h"
 
 class GtH5File;
+class GtH5DataType;
+class GtH5DataSpace;
+class GtH5DataSet;
 
 /**
  * @brief The GtH5Group class
@@ -20,29 +23,24 @@ class GT_H5_EXPORT GtH5Group : public GtH5Node
 {
 public:
 
-    /**
-     * @brief The AccessFlag enum
-     */
-    enum AccessFlag
-    {
-        Create,         // fails if group does exist
-        CreateOpen,     // creates group if it does not exist
-    };
-
-    static GtH5Group create(const GtH5Node& parent,
-                            const QByteArray& name,
-                            AccessFlag flag);
-    static GtH5Group open(const GtH5Node& parent,
+    static GtH5Group create(const GtH5Group& parent,
+                            const QByteArray& name);
+    static GtH5Group open(const GtH5Group& parent,
                           const QByteArray& name);
 
     /**
      * @brief GtH5Group
      */
-    GtH5Group() {}
-    GtH5Group(GtH5File& file);
-    GtH5Group(GtH5File& file,
-              const H5::Group& group,
-              const QByteArray& name = QByteArray());
+    GtH5Group();
+    explicit GtH5Group(GtH5File& file);
+    GtH5Group(std::shared_ptr<GtH5File> file,
+              H5::Group const& group,
+              QByteArray const& name = {});
+
+    GtH5Group(GtH5Group const& other) = default;
+    GtH5Group(GtH5Group&& other) = default;
+    GtH5Group& operator=(GtH5Group const& other);
+    GtH5Group& operator=(GtH5Group&& other) noexcept;
 
     /**
      * @brief allows access of the base hdf5 object
@@ -79,12 +77,32 @@ public:
      */
     void close();
 
+    // groups
+    GtH5Group createGroup(QString const& name);
+    GtH5Group createGroup(QByteArray const& name);
+    GtH5Group openGroup(QString const& name);
+    GtH5Group openGroup(QByteArray const& name);
+
+    // datasets
+    GtH5DataSet createDataset(QString const& name,
+                              GtH5DataType const& dtype,
+                              GtH5DataSpace const& dspace);
+    GtH5DataSet createDataset(QByteArray const& name,
+                              GtH5DataType const& dtype,
+                              GtH5DataSpace const& dspace);
+    GtH5DataSet openDataset(QString const& name);
+    GtH5DataSet openDataset(QByteArray const& name);
+
+    void swap(GtH5Group& other) noexcept;
+
 private:
 
     /// hdf5 base instance
-    H5::Group m_group;
+    H5::Group m_group{};
 
     friend class GtH5Reference;
 };
+
+GT_H5_EXPORT void swap(GtH5Group& first, GtH5Group& other) noexcept;
 
 #endif // GTH5GROUP_H

@@ -15,11 +15,7 @@
 #include <QDebug>
 
 
-GtH5Reference::GtH5Reference() :
-    m_type(ObjectType::Unkown)
-{
-    m_ref.u.align = 0;
-}
+GtH5Reference::GtH5Reference() = default;
 
 GtH5Reference::GtH5Reference(int64_t data, ObjectType type) :
     m_type(type)
@@ -27,20 +23,22 @@ GtH5Reference::GtH5Reference(int64_t data, ObjectType type) :
     m_ref.u.align = data;
 }
 
-GtH5Reference::GtH5Reference(const H5R_ref_t& ref, ObjectType type) :
+GtH5Reference::GtH5Reference(H5R_ref_t const& ref, ObjectType type) :
     m_ref(ref),
     m_type(type)
 {
+
 }
 
-GtH5Reference::GtH5Reference(const GtH5Location& location) :
+GtH5Reference::GtH5Reference(GtH5Location const& location) :
     m_type(location.type())
 {
     m_ref.u.align = 0;
 
     if (!location.isValid())
     {
-        qCritical() << "HDF5: Referencing location failed! (location is invalid)";
+        qCritical() << "HDF5: Referencing location failed! "
+                       "(location is invalid)";
         return;
     }
 
@@ -95,7 +93,7 @@ GtH5Reference::toH5() const
 }
 
 GtH5Group
-GtH5Reference::toGroup(GtH5File& file) const
+GtH5Reference::toGroup(GtH5File const& file) const
 {
     if (m_type != ObjectType::Group && m_type != ObjectType::Unkown)
     {
@@ -120,11 +118,12 @@ GtH5Reference::toGroup(GtH5File& file) const
         return GtH5Group();
     }
 
-    return GtH5Group(file, group);
+    // access shared file in root group as the local one may not be the same
+    return GtH5Group(file.root().file(), group);
 }
 
 GtH5DataSet
-GtH5Reference::toDataSet(GtH5File& file) const
+GtH5Reference::toDataSet(GtH5File const& file) const
 {
     if (m_type != ObjectType::DataSet && m_type != ObjectType::Unkown)
     {
@@ -149,11 +148,12 @@ GtH5Reference::toDataSet(GtH5File& file) const
         return GtH5DataSet();
     }
 
-    return GtH5DataSet(file, dset);
+    // access shared file in root group as the local one may not be the same
+    return GtH5DataSet(file.root().file(), dset);
 }
 
 GtH5Attribute
-GtH5Reference::toAttribute(GtH5File& file) const
+GtH5Reference::toAttribute(GtH5File  const& file) const
 {
     if (m_type != ObjectType::Attribute && m_type != ObjectType::Unkown)
     {
@@ -162,8 +162,8 @@ GtH5Reference::toAttribute(GtH5File& file) const
         return GtH5Attribute();
     }
 
-    hid_t id = H5Ropen_attr(const_cast<H5R_ref_t*>(&m_ref),
-                            H5P_DEFAULT, H5P_DEFAULT);
+    auto ref = m_ref;
+    hid_t id = H5Ropen_attr(&ref, H5P_DEFAULT, H5P_DEFAULT);
 
     if (id == -1)
     {
@@ -173,5 +173,7 @@ GtH5Reference::toAttribute(GtH5File& file) const
 
     H5::Attribute attr(id);
 
-    return GtH5Attribute(file, attr);
+    // access shared file in root group as the local one may not be the same
+    return GtH5Attribute(file.root().file(), attr);
 }
+

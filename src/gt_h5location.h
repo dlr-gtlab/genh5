@@ -13,6 +13,7 @@
 
 #include <QByteArray>
 #include <QByteArrayList>
+#include <memory>
 
 class GtH5File;
 class GtH5Attribute;
@@ -30,24 +31,18 @@ public:
      */
     enum ObjectType
     {
-        Unkown,     // invalid object type
-        Group,      // group
-        DataSet,    // dataset
-        Attribute   // attribute
+        Unkown = 1,     // invalid object type
+        Group = 2,      // group
+        DataSet = 4,    // dataset
+        Attribute = 8   // attribute
     };
-
-    /**
-     * @brief id or handle of the hdf5 resource.
-     * @return id
-     */
-    virtual int64_t id() const override = 0;
 
     /**
      * @brief returns whether the object id is valid and can be used for further
      * actions. Call this after instantion to verify the resource allocation.
      * @return whether object id is valid
      */
-    virtual bool isValid() const override;
+    bool isValid() const override;
 
     /**
      * @brief deletes the object.
@@ -65,21 +60,21 @@ public:
      * @brief returns the hdf5 object as a h5location.
      * @return h5location
      */
-    virtual const H5::H5Location* toH5Location() const = 0;
+    virtual H5::H5Location const* toH5Location() const = 0;
 
     /**
      * @brief exists
      * @param path
      * @return
      */
-    bool exists(const QByteArray& path) const;
+    bool exists(QByteArray const& path) const;
 
     /**
      * @brief exists
      * @param path
      * @return
      */
-    bool exists(const QByteArrayList& path) const;
+    bool exists(QByteArrayList const& path) const;
 
     /**
      * @brief internal path
@@ -91,7 +86,7 @@ public:
      * @brief internal name
      * @return name
      */
-    QByteArray name() const;
+    QByteArray const& name() const;
 
     /**
      * @brief returns a reference to this object.
@@ -100,38 +95,42 @@ public:
     GtH5Reference toReference();
 
     /**
-     * @brief pointer to the file instance of this object. File instance must
-     * be kept alive for the duration of any operation.
+     * @brief pointer to the shared file instance of this object
      * @return file
      */
-    GtH5File* file() const { return m_file; }
+    std::shared_ptr<GtH5File> file() const;
 
 protected:
 
     /**
      * @brief GtH5Location
      */
-    GtH5Location() : m_file(Q_NULLPTR), m_name(QByteArrayLiteral("")) {}
+    GtH5Location(std::shared_ptr<GtH5File> file = {},
+                 QByteArray const& name = {});
 
-    /// file instance of this object. Must be kept alive for the duration of
-    /// any operation.
-    GtH5File* m_file;
+    GtH5Location(GtH5Location const& other);
+    GtH5Location(GtH5Location&& other) noexcept;
+
+    // shared file instance
+    std::shared_ptr<GtH5File> m_file{};
     /// name of this location
-    QByteArray m_name;
+    QByteArray m_name{};
 
     /**
      * @brief helper function to retrieve the name of the location
      * @param location
      * @return name
      */
-    static QByteArray getObjectName(GtH5Location& location);
+    static QByteArray getObjectName(GtH5Location const& location);
 
     /**
      * @brief helper function to retrieve the name of an attribute
      * @param attr
      * @return name
      */
-    static QByteArray getAttrName(GtH5Attribute& attr);
+    static QByteArray getAttrName(GtH5Attribute const& attr);
+
+    void swap(GtH5Location& other) noexcept;
 };
 
 #endif // GTH5LOCATION_H

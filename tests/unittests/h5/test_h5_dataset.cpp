@@ -10,6 +10,7 @@
 #include "gt_h5dataset.h"
 #include "gt_h5group.h"
 #include "gt_h5file.h"
+#include "gt_h5data.h"
 
 #include "testhelper.h"
 
@@ -18,7 +19,7 @@ class TestH5DataSet : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         doubleData = QVector<double>{1, 2, 3, 4, 5};
         intData    = QVector<int>{1, 2, 3, 4, 5};
@@ -49,12 +50,12 @@ TEST_F(TestH5DataSet, isValid)
     // create and test various datasets
     dset = file.root().createDataset(QByteArrayLiteral("test"),
                                      intData.dataType(),
-                                     intData.length());
+                                     intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
 
     dset = group.createDataset(QByteArrayLiteral("test"),
                                doubleData.dataType(),
-                               doubleData.length());
+                               doubleData.dataSpace());
     EXPECT_TRUE(dset.isValid());
 }
 
@@ -63,20 +64,38 @@ TEST_F(TestH5DataSet, RW)
     // create new dataset
     GtH5DataSet dset = group.createDataset(QByteArrayLiteral("test"),
                                            doubleData.dataType(),
-                                           doubleData.length());
+                                           doubleData.dataSpace());
     ASSERT_TRUE(dset.isValid());
 
     // write data
-    EXPECT_FALSE(dset.write(Q_NULLPTR));
+    EXPECT_FALSE(dset.write(nullptr));
     EXPECT_TRUE(dset.write(doubleData));
 
     GtH5Data<double> readData;
+
     // read data
-    EXPECT_FALSE(dset.read(Q_NULLPTR));
+    EXPECT_FALSE(dset.read(nullptr));
     EXPECT_TRUE(dset.read(readData));
 
     // compare data
     EXPECT_EQ(readData.data(), doubleData.data());
+
+
+    // when data.length != dataspace.sum
+    // to few elements
+    QVector<double> doubleData2{ 0.2, 0.3 };
+    // to many elements
+    QVector<double> doubleData3;
+    doubleData3 = doubleData2 + doubleData.data();
+
+    // writing less than allocated is not allowed
+    EXPECT_FALSE(dset.write(doubleData2));
+    // writing more than allocated is technically allowed
+    EXPECT_TRUE(dset.write(doubleData3));
+
+    // only the first entries were actually written
+    EXPECT_TRUE(dset.read(readData));
+    EXPECT_EQ(readData.data(), doubleData3.mid(0, doubleData.length()));
 }
 
 TEST_F(TestH5DataSet, deleteLink)
@@ -88,7 +107,7 @@ TEST_F(TestH5DataSet, deleteLink)
     // create valid attribute
     dset = file.root().createDataset(QByteArrayLiteral("test"),
                                      intData.dataType(),
-                                     intData.length());
+                                     intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
 
     // delete dataset
@@ -101,7 +120,7 @@ TEST_F(TestH5DataSet, resize)
     // create new dataset
     GtH5DataSet dset = group.createDataset(QByteArrayLiteral("test"),
                                            doubleData.dataType(),
-                                           doubleData.length());
+                                           doubleData.dataSpace());
     ASSERT_TRUE(dset.isValid());
 
     // resize to zero

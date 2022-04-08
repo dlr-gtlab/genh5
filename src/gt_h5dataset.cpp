@@ -13,24 +13,15 @@
 
 #include <QDebug>
 
-GtH5DataSet
-GtH5DataSet::create(const GtH5Node& parent,
-                    const QByteArray& name,
-                    const GtH5DataType& dtype,
-                    const GtH5DataSpace& dspace,
-                    AccessFlag flag)
-{
-    GtH5DataSetProperties props  = GtH5DataSetProperties::autoChunk(dspace);
-    return create(parent, name, dtype, dspace, props, flag);
-}
+
+GtH5DataSet::GtH5DataSet() = default;
 
 GtH5DataSet
-GtH5DataSet::create(const GtH5Node& parent,
-                    const QByteArray& name,
-                    const GtH5DataType& dtype,
-                    const GtH5DataSpace& dspace,
-                    const GtH5DataSetProperties& properties,
-                    AccessFlag flag)
+GtH5DataSet::create(GtH5Group const& parent,
+                    QByteArray const& name,
+                    GtH5DataType const& dtype,
+                    GtH5DataSpace const& dspace,
+                    GtH5DataSetProperties const& properties)
 {
     if (!parent.isValid())
     {
@@ -38,7 +29,7 @@ GtH5DataSet::create(const GtH5Node& parent,
     }
 
     // create new dataset
-    if (flag == AccessFlag::Create || !parent.exists(name))
+    if (!parent.exists(name))
     {
         H5::DataSet dset;
         try
@@ -50,16 +41,17 @@ GtH5DataSet::create(const GtH5Node& parent,
         }
         catch (H5::DataSetIException& /*e*/)
         {
-            qCritical() << "HDF5: Creating dataset failed!";
+            qCritical() << "HDF5: Creating dataset failed! -" << name;
             return GtH5DataSet();
         }
         catch (H5::Exception& /*e*/)
         {
-            qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::create failed!";
+            qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::create failed! -"
+                        << name;
             return GtH5DataSet();
         }
 
-        return GtH5DataSet(*parent.file(), dset, name);
+        return GtH5DataSet(parent.file(), dset, name);
     }
 
     // open existing dataset
@@ -81,21 +73,18 @@ GtH5DataSet::create(const GtH5Node& parent,
         }
     }
 
-    // dataset must be deleted as datatype or dataspace does not align!
-    if (flag != CreateOverwrite)
+    // dataset cannot be resized and must be deleted
+    qWarning() << "HDF5: Invalid memory layout! Overwriting dataset! -" << name;
+    if (!dset.deleteLink())
     {
-        qCritical() << "HDF5: Overwriting dataset failed! "
-                       "(invalid memory layout)";
-        return GtH5DataSet();
+        return {};
     }
 
-    dset.deleteLink();
-
-    return create(parent, name, dtype, dspace, properties, Create);
+    return create(parent, name, dtype, dspace, properties);
 }
 
 GtH5DataSet
-GtH5DataSet::open(const GtH5Node& parent, const QByteArray& name)
+GtH5DataSet::open(GtH5Group const& parent, QByteArray const& name)
 {
     if (!parent.isValid())
     {
@@ -109,28 +98,64 @@ GtH5DataSet::open(const GtH5Node& parent, const QByteArray& name)
     }
     catch (H5::DataSetIException& /*e*/)
     {
-        qCritical() << "HDF5: Opening dataset failed!";
+        qCritical() << "HDF5: Opening dataset failed! -" << name;
         return GtH5DataSet();
     }
     catch (H5::Exception& /*e*/)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::open failed!";
+        qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::open failed! -" << name;
         return GtH5DataSet();
     }
 
-    return GtH5DataSet(*parent.file(), dset, name);
+    return GtH5DataSet(parent.file(), dset, name);
 }
 
-GtH5DataSet::GtH5DataSet(GtH5File& file,
-                         const H5::DataSet& dset,
-                         const QByteArray& name) :
+GtH5DataSet::GtH5DataSet(std::shared_ptr<GtH5File> file,
+                         H5::DataSet const& dset,
+                         QByteArray const& name) :
+    GtH5Node(std::move(file), name),
+    GtH5AbtsractDataSet{GtH5DataType{dset.getDataType()},
+                        GtH5DataSpace{dset.getSpace()}},
     m_dataset(dset),
     m_properties(m_dataset.getCreatePlist())
 {
-    m_datatype  = GtH5DataType(dset.getDataType());
-    m_dataspace = GtH5DataSpace(dset.getSpace());
-    m_file = &file;
-    m_name = name.isEmpty() ? getObjectName(*this) : name;
+    if (m_name.isEmpty())
+    {
+        m_name = getObjectName(*this);
+    }
+}
+
+GtH5DataSet::GtH5DataSet(GtH5DataSet const& other) :
+    GtH5AbtsractDataSet(other),
+    m_dataset{other.m_dataset},
+    m_properties{other.m_properties}
+{
+//    qDebug() << "GtH5DataSet::copy";
+}
+
+GtH5DataSet::GtH5DataSet(GtH5DataSet&& other) noexcept :
+    GtH5AbtsractDataSet(std::move(other)),
+    m_dataset{std::move(other.m_dataset)},
+    m_properties{std::move(other.m_properties)}
+{
+//    qDebug() << "GtH5DataSet::move";
+}
+
+GtH5DataSet&
+GtH5DataSet::operator=(GtH5DataSet const& other)
+{
+//    qDebug() << "GtH5DataSet::copy=";
+    auto dset{other};
+    swap(dset);
+    return *this;
+}
+
+GtH5DataSet&
+GtH5DataSet::operator=(GtH5DataSet&& other)  noexcept
+{
+//    qDebug() << "GtH5DataSet::move=";
+    swap(other);
+    return *this;
 }
 
 int64_t
@@ -139,7 +164,7 @@ GtH5DataSet::id() const
     return m_dataset.getId();
 }
 
-const H5::H5Object*
+H5::H5Object const*
 GtH5DataSet::toH5Object() const
 {
     return &m_dataset;
@@ -148,10 +173,11 @@ GtH5DataSet::toH5Object() const
 bool
 GtH5DataSet::isValid() const
 {
-    return GtH5Leaf::isValid() && m_datatype.isValid() && m_dataspace.isValid();
+    return GtH5Node::isValid() && m_datatype.isValid() &&
+           m_dataspace.isValid();
 }
 
-GtH5DataSetProperties
+GtH5DataSetProperties const&
 GtH5DataSet::properties() const
 {
     return m_properties;
@@ -170,7 +196,7 @@ GtH5DataSet::type() const
 }
 
 bool
-GtH5DataSet::doWrite(void* data) const
+GtH5DataSet::doWrite(void const* data) const
 {
     try
     {
@@ -179,11 +205,12 @@ GtH5DataSet::doWrite(void* data) const
     }
     catch (H5::DataSetIException& /*e*/)
     {
-        qCritical() << "HDF5: Writing dataset failed!";
+        qCritical() << "HDF5: Writing dataset failed! -" << m_name;
     }
     catch (H5::Exception& /*e*/)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::doWrite failed!";
+        qCritical() << "HDF5: [EXCEPTION] GtH5DataSet::doWrite failed! -"
+                    << m_name;
     }
     return false;
 }
@@ -211,7 +238,7 @@ GtH5DataSet::doRead(void* data) const
 bool
 GtH5DataSet::deleteLink()
 {
-    qDebug() << "HDF5: GtH5DataSet::delete";
+    qDebug() << "HDF5: Deleting dataset...";
 
     if (!this->isValid())
     {
@@ -265,7 +292,7 @@ GtH5DataSet::resize(const QVector<uint64_t>& dimensions)
         m_dataset.extend(
                     reinterpret_cast<const hsize_t*>(dimensions.constData()));
         // update dataspace
-        m_dataspace = m_dataset.getSpace();
+        m_dataspace = GtH5DataSpace(m_dataset.getSpace());
     }
     catch (H5::DataSetIException& /*e*/)
     {
@@ -285,3 +312,21 @@ GtH5DataSet::close()
 {
     m_dataset.close();
 }
+
+void
+GtH5DataSet::swap(GtH5DataSet& other) noexcept
+{
+    using std::swap;
+    GtH5Node::swap(other);
+    GtH5AbtsractDataSet::swap(other);
+    swap(m_dataset, other.m_dataset);
+    swap(m_properties, other.m_properties);
+}
+
+void
+swap(GtH5DataSet& first, GtH5DataSet& other) noexcept
+{
+//    qDebug() << "swap(GtH5DataSet)";
+    first.swap(other);
+}
+

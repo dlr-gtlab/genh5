@@ -11,6 +11,7 @@
 #include "gt_h5group.h"
 #include "gt_h5dataset.h"
 #include "gt_h5attribute.h"
+#include "gt_h5data.h"
 
 #include "testhelper.h"
 
@@ -20,7 +21,7 @@ class TestH5Location : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         file = GtH5File(TestHelper::instance()->newFilePath(),
                         GtH5File::CreateOverwrite);
@@ -30,11 +31,13 @@ protected:
         ASSERT_TRUE(group.isValid());
 
         dataset = group.createDataset(QByteArrayLiteral("dataset"),
-                                      GtH5Data<int>(), 0);
+                                      GtH5Data<int>().dataType(),
+                                      GtH5DataSpace{0});
         ASSERT_TRUE(dataset.isValid());
 
         attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
-                                            GtH5Data<QString>(), 0);
+                                            GtH5Data<int>().dataType(),
+                                            GtH5DataSpace{0});
         ASSERT_TRUE(attribute.isValid());
     }
 
@@ -54,7 +57,7 @@ TEST_F(TestH5Location, type)
 
 TEST_F(TestH5Location, linkName)
 {
-    EXPECT_EQ(GtH5File().root().name(), QByteArray());
+    EXPECT_EQ(GtH5File().root().name(), QByteArrayLiteral("/"));
     EXPECT_EQ(GtH5Group().name(), QByteArray());
     EXPECT_EQ(GtH5DataSet().name(), QByteArray());
     EXPECT_EQ(GtH5Attribute().name(), QByteArray());
@@ -81,20 +84,78 @@ TEST_F(TestH5Location, linkPath)
 
 TEST_F(TestH5Location, file)
 {
-    EXPECT_EQ(GtH5File().root().file(), Q_NULLPTR);
-    EXPECT_EQ(GtH5Group().file(), Q_NULLPTR);
-    EXPECT_EQ(GtH5DataSet().file(), Q_NULLPTR);
-    EXPECT_EQ(GtH5Attribute().file(), Q_NULLPTR);
+    EXPECT_EQ(GtH5File().root().file().get(), nullptr);
+    EXPECT_EQ(GtH5Group().file().get(), nullptr);
+    EXPECT_EQ(GtH5DataSet().file().get(), nullptr);
+    EXPECT_EQ(GtH5Attribute().file().get(), nullptr);
 
-    EXPECT_EQ(file.root().file(), &file);
-    EXPECT_EQ(group.file(), &file);
-    EXPECT_EQ(dataset.file(), &file);
-    EXPECT_EQ(attribute.file(), &file);
+    // root group creates a file on the heap
+    void* filePtr = file.root().file().get();
+    // so these pointer should not match
+    EXPECT_NE(&file, filePtr);
+
+    // however alls other objects should point to the same object on heap
+    EXPECT_EQ(group.file().get(), filePtr);
+    EXPECT_EQ(dataset.file().get(), filePtr);
+    EXPECT_EQ(attribute.file().get(), filePtr);
+}
+
+TEST_F(TestH5Location, fileRefCount)
+{
+    int64_t id = 0;
+
+    {
+        GtH5Group _root;
+
+        // file should be null
+        ASSERT_EQ(_root.file().get(), nullptr);
+
+        {
+            auto _file = GtH5File(TestHelper::instance()->newFilePath(),
+                                 GtH5File::CreateOverwrite);
+
+            id = _file.id();
+
+            // root object was not instantiated yet
+            // -> only local file has access
+            EXPECT_EQ(H5Iget_ref(id), 1);
+
+            // this creates the root object
+            // -> shared file is created which has also access now
+            _root = _file.root();
+
+            EXPECT_EQ(H5Iget_ref(id), 2);
+
+            // file ids should be equal
+            EXPECT_EQ(_root.file()->id(), _file.id());
+
+
+            // local file will be deleted -> ref count will be decremented
+        }
+
+        // file should no longer be null
+        ASSERT_NE(_root.file().get(), nullptr);
+        // only root group has access
+        EXPECT_EQ(H5Iget_ref(id), 1);
+
+        // group _root will be deleted here -> ref count will be decremented
+    }
+
+    qDebug() << "# Expect Error: id not found";
+    // file is no longer accessed
+    // id cant be found -> returns -1
+    EXPECT_EQ(H5Iget_ref(id), -1);
 }
 
 TEST_F(TestH5Location, exists)
 {
     EXPECT_TRUE(file.root().exists(QByteArrayLiteral("group/")));
     EXPECT_TRUE(file.root().exists(QByteArrayLiteral("group/dataset")));
+    // leading slash should not matter
+    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("/group/dataset")));
+
+    // this should not exist
     EXPECT_FALSE(file.root().exists(QByteArrayLiteral("dataset")));
+    // however this should
+    EXPECT_TRUE(group.exists(QByteArrayLiteral("dataset")));
 }

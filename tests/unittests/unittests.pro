@@ -19,7 +19,7 @@ TARGET = H5UnitTest
 QT += core
 
 TEMPLATE = app
-CONFIG += c++11 console silent
+CONFIG += c++14 console silent
 
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
 

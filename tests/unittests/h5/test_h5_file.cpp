@@ -21,7 +21,7 @@ class TestH5File : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         filePath = TestHelper::instance()->newFilePath();
     }
@@ -62,6 +62,7 @@ TEST_F(TestH5File, root)
 
     // handles should be different
     EXPECT_NE(file.id(), root.id());
+    EXPECT_EQ(file.id(), root.file()->id());
 }
 
 TEST_F(TestH5File, filePath)
@@ -77,7 +78,7 @@ TEST_F(TestH5File, filePath)
     file = GtH5File(filePath, GtH5File::CreateOverwrite);
     EXPECT_EQ(file.filePath(), filePath);
     EXPECT_EQ(file.fileName(), fileName);
-    EXPECT_EQ(file.fileBaseName() + GtH5File::fileSuffix(), fileName);
+    EXPECT_EQ(file.fileBaseName() + GtH5File::dotFileSuffix(), fileName);
 }
 
 TEST_F(TestH5File, creation)

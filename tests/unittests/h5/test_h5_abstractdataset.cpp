@@ -10,6 +10,7 @@
 #include "gt_h5dataset.h"
 #include "gt_h5file.h"
 #include "gt_h5group.h"
+#include "gt_h5data.h"
 
 #include "testhelper.h"
 
@@ -18,10 +19,11 @@ class TestH5AbstractDataSet : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
         emptyData  = QVector<int>();
         intData    = QVector<int>{1, 2, 3, 4, 5, 6};
+
         doubleData = QVector<double>{1, 2, 3, 4, 5, 6};
 
         file = GtH5File(TestHelper::instance()->newFilePath(),
@@ -32,7 +34,7 @@ protected:
 
         dataset = root.createDataset(QByteArrayLiteral("test"),
                                      intData.dataType(),
-                                     intData.length());
+                                     intData.dataSpace());
         ASSERT_TRUE(dataset.isValid());
     }
 
@@ -47,6 +49,7 @@ protected:
 
 TEST_F(TestH5AbstractDataSet, validateDTypeAndDSpace)
 {
+    qDebug() << "here";
     EXPECT_TRUE(dataset.dataSpace() == GtH5DataSpace(intData.length()));
     EXPECT_TRUE(dataset.dataType()  == intData.dataType());
 
@@ -62,7 +65,7 @@ TEST_F(TestH5AbstractDataSet, write)
     // by void*
     EXPECT_TRUE(dataset.write(intData.dataPtr()));
     // false becoause of nullptr
-    EXPECT_FALSE(dataset.write(Q_NULLPTR));
+    EXPECT_FALSE(dataset.write(nullptr));
 
     // using vector
     EXPECT_TRUE(dataset.write(intData.data()));
@@ -84,7 +87,7 @@ TEST_F(TestH5AbstractDataSet, read)
     // by void*
     EXPECT_TRUE(dataset.read(intData.dataPtr()));
     // nullptr not allowed
-    EXPECT_FALSE(dataset.read(Q_NULLPTR));
+    EXPECT_FALSE(dataset.read(nullptr));
 
     // using vector
     EXPECT_TRUE(dataset.read(intData.data()));

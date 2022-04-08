@@ -10,12 +10,44 @@
 
 #include <QDebug>
 
-const H5::StrType GtH5DataType::varStringType = H5::StrType(H5::PredType::C_S1,
-                                                            H5T_VARIABLE);
+const GtH5DataType GtH5DataType::VarString = GtH5DataType(
+            H5::StrType(H5::PredType::C_S1, H5T_VARIABLE));
+
+GtH5DataType::GtH5DataType() = default;
 
 GtH5DataType::GtH5DataType(const H5::DataType& type) :
-    m_datatype(type)
+    m_datatype{type}
 {
+
+}
+
+GtH5DataType::GtH5DataType(GtH5DataType const& other) :
+    m_datatype{other.m_datatype}
+{
+//    qDebug() << "GtH5DataType::copy";
+}
+
+GtH5DataType::GtH5DataType(GtH5DataType&& other) noexcept :
+    m_datatype{std::move(other.m_datatype)}
+{
+//    qDebug() << "GtH5DataType::move";
+}
+
+GtH5DataType&
+GtH5DataType::operator=(GtH5DataType const& other)
+{
+//    qDebug() << "GtH5DataType::copy=";
+    auto tmp{other};
+    swap(tmp);
+    return *this;
+}
+
+GtH5DataType&
+GtH5DataType::operator=(GtH5DataType&& other) noexcept
+{
+//    qDebug() << "GtH5DataType::move=";
+    swap(other);
+    return *this;
 }
 
 int64_t
@@ -30,14 +62,22 @@ GtH5DataType::toH5() const
     return m_datatype;
 }
 
+void
+GtH5DataType::swap(GtH5DataType& other) noexcept
+{
+    using std::swap;
+    swap(m_datatype, other.m_datatype);
+}
+
 bool
-GtH5DataType::operator==(const GtH5DataType& other)
+operator==(GtH5DataType const& first, GtH5DataType const& other)
 {
     try
     {
-        // check isValid to elimante "not a dtype" output from hdf5
-        return this->id() == other.id() || (this->isValid() && other.isValid()&&
-                                            this->toH5() == other.toH5());
+        // check isValid to elimante "not a datatype" error from hdf5
+        return first.id() == other.id() || (first.isValid() &&
+                                            other.isValid() &&
+                                            first.toH5() == other.toH5());
     }
     catch (H5::DataTypeIException& /*e*/)
     {
@@ -52,8 +92,14 @@ GtH5DataType::operator==(const GtH5DataType& other)
 }
 
 bool
-GtH5DataType::operator!=(const GtH5DataType& other)
+operator!=(GtH5DataType const& first, GtH5DataType const& other)
 {
-    return !operator==(other);
+    return !(first == other);
 }
 
+void
+swap(GtH5DataType& first, GtH5DataType& other) noexcept
+{
+//    qDebug() << "swap(GtH5DataType)";
+    first.swap(other);
+}

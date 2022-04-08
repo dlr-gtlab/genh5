@@ -6,8 +6,8 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GT_H5LOGGER_H
-#define GT_H5LOGGER_H
+#ifndef GT_H5TIMELOGGER_H
+#define GT_H5TIMELOGGER_H
 
 #include <QDebug>
 #include <QElapsedTimer>
@@ -22,14 +22,14 @@ public:
     GtH5TimeLogger(const char* string) : info(string)
     {
         start();
-    };
+    }
 
     ~GtH5TimeLogger()
     {
         uint us = nsecsElapsed() / 1000;
         qDebug().noquote() << info << "- took"
-                           << QString::number(us/1000.0) << "ms";
-    };
+                           << QString::number(us / 1000.0) << "ms";
+    }
 
 private:
 

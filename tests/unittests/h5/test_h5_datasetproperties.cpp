@@ -14,19 +14,12 @@
 class TestH5DataSetProperties : public testing::Test
 {
 protected:
-    virtual void SetUp()
-    {
-        maxChunks = 10;
-        chunkDims = {5, 2};
-        propChunked    = GtH5DataSetProperties(chunkDims, 0);
-        propCompressed = GtH5DataSetProperties(chunkDims, 9);
-    }
 
-    int maxChunks;
-    QVector<uint64_t> chunkDims;
-    GtH5DataSetProperties propDefault;
-    GtH5DataSetProperties propChunked;
-    GtH5DataSetProperties propCompressed;
+    int maxChunks{10};
+    QVector<uint64_t> chunkDims{5, 2};
+    GtH5DataSetProperties propDefault{};
+    GtH5DataSetProperties propChunked{chunkDims, 0};
+    GtH5DataSetProperties propCompressed{chunkDims, 9};
 };
 
 TEST_F(TestH5DataSetProperties, isValid)

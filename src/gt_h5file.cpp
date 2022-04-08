@@ -13,36 +13,41 @@
 #include <QFileInfo>
 #include <QDir>
 
-uint
+uint32_t
 GtH5File::accessMode(AccessFlag mode)
 {
     switch (mode)
     {
-    case GtH5File::CreateReadWrite:
-    case GtH5File::OpenReadWrite:
-        return H5F_ACC_RDWR;
-    case GtH5File::CreateOverwrite:
-        return H5F_ACC_TRUNC;
-    case GtH5File::CreateNotExisting:
-        return H5F_ACC_EXCL;
+        case GtH5File::CreateReadWrite:
+        case GtH5File::OpenReadWrite:
+            return H5F_ACC_RDWR;
+        case GtH5File::CreateOverwrite:
+            return H5F_ACC_TRUNC;
+        case GtH5File::CreateNotExisting:
+            return H5F_ACC_EXCL;
         // default should be readonly to prevent data corruption
-    case GtH5File::OpenReadOnly:
-    default:
-        return H5F_ACC_RDONLY;
+        case GtH5File::OpenReadOnly:
+            break;
     }
+
+    return H5F_ACC_RDONLY;
 }
 
-GtH5File::GtH5File(const QFile& file, AccessFlag flag) :
+GtH5File::GtH5File() = default;
+
+GtH5File::GtH5File(QFile const& file, AccessFlag flag) :
     GtH5File(QFileInfo(file).filePath().toUtf8(), flag)
 {
+
 }
 
-GtH5File::GtH5File(const QString& path, AccessFlag flag) :
+GtH5File::GtH5File(QString const& path, AccessFlag flag) :
     GtH5File(path.toUtf8(), flag)
 {
+
 }
 
-GtH5File::GtH5File(const QByteArray& path, AccessFlag flag) :
+GtH5File::GtH5File(QByteArray const& path, AccessFlag flag) :
     m_filePath(path)
 {
     QFileInfo fileInfo(path);
@@ -50,7 +55,7 @@ GtH5File::GtH5File(const QByteArray& path, AccessFlag flag) :
 
     if (!fileDir.exists())
     {
-        qCritical() << "HDF5: Accessing file failed! (dir does not exist)"
+        qCritical() << "HDF5: Accessing file failed! (dir does not exist) -"
                     << path;
         return;
     }
@@ -59,19 +64,20 @@ GtH5File::GtH5File(const QByteArray& path, AccessFlag flag) :
     {
         if (flag == OpenReadOnly || flag == OpenReadWrite)
         {
-            qCritical() << "HDF5: Opening file failed! (file does not exist)"
+            qCritical() << "HDF5: Opening file failed! (file does not exist) -"
                         << path;
             return;
         }
-        else if (flag == GtH5File::CreateOverwrite ||
-                 flag == GtH5File::CreateReadWrite)
+
+        if (flag == GtH5File::CreateOverwrite ||
+            flag == GtH5File::CreateReadWrite)
         {
             flag =  GtH5File::CreateNotExisting;
         }
     }
     else if (flag == GtH5File::CreateNotExisting)
     {
-        qCritical() << "HDF5: Creating file failed! (file already exists)"
+        qCritical() << "HDF5: Creating file failed! (file already exists) -"
                     << path;
         return;
     }
@@ -90,6 +96,39 @@ GtH5File::GtH5File(const QByteArray& path, AccessFlag flag) :
         qCritical() << "HDF5: [EXCEPTION] GtH5File:GtH5File failed!"
                     << path << flag;
     }
+}
+
+GtH5File::GtH5File(GtH5File const& other) :
+    m_file{other.m_file},
+    m_filePath{other.m_filePath},
+    m_root{other.m_root}
+{
+//    qDebug() << "GtH5File::copy";
+}
+
+GtH5File::GtH5File(GtH5File&& other) noexcept :
+    m_file{std::move(other.m_file)},
+    m_filePath{std::move(other.m_filePath)},
+    m_root{std::move(other.m_root)}
+{
+//    qDebug() << "GtH5File::move";
+}
+
+GtH5File&
+GtH5File::operator=(GtH5File const& other)
+{
+//    qDebug() << "GtH5File::copy=";
+    auto tmp{other};
+    swap(tmp);
+    return *this;
+}
+
+GtH5File&
+GtH5File::operator=(GtH5File&& other) noexcept
+{
+//    qDebug() << "GtH5File::move=";
+    swap(other);
+    return *this;
 }
 
 bool
@@ -140,7 +179,7 @@ GtH5File::fileBaseName() const
     return QFileInfo(m_filePath).baseName().toUtf8();
 }
 
-QByteArray
+QByteArray const&
 GtH5File::filePath() const
 {
     return m_filePath;
@@ -148,6 +187,12 @@ GtH5File::filePath() const
 
 QByteArray
 GtH5File::fileSuffix()
+{
+    return QByteArrayLiteral("h5");
+}
+
+QByteArray
+GtH5File::dotFileSuffix()
 {
     return QByteArrayLiteral(".h5");
 }
@@ -158,8 +203,23 @@ GtH5File::close()
     m_file.close();
 }
 
+void
+GtH5File::swap(GtH5File& other) noexcept
+{
+    using std::swap;
+    swap (m_file, other.m_file);
+    swap (m_filePath, other.m_filePath);
+    swap (m_root, other.m_root);
+}
+
 H5::H5File
 GtH5File::toH5() const
 {
     return m_file;
+}
+
+void
+swap(GtH5File& first, GtH5File& other) noexcept
+{
+    first.swap(other);
 }

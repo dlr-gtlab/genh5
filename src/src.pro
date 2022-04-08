@@ -23,7 +23,7 @@ QT += core
 TEMPLATE = lib
 CONFIG += plugin
 CONFIG += silent
-CONFIG += c++11
+CONFIG += c++14
 
 # always required
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
@@ -55,21 +55,22 @@ HEADERS += \
     gt_h5abstractdata.h \
     gt_h5abtsractdataset.h \
     gt_h5attribute.h \
-    gt_h5compounddata.h \
     gt_h5data.h \
+    gt_h5data_comp.h \
+    gt_h5data_simple.h \
     gt_h5dataset.h \
     gt_h5datasetproperties.h \
     gt_h5dataspace.h \
     gt_h5datatype.h \
     gt_h5file.h \
     gt_h5group.h \
-    gt_h5leaf.h \
     gt_h5location.h \
     gt_h5node.h \
     gt_h5object.h \
     gt_h5_exports.h \
     gt_h5reference.h \
-    gt_h5timelogger.h
+    gt_h5timelogger.h \
+    gt_h5version.h
 
 SOURCES += \
     gt_h5abtsractdataset.cpp \
@@ -80,7 +81,6 @@ SOURCES += \
     gt_h5datatype.cpp \
     gt_h5file.cpp \
     gt_h5group.cpp \
-    gt_h5leaf.cpp \
     gt_h5location.cpp \
     gt_h5node.cpp \
     gt_h5object.cpp \
