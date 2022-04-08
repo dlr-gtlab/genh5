@@ -104,6 +104,7 @@ GtH5Attribute::GtH5Attribute(std::shared_ptr<GtH5File> file,
 }
 
 GtH5Attribute::GtH5Attribute(GtH5Attribute const& other) :
+    GtH5Location(other),
     GtH5AbtsractDataSet(other),
     m_attribute{other.m_attribute}
 {
@@ -111,6 +112,7 @@ GtH5Attribute::GtH5Attribute(GtH5Attribute const& other) :
 }
 
 GtH5Attribute::GtH5Attribute(GtH5Attribute&& other) noexcept :
+    GtH5Location(std::move(other)),
     GtH5AbtsractDataSet(std::move(other)),
     m_attribute{std::move(other.m_attribute)}
 {

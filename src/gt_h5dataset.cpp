@@ -126,6 +126,7 @@ GtH5DataSet::GtH5DataSet(std::shared_ptr<GtH5File> file,
 }
 
 GtH5DataSet::GtH5DataSet(GtH5DataSet const& other) :
+    GtH5Node(other),
     GtH5AbtsractDataSet(other),
     m_dataset{other.m_dataset},
     m_properties{other.m_properties}
@@ -134,6 +135,7 @@ GtH5DataSet::GtH5DataSet(GtH5DataSet const& other) :
 }
 
 GtH5DataSet::GtH5DataSet(GtH5DataSet&& other) noexcept :
+    GtH5Node(std::move(other)),
     GtH5AbtsractDataSet(std::move(other)),
     m_dataset{std::move(other.m_dataset)},
     m_properties{std::move(other.m_properties)}
