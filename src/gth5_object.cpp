@@ -6,7 +6,7 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5object.h"
+#include "gth5_object.h"
 
 GtH5Object::GtH5Object() = default;
 

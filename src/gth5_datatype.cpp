@@ -6,7 +6,7 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5datatype.h"
+#include "gth5_datatype.h"
 
 #include <QDebug>
 

@@ -7,8 +7,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "gt_h5datasetproperties.h"
-#include "gt_h5dataspace.h"
+#include "gth5_datasetproperties.h"
+#include "gth5_dataspace.h"
 
 /// This is a test fixture that does a init for each test
 class TestH5DataSetProperties : public testing::Test

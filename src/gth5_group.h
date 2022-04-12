@@ -9,7 +9,7 @@
 #ifndef GTH5GROUP_H
 #define GTH5GROUP_H
 
-#include "gt_h5node.h"
+#include "gth5_node.h"
 
 class GtH5File;
 class GtH5DataType;
@@ -19,7 +19,7 @@ class GtH5DataSet;
 /**
  * @brief The GtH5Group class
  */
-class GT_H5_EXPORT GtH5Group : public GtH5Node
+class GTH5_EXPORT GtH5Group : public GtH5Node
 {
 public:
 
@@ -103,6 +103,6 @@ private:
     friend class GtH5Reference;
 };
 
-GT_H5_EXPORT void swap(GtH5Group& first, GtH5Group& other) noexcept;
+GTH5_EXPORT void swap(GtH5Group& first, GtH5Group& other) noexcept;
 
 #endif // GTH5GROUP_H

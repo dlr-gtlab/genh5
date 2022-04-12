@@ -9,13 +9,13 @@
 #ifndef GTH5DATASPACE_H
 #define GTH5DATASPACE_H
 
-#include "gt_h5object.h"
+#include "gth5_object.h"
 #include <QVector>
 
 /**
  * @brief The GtH5DataSpace class
  */
-class GT_H5_EXPORT GtH5DataSpace : public GtH5Object
+class GTH5_EXPORT GtH5DataSpace : public GtH5Object
 {
 public:
 
@@ -71,12 +71,12 @@ private:
 };
 
 // operators
-GT_H5_EXPORT bool operator==(GtH5DataSpace const& first,
+GTH5_EXPORT bool operator==(GtH5DataSpace const& first,
                              GtH5DataSpace const& other);
-GT_H5_EXPORT bool operator!=(GtH5DataSpace const& first,
+GTH5_EXPORT bool operator!=(GtH5DataSpace const& first,
                              GtH5DataSpace const& other);
 
-GT_H5_EXPORT void swap(GtH5DataSpace& first, GtH5DataSpace& other) noexcept;
+GTH5_EXPORT void swap(GtH5DataSpace& first, GtH5DataSpace& other) noexcept;
 
 template<typename Tin, typename Tout> Tout inline
 GtH5DataSpace::sum(const QVector<Tin>& dimensions)

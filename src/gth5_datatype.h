@@ -9,13 +9,13 @@
 #ifndef GTH5DATATYPE_H
 #define GTH5DATATYPE_H
 
-#include "gt_h5object.h"
+#include "gth5_object.h"
 #include <QVector>
 
 /**
  * @brief The GtH5DataType class
  */
-class GT_H5_EXPORT GtH5DataType : public GtH5Object
+class GTH5_EXPORT GtH5DataType : public GtH5Object
 {
 public:
 
@@ -50,11 +50,11 @@ protected:
 };
 
 // operators
-GT_H5_EXPORT bool operator==(GtH5DataType const& first,
+GTH5_EXPORT bool operator==(GtH5DataType const& first,
                              GtH5DataType const& other);
-GT_H5_EXPORT bool operator!=(GtH5DataType const& first,
+GTH5_EXPORT bool operator!=(GtH5DataType const& first,
                              GtH5DataType const& other);
 
-GT_H5_EXPORT void swap(GtH5DataType& first, GtH5DataType& other) noexcept;
+GTH5_EXPORT void swap(GtH5DataType& first, GtH5DataType& other) noexcept;
 
 #endif // GTH5DATATYPE_H

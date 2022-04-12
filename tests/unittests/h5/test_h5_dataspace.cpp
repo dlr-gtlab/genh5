@@ -7,7 +7,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "gt_h5dataspace.h"
+#include "gth5_dataspace.h"
 
 
 /// This is a test fixture that does a init for each test

@@ -6,8 +6,8 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GT_H5VERSION_H
-#define GT_H5VERSION_H
+#ifndef GTH5_VERSION_H
+#define GTH5_VERSION_H
 
 #define GTH5_TO_STR_HELPER(x) #x
 #define GTH5_TO_STR(x) GTH5_TO_STR_HELPER(x)
@@ -25,4 +25,4 @@
     GTH5_VERSION_ADDITIONAL
 
 
-#endif // GT_H5VERSION_H
+#endif // GTH5_VERSION_H

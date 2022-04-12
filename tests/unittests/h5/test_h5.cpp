@@ -1,8 +1,8 @@
 
 #include "gtest/gtest.h"
 
-#include "gt_h5version.h"
-#include "gt_h5object.h"
+#include "gth5_version.h"
+#include "gth5_object.h"
 
 #include <QDebug>
 

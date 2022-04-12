@@ -7,11 +7,11 @@
  */
 
 #include "gtest/gtest.h"
-#include "gt_h5file.h"
-#include "gt_h5group.h"
-#include "gt_h5dataset.h"
-#include "gt_h5attribute.h"
-#include "gt_h5data.h"
+#include "gth5_file.h"
+#include "gth5_group.h"
+#include "gth5_dataset.h"
+#include "gth5_attribute.h"
+#include "gth5_data.h"
 
 #include "testhelper.h"
 

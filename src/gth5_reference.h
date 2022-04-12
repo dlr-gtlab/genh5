@@ -9,7 +9,7 @@
 #ifndef GTH5REFERENCE_H
 #define GTH5REFERENCE_H
 
-#include "gt_h5location.h"
+#include "gth5_location.h"
 
 class GtH5File;
 class GtH5Group;
@@ -19,7 +19,7 @@ class GtH5Attribute;
 /**
  * @brief The GtH5Reference class
  */
-class GT_H5_EXPORT GtH5Reference
+class GTH5_EXPORT GtH5Reference
 {
 
 public:

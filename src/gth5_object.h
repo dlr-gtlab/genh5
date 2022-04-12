@@ -10,13 +10,13 @@
 #define GTH5OBJECT_H
 
 #include "stdint.h"
-#include "gt_h5_exports.h"
+#include "gth5_exports.h"
 #include "H5Cpp.h"
 
 /**
  * @brief The GtH5Object class
  */
-class GT_H5_EXPORT GtH5Object
+class GTH5_EXPORT GtH5Object
 {
 public:
 

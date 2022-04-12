@@ -9,15 +9,15 @@
 #ifndef GTH5ATTRIBUTE_H
 #define GTH5ATTRIBUTE_H
 
-#include "gt_h5location.h"
-#include "gt_h5abtsractdataset.h"
+#include "gth5_location.h"
+#include "gth5_abtsractdataset.h"
 
 class GtH5Node;
 
 /**
  * @brief The GtH5Attribute class
  */
-class GT_H5_EXPORT GtH5Attribute : public GtH5Location,
+class GTH5_EXPORT GtH5Attribute : public GtH5Location,
                                    public GtH5AbtsractDataSet
 {
 public:
@@ -100,6 +100,6 @@ private:
     friend class GtH5Reference;
 };
 
-GT_H5_EXPORT void swap(GtH5Attribute& first, GtH5Attribute& other) noexcept;
+GTH5_EXPORT void swap(GtH5Attribute& first, GtH5Attribute& other) noexcept;
 
 #endif // GTH5ATTRIBUTE_H

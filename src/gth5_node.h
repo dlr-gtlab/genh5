@@ -6,7 +6,7 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5location.h"
+#include "gth5_location.h"
 
 #ifndef GTH5NODE_H
 #define GTH5NODE_H
@@ -18,7 +18,7 @@ class GtH5Attribute;
 /**
  * @brief The GtH5Leaf class
  */
-class GT_H5_EXPORT GtH5Node : public GtH5Location
+class GTH5_EXPORT GtH5Node : public GtH5Location
 {
 public:
 
