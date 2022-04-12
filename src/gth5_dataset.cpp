@@ -6,10 +6,10 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5dataset.h"
-#include "gt_h5reference.h"
-#include "gt_h5node.h"
-#include "gt_h5file.h"
+#include "gth5_dataset.h"
+#include "gth5_reference.h"
+#include "gth5_node.h"
+#include "gth5_file.h"
 
 #include <QDebug>
 

@@ -9,7 +9,7 @@
 #ifndef GTH5LOCATION_H
 #define GTH5LOCATION_H
 
-#include "gt_h5object.h"
+#include "gth5_object.h"
 
 #include <QByteArray>
 #include <QByteArrayList>
@@ -22,7 +22,7 @@ class GtH5Reference;
 /**
  * @brief The GtH5Location class
  */
-class GT_H5_EXPORT GtH5Location : public GtH5Object
+class GTH5_EXPORT GtH5Location : public GtH5Object
 {
 public:
 

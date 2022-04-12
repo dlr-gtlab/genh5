@@ -9,10 +9,10 @@
 #ifndef GTH5DATASET_H
 #define GTH5DATASET_H
 
-#include "gt_h5node.h"
-#include "gt_h5abtsractdataset.h"
-#include "gt_h5reference.h"
-#include "gt_h5datasetproperties.h"
+#include "gth5_node.h"
+#include "gth5_abtsractdataset.h"
+#include "gth5_reference.h"
+#include "gth5_datasetproperties.h"
 
 
 class GtH5Node;
@@ -21,7 +21,7 @@ class GtH5Reference;
 /**
  * @brief The GtH5DataSet class
  */
-class GT_H5_EXPORT GtH5DataSet : public GtH5Node,
+class GTH5_EXPORT GtH5DataSet : public GtH5Node,
                                  public GtH5AbtsractDataSet
 {
 public:
@@ -121,6 +121,6 @@ private:
     friend class GtH5Reference;
 };
 
-GT_H5_EXPORT void swap(GtH5DataSet& first, GtH5DataSet& other) noexcept;
+GTH5_EXPORT void swap(GtH5DataSet& first, GtH5DataSet& other) noexcept;
 
 #endif // GTH5DATASET_H

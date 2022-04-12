@@ -6,8 +6,8 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5datasetproperties.h"
-#include "gt_h5dataspace.h"
+#include "gth5_datasetproperties.h"
+#include "gth5_dataspace.h"
 
 #include <QDebug>
 

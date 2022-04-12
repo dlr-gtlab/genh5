@@ -7,9 +7,9 @@
  */
 
 #include "gtest/gtest.h"
-#include "gt_h5node.h"
-#include "gt_h5file.h"
-#include "gt_h5group.h"
+#include "gth5_node.h"
+#include "gth5_file.h"
+#include "gth5_group.h"
 
 #include "testhelper.h"
 

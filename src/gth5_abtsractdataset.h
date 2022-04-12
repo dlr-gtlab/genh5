@@ -9,10 +9,10 @@
 #ifndef GTH5ABTSRACTDATASET_H
 #define GTH5ABTSRACTDATASET_H
 
-#include "gt_h5_exports.h"
-#include "gt_h5datatype.h"
-#include "gt_h5dataspace.h"
-#include "gt_h5abstractdata.h"
+#include "gth5_exports.h"
+#include "gth5_datatype.h"
+#include "gth5_dataspace.h"
+#include "gth5_abstractdata.h"
 
 #include <QVector>
 #include <QDebug>
@@ -20,7 +20,7 @@
 /**
  * @brief The GtH5AbtsractDataSet class
  */
-class GT_H5_EXPORT GtH5AbtsractDataSet
+class GTH5_EXPORT GtH5AbtsractDataSet
 {
 public:
     virtual ~GtH5AbtsractDataSet() = default;

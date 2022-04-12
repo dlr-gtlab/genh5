@@ -6,9 +6,9 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5attribute.h"
-#include "gt_h5node.h"
-#include "gt_h5file.h"
+#include "gth5_attribute.h"
+#include "gth5_node.h"
+#include "gth5_file.h"
 
 #include <QDebug>
 

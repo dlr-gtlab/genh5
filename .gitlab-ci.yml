@@ -3,7 +3,7 @@
 #################################################################
 # TO USE THIS PIPELINE SET THESE VAIRABLES:
 #   CATEGORY: 02_core
-#   PROFILENAME: gt_h5.pro
+#   PROFILENAME: gth5.pro
 #   TARGETDIRNAME: h5
 #   TARGETNAME: GTlabH5
 #   UNITTESTSNAME: H5UnitTest

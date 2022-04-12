@@ -8,7 +8,7 @@
 
 #include "testhelper.h"
 
-#include "gt_h5file.h"
+#include "gth5_file.h"
 
 #include <QCoreApplication>
 #include <QDir>

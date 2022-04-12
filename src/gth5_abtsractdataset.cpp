@@ -6,7 +6,7 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5abtsractdataset.h"
+#include "gth5_abtsractdataset.h"
 
 
 GtH5AbtsractDataSet::GtH5AbtsractDataSet(GtH5DataType const& dtype,

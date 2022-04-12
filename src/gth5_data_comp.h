@@ -6,10 +6,10 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GT_H5DATA_COMP_H
-#define GT_H5DATA_COMP_H
+#ifndef GTH5_DATA_COMP_H
+#define GTH5_DATA_COMP_H
 
-#include "gt_h5data_simple.h"
+#include "gth5_data_simple.h"
 
 /// "hides" the helper structs that are used internaly
 namespace GtH5T
@@ -283,4 +283,4 @@ GtH5Data<T1, T2, T3>::deserialize(T1vec& t1,
     }
 }
 
-#endif // GT_H5DATA_COMP_H
+#endif // GTH5_DATA_COMP_H

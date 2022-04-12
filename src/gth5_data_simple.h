@@ -6,10 +6,10 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GT_H5DATA_SIMPLE_H
-#define GT_H5DATA_SIMPLE_H
+#ifndef GTH5_DATA_SIMPLE_H
+#define GTH5_DATA_SIMPLE_H
 
-#include "gt_h5abstractdata.h"
+#include "gth5_abstractdata.h"
 #include <QDebug>
 
 #define GTH5_DECLARE_SIMPLE_DATATYPE(NATIVE_TYPE, HDF5_TYPE) \
@@ -179,4 +179,4 @@ GtH5Data<QString>::deserialize(QStringList& data)
     }
 }
 
-#endif // GT_H5DATA_SIMPLE_H
+#endif // GTH5_DATA_SIMPLE_H

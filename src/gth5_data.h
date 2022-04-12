@@ -6,10 +6,10 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GT_H5DATA_H
-#define GT_H5DATA_H
+#ifndef GTH5_DATA_H
+#define GTH5_DATA_H
 
-#include "gt_h5data_simple.h"
-#include "gt_h5data_comp.h"
+#include "gth5_data_simple.h"
+#include "gth5_data_comp.h"
 
-#endif // GT_H5DATA_H
+#endif // GTH5_DATA_H

@@ -9,17 +9,16 @@
 #ifndef GTH5FILE_H
 #define GTH5FILE_H
 
-#include "gt_h5object.h"
-#include "gt_h5group.h"
+#include "gth5_object.h"
+#include "gth5_group.h"
 
 #include <QByteArray>
 
 class QFile;
-
 /**
  * @brief The GtH5File class
  */
-class GT_H5_EXPORT GtH5File : public GtH5Object
+class GTH5_EXPORT GtH5File : public GtH5Object
 {
 public:
 
@@ -137,6 +136,6 @@ private:
     mutable GtH5Group m_root{};
 };
 
-GT_H5_EXPORT void swap(GtH5File& first, GtH5File& other) noexcept;
+GTH5_EXPORT void swap(GtH5File& first, GtH5File& other) noexcept;
 
 #endif // GTH5FILE_H

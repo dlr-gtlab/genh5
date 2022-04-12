@@ -6,11 +6,11 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GT_H5DABSTRACTDATA_H
-#define GT_H5DABSTRACTDATA_H
+#ifndef GTH5_DABSTRACTDATA_H
+#define GTH5_DABSTRACTDATA_H
 
-#include "gt_h5datatype.h"
-#include "gt_h5dataspace.h"
+#include "gth5_datatype.h"
+#include "gth5_dataspace.h"
 #include <QByteArray>
 #include <QVector>
 
@@ -126,4 +126,4 @@ protected:
     QVector<Data> m_data{};
 };
 
-#endif // GT_H5DABSTRACTDATA_H
+#endif // GTH5_DABSTRACTDATA_H

@@ -31,7 +31,7 @@ DEFINES += H5_BUILT_AS_DYNAMIC_LIB
 DEFINES += H5_NO_DEPRECATED_SYMBOLS
 
 win32 {
-    DEFINES += GT_H5_DLL
+    DEFINES += GTH5_DLL
 }
 
 CONFIG(debug, debug|release) {
@@ -51,46 +51,41 @@ DESTDIR = $${BUILD_DEST}
 INCLUDEPATH += .\
 
 HEADERS += \
-    gt_h5.h \
-    gt_h5abstractdata.h \
-    gt_h5abtsractdataset.h \
-    gt_h5attribute.h \
-    gt_h5data.h \
-    gt_h5data_comp.h \
-    gt_h5data_simple.h \
-    gt_h5dataset.h \
-    gt_h5datasetproperties.h \
-    gt_h5dataspace.h \
-    gt_h5datatype.h \
-    gt_h5file.h \
-    gt_h5group.h \
-    gt_h5location.h \
-    gt_h5node.h \
-    gt_h5object.h \
-    gt_h5_exports.h \
-    gt_h5reference.h \
-    gt_h5timelogger.h \
-    gt_h5version.h
+    gth5_.h \
+    gth5_abstractdata.h \
+    gth5_abtsractdataset.h \
+    gth5_attribute.h \
+    gth5_data.h \
+    gth5_data_comp.h \
+    gth5_data_simple.h \
+    gth5_dataset.h \
+    gth5_datasetproperties.h \
+    gth5_dataspace.h \
+    gth5_datatype.h \
+    gth5_file.h \
+    gth5_group.h \
+    gth5_location.h \
+    gth5_node.h \
+    gth5_object.h \
+    gth5_exports.h \
+    gth5_reference.h \
+    gth5_version.h
 
 SOURCES += \
-    gt_h5abtsractdataset.cpp \
-    gt_h5attribute.cpp \
-    gt_h5dataset.cpp \
-    gt_h5datasetproperties.cpp \
-    gt_h5dataspace.cpp \
-    gt_h5datatype.cpp \
-    gt_h5file.cpp \
-    gt_h5group.cpp \
-    gt_h5location.cpp \
-    gt_h5node.cpp \
-    gt_h5object.cpp \
-    gt_h5reference.cpp
+    gth5_abtsractdataset.cpp \
+    gth5_attribute.cpp \
+    gth5_dataset.cpp \
+    gth5_datasetproperties.cpp \
+    gth5_dataspace.cpp \
+    gth5_datatype.cpp \
+    gth5_file.cpp \
+    gth5_group.cpp \
+    gth5_location.cpp \
+    gth5_node.cpp \
+    gth5_object.cpp \
+    gth5_reference.cpp
 
-CONFIG(debug, debug|release) {
-    LIBS += -lhdf5 -lhdf5_cpp
-} else {
-    LIBS += -lhdf5 -lhdf5_cpp
-}
+LIBS += -lhdf5 -lhdf5_cpp
 
 ######################################################################
 

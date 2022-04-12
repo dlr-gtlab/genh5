@@ -6,11 +6,11 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "gt_h5node.h"
+#include "gth5_node.h"
 
-#include "gt_h5attribute.h"
-#include "gt_h5dataspace.h"
-#include "gt_h5datatype.h"
+#include "gth5_attribute.h"
+#include "gth5_dataspace.h"
+#include "gth5_datatype.h"
 
 
 GtH5Node::GtH5Node(std::shared_ptr<GtH5File> file, QByteArray const& name) :

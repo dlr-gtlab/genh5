@@ -9,11 +9,11 @@
 #ifndef GTH5DATASETPROPERTIES_H
 #define GTH5DATASETPROPERTIES_H
 
-#include "gt_h5object.h"
+#include "gth5_object.h"
 #include <QVector>
 
 class GtH5DataSpace;
-class GT_H5_EXPORT GtH5DataSetProperties : public GtH5Object
+class GTH5_EXPORT GtH5DataSetProperties : public GtH5Object
 {
 public:
 
@@ -75,7 +75,7 @@ private:
     H5::DSetCreatPropList m_properties{};
 };
 
-GT_H5_EXPORT void swap(GtH5DataSetProperties& first,
+GTH5_EXPORT void swap(GtH5DataSetProperties& first,
                        GtH5DataSetProperties& other) noexcept;
 
 #endif // GTH5DATASETPROPERTIES_H
