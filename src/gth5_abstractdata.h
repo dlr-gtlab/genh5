@@ -57,21 +57,21 @@ struct GtH5AbstractData
      * @return pointer to data array
      */
     /**@{*/
-    void const* dataPtr() const { return data().constData(); }
-    void* dataPtr() { return data().data(); }
+    void const* dataPtr() const { return m_data.constData(); }
+    void* dataPtr() { return m_data.data(); }
     /**@}*/
 
     /**
      * @brief isEmpty
      * @return
      */
-    inline bool isEmpty() const { return data().isEmpty(); }
+    inline bool isEmpty() const { return m_data.isEmpty(); }
 
     /**
      * @brief length
      * @return
      */
-    inline int length() const { return data().length(); }
+    inline int length() const { return m_data.length(); }
 
     /**
      * @brief resize used to pre allocate the data array. This is used for
@@ -80,8 +80,8 @@ struct GtH5AbstractData
      */
     inline void resize(const int length)
     {
-        data().clear();
-        data().resize(length);
+        m_data.clear();
+        m_data.resize(length);
     }
 
     /**
@@ -95,8 +95,8 @@ struct GtH5AbstractData
      * @param d data
      */
      /**@{*/
-    inline void append(const Data& d) { data().append(d); }
-    inline void append(const QVector<Data>& d) { data().append(d); }
+    inline void append(const Data& d) { m_data.append(d); }
+    inline void append(const QVector<Data>& d) { m_data.append(d); }
     /**@}*/
 
     /**

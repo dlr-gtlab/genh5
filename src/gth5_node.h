@@ -58,9 +58,6 @@ protected:
      */
     GtH5Node(std::shared_ptr<GtH5File> file = {},
                  QByteArray const& name = {});
-
-    GtH5Node(GtH5Node const& other) = default;
-    GtH5Node(GtH5Node&& other)  = default;
 };
 
 #endif // GTH5NODE_H

@@ -21,34 +21,34 @@ GtH5DataType::GtH5DataType(const H5::DataType& type) :
 
 }
 
-GtH5DataType::GtH5DataType(GtH5DataType const& other) :
-    m_datatype{other.m_datatype}
-{
-//    qDebug() << "GtH5DataType::copy";
-}
+//GtH5DataType::GtH5DataType(GtH5DataType const& other) :
+//    m_datatype{other.m_datatype}
+//{
+////    qDebug() << "GtH5DataType::copy";
+//}
 
-GtH5DataType::GtH5DataType(GtH5DataType&& other) noexcept :
-    m_datatype{std::move(other.m_datatype)}
-{
-//    qDebug() << "GtH5DataType::move";
-}
+//GtH5DataType::GtH5DataType(GtH5DataType&& other) noexcept :
+//    m_datatype{std::move(other.m_datatype)}
+//{
+////    qDebug() << "GtH5DataType::move";
+//}
 
-GtH5DataType&
-GtH5DataType::operator=(GtH5DataType const& other)
-{
-//    qDebug() << "GtH5DataType::copy=";
-    auto tmp{other};
-    swap(tmp);
-    return *this;
-}
+//GtH5DataType&
+//GtH5DataType::operator=(GtH5DataType const& other)
+//{
+////    qDebug() << "GtH5DataType::copy=";
+//    auto tmp{other};
+//    swap(tmp);
+//    return *this;
+//}
 
-GtH5DataType&
-GtH5DataType::operator=(GtH5DataType&& other) noexcept
-{
-//    qDebug() << "GtH5DataType::move=";
-    swap(other);
-    return *this;
-}
+//GtH5DataType&
+//GtH5DataType::operator=(GtH5DataType&& other) noexcept
+//{
+////    qDebug() << "GtH5DataType::move=";
+//    swap(other);
+//    return *this;
+//}
 
 int64_t
 GtH5DataType::id() const
@@ -60,13 +60,6 @@ H5::DataType
 GtH5DataType::toH5() const
 {
     return m_datatype;
-}
-
-void
-GtH5DataType::swap(GtH5DataType& other) noexcept
-{
-    using std::swap;
-    swap(m_datatype, other.m_datatype);
 }
 
 bool
@@ -97,9 +90,16 @@ operator!=(GtH5DataType const& first, GtH5DataType const& other)
     return !(first == other);
 }
 
-void
-swap(GtH5DataType& first, GtH5DataType& other) noexcept
-{
-//    qDebug() << "swap(GtH5DataType)";
-    first.swap(other);
-}
+//void
+//GtH5DataType::swap(GtH5DataType& other) noexcept
+//{
+//    using std::swap;
+//    swap(m_datatype, other.m_datatype);
+//}
+
+//void
+//swap(GtH5DataType& first, GtH5DataType& other) noexcept
+//{
+////    qDebug() << "swap(GtH5DataType)";
+//    first.swap(other);
+//}

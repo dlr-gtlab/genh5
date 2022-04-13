@@ -24,11 +24,6 @@ public:
     GtH5DataType();
     explicit GtH5DataType(H5::DataType const& type);
 
-    GtH5DataType(GtH5DataType const& other);
-    GtH5DataType(GtH5DataType&& other) noexcept;
-    GtH5DataType& operator=(GtH5DataType const& other);
-    GtH5DataType& operator=(GtH5DataType&& other) noexcept;
-
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
@@ -41,8 +36,6 @@ public:
      */
     int64_t id() const override;
 
-    void swap(GtH5DataType& other) noexcept;
-
 protected:
 
     /// hdf5 base instance
@@ -54,7 +47,5 @@ GTH5_EXPORT bool operator==(GtH5DataType const& first,
                              GtH5DataType const& other);
 GTH5_EXPORT bool operator!=(GtH5DataType const& first,
                              GtH5DataType const& other);
-
-GTH5_EXPORT void swap(GtH5DataType& first, GtH5DataType& other) noexcept;
 
 #endif // GTH5DATATYPE_H

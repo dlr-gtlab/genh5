@@ -113,22 +113,22 @@ GtH5Group::GtH5Group(std::shared_ptr<GtH5File> file,
     }
 }
 
-GtH5Group&
-GtH5Group::operator=(GtH5Group const& other)
-{
-//    qDebug() << "GtH5Group::copy=";
-    auto tmp{other};
-    swap(tmp);
-    return *this;
-}
+//GtH5Group&
+//GtH5Group::operator=(GtH5Group const& other)
+//{
+////    qDebug() << "GtH5Group::copy=";
+//    auto tmp{other};
+//    swap(tmp);
+//    return *this;
+//}
 
-GtH5Group&
-GtH5Group::operator=(GtH5Group&& other) noexcept
-{
-//    qDebug() << "GtH5Group::move=";
-    swap(other);
-    return *this;
-}
+//GtH5Group&
+//GtH5Group::operator=(GtH5Group&& other) noexcept
+//{
+////    qDebug() << "GtH5Group::move=";
+//    swap(other);
+//    return *this;
+//}
 
 int64_t
 GtH5Group::id() const
@@ -227,17 +227,17 @@ GtH5Group::openDataset(QByteArray const& name)
     return GtH5DataSet::open(*this, name);
 }
 
-void
-GtH5Group::swap(GtH5Group& other) noexcept
-{
-    using std::swap;
-    GtH5Node::swap(other);
-    swap(m_group, other.m_group);
-}
+//void
+//GtH5Group::swap(GtH5Group& other) noexcept
+//{
+//    using std::swap;
+//    GtH5Node::swap(other);
+//    swap(m_group, other.m_group);
+//}
 
-void
-swap(GtH5Group& first, GtH5Group& other) noexcept
-{
-//    qDebug() << "swap(GtH5Group)";
-    first.swap(other);
-}
+//void
+//swap(GtH5Group& first, GtH5Group& other) noexcept
+//{
+////    qDebug() << "swap(GtH5Group)";
+//    first.swap(other);
+//}

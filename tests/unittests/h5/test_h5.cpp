@@ -20,7 +20,7 @@ TEST_F(TestH5, sizeInt)
 TEST_F(TestH5, verion)
 {
     // should compile
-    qDebug() << "version bin:" << GTH5_VERSION;
+    qDebug() << "version:" << (GTH5_VERSION > 0x010000);
     qDebug() << "version str:" << QStringLiteral(GTH5_VERSION_STR);
     qDebug() << "major:   " << int{GTH5_VERSION_MAJOR};
     qDebug() << "minor:   " << int{GTH5_VERSION_MINOR};

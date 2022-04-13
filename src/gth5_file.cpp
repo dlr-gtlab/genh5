@@ -98,38 +98,38 @@ GtH5File::GtH5File(QByteArray const& path, AccessFlag flag) :
     }
 }
 
-GtH5File::GtH5File(GtH5File const& other) :
-    m_file{other.m_file},
-    m_filePath{other.m_filePath},
-    m_root{other.m_root}
-{
-//    qDebug() << "GtH5File::copy";
-}
+//GtH5File::GtH5File(GtH5File const& other) :
+//    m_file{other.m_file},
+//    m_filePath{other.m_filePath},
+//    m_root{other.m_root}
+//{
+////    qDebug() << "GtH5File::copy";
+//}
 
-GtH5File::GtH5File(GtH5File&& other) noexcept :
-    m_file{std::move(other.m_file)},
-    m_filePath{std::move(other.m_filePath)},
-    m_root{std::move(other.m_root)}
-{
-//    qDebug() << "GtH5File::move";
-}
+//GtH5File::GtH5File(GtH5File&& other) noexcept :
+//    m_file{std::move(other.m_file)},
+//    m_filePath{std::move(other.m_filePath)},
+//    m_root{std::move(other.m_root)}
+//{
+////    qDebug() << "GtH5File::move";
+//}
 
-GtH5File&
-GtH5File::operator=(GtH5File const& other)
-{
-//    qDebug() << "GtH5File::copy=";
-    auto tmp{other};
-    swap(tmp);
-    return *this;
-}
+//GtH5File&
+//GtH5File::operator=(GtH5File const& other)
+//{
+////    qDebug() << "GtH5File::copy=";
+//    auto tmp{other};
+//    swap(tmp);
+//    return *this;
+//}
 
-GtH5File&
-GtH5File::operator=(GtH5File&& other) noexcept
-{
-//    qDebug() << "GtH5File::move=";
-    swap(other);
-    return *this;
-}
+//GtH5File&
+//GtH5File::operator=(GtH5File&& other) noexcept
+//{
+////    qDebug() << "GtH5File::move=";
+//    swap(other);
+//    return *this;
+//}
 
 bool
 GtH5File::fileExists(const QString& path)
@@ -203,14 +203,14 @@ GtH5File::close()
     m_file.close();
 }
 
-void
-GtH5File::swap(GtH5File& other) noexcept
-{
-    using std::swap;
-    swap (m_file, other.m_file);
-    swap (m_filePath, other.m_filePath);
-    swap (m_root, other.m_root);
-}
+//void
+//GtH5File::swap(GtH5File& other) noexcept
+//{
+//    using std::swap;
+//    swap (m_file, other.m_file);
+//    swap (m_filePath, other.m_filePath);
+//    swap (m_root, other.m_root);
+//}
 
 H5::H5File
 GtH5File::toH5() const
@@ -218,8 +218,8 @@ GtH5File::toH5() const
     return m_file;
 }
 
-void
-swap(GtH5File& first, GtH5File& other) noexcept
-{
-    first.swap(other);
-}
+//void
+//swap(GtH5File& first, GtH5File& other) noexcept
+//{
+//    first.swap(other);
+//}

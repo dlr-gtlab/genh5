@@ -43,34 +43,34 @@ GtH5DataSpace::GtH5DataSpace(const H5::DataSpace& dataspace) :
 
 }
 
-GtH5DataSpace::GtH5DataSpace(GtH5DataSpace const& other) :
-    m_dataspace{other.m_dataspace}
-{
-//    qDebug() << "GtH5DataSpace::copy";
-}
+//GtH5DataSpace::GtH5DataSpace(GtH5DataSpace const& other) :
+//    m_dataspace{other.m_dataspace}
+//{
+////    qDebug() << "GtH5DataSpace::copy";
+//}
 
-GtH5DataSpace::GtH5DataSpace(GtH5DataSpace&& other) noexcept :
-    m_dataspace{std::move(other.m_dataspace)}
-{
-//    qDebug() << "GtH5DataSpace::move";
-}
+//GtH5DataSpace::GtH5DataSpace(GtH5DataSpace&& other) noexcept :
+//    m_dataspace{std::move(other.m_dataspace)}
+//{
+////    qDebug() << "GtH5DataSpace::move";
+//}
 
-GtH5DataSpace&
-GtH5DataSpace::operator=(GtH5DataSpace const& other)
-{
-//    qDebug() << "GtH5DataSpace::copy=";
-    auto tmp{other};
-    swap(tmp);
-    return *this;
-}
+//GtH5DataSpace&
+//GtH5DataSpace::operator=(GtH5DataSpace const& other)
+//{
+////    qDebug() << "GtH5DataSpace::copy=";
+//    auto tmp{other};
+//    swap(tmp);
+//    return *this;
+//}
 
-GtH5DataSpace&
-GtH5DataSpace::operator=(GtH5DataSpace&& other) noexcept
-{
-//    qDebug() << "GtH5DataSpace::move=";
-    swap(other);
-    return *this;
-}
+//GtH5DataSpace&
+//GtH5DataSpace::operator=(GtH5DataSpace&& other) noexcept
+//{
+////    qDebug() << "GtH5DataSpace::move=";
+//    swap(other);
+//    return *this;
+//}
 
 int64_t
 GtH5DataSpace::id() const
@@ -110,16 +110,16 @@ operator!=(GtH5DataSpace const& first, GtH5DataSpace const& other)
     return !(first == other);
 }
 
-void
-GtH5DataSpace::swap(GtH5DataSpace& other) noexcept
-{
-    using std::swap;
-    swap(m_dataspace, other.m_dataspace);
-}
+//void
+//GtH5DataSpace::swap(GtH5DataSpace& other) noexcept
+//{
+//    using std::swap;
+//    swap(m_dataspace, other.m_dataspace);
+//}
 
-void
-swap(GtH5DataSpace& first, GtH5DataSpace& other) noexcept
-{
-//    qDebug() << "swap(GtH5DataSpace)";
-    first.swap(other);
-}
+//void
+//swap(GtH5DataSpace& first, GtH5DataSpace& other) noexcept
+//{
+////    qDebug() << "swap(GtH5DataSpace)";
+//    first.swap(other);
+//}

@@ -43,11 +43,6 @@ public:
                 H5::DataSet const & dset,
                 QByteArray const& name = {});
 
-    GtH5DataSet(GtH5DataSet const& other);
-    GtH5DataSet(GtH5DataSet&& other) noexcept;
-    GtH5DataSet& operator=(GtH5DataSet const& other);
-    GtH5DataSet& operator=(GtH5DataSet&& other) noexcept;
-
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
@@ -104,8 +99,6 @@ public:
      */
     void close();
 
-    void swap(GtH5DataSet& other) noexcept;
-
 protected:
 
     bool doWrite(void const* data) const override;
@@ -120,7 +113,5 @@ private:
 
     friend class GtH5Reference;
 };
-
-GTH5_EXPORT void swap(GtH5DataSet& first, GtH5DataSet& other) noexcept;
 
 #endif // GTH5DATASET_H

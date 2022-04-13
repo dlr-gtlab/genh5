@@ -125,40 +125,40 @@ GtH5DataSet::GtH5DataSet(std::shared_ptr<GtH5File> file,
     }
 }
 
-GtH5DataSet::GtH5DataSet(GtH5DataSet const& other) :
-    GtH5Node(other),
-    GtH5AbtsractDataSet(other),
-    m_dataset{other.m_dataset},
-    m_properties{other.m_properties}
-{
-//    qDebug() << "GtH5DataSet::copy";
-}
+//GtH5DataSet::GtH5DataSet(GtH5DataSet const& other) :
+//    GtH5Node(other),
+//    GtH5AbtsractDataSet(other),
+//    m_dataset{other.m_dataset},
+//    m_properties{other.m_properties}
+//{
+////    qDebug() << "GtH5DataSet::copy";
+//}
 
-GtH5DataSet::GtH5DataSet(GtH5DataSet&& other) noexcept :
-    GtH5Node(std::move(other)),
-    GtH5AbtsractDataSet(std::move(other)),
-    m_dataset{std::move(other.m_dataset)},
-    m_properties{std::move(other.m_properties)}
-{
-//    qDebug() << "GtH5DataSet::move";
-}
+//GtH5DataSet::GtH5DataSet(GtH5DataSet&& other) noexcept :
+//    GtH5Node(std::move(other)),
+//    GtH5AbtsractDataSet(std::move(other)),
+//    m_dataset{std::move(other.m_dataset)},
+//    m_properties{std::move(other.m_properties)}
+//{
+////    qDebug() << "GtH5DataSet::move";
+//}
 
-GtH5DataSet&
-GtH5DataSet::operator=(GtH5DataSet const& other)
-{
-//    qDebug() << "GtH5DataSet::copy=";
-    auto dset{other};
-    swap(dset);
-    return *this;
-}
+//GtH5DataSet&
+//GtH5DataSet::operator=(GtH5DataSet const& other)
+//{
+////    qDebug() << "GtH5DataSet::copy=";
+//    auto dset{other};
+//    swap(dset);
+//    return *this;
+//}
 
-GtH5DataSet&
-GtH5DataSet::operator=(GtH5DataSet&& other)  noexcept
-{
-//    qDebug() << "GtH5DataSet::move=";
-    swap(other);
-    return *this;
-}
+//GtH5DataSet&
+//GtH5DataSet::operator=(GtH5DataSet&& other)  noexcept
+//{
+////    qDebug() << "GtH5DataSet::move=";
+//    swap(other);
+//    return *this;
+//}
 
 int64_t
 GtH5DataSet::id() const
@@ -315,20 +315,20 @@ GtH5DataSet::close()
     m_dataset.close();
 }
 
-void
-GtH5DataSet::swap(GtH5DataSet& other) noexcept
-{
-    using std::swap;
-    GtH5Node::swap(other);
-    GtH5AbtsractDataSet::swap(other);
-    swap(m_dataset, other.m_dataset);
-    swap(m_properties, other.m_properties);
-}
+//void
+//GtH5DataSet::swap(GtH5DataSet& other) noexcept
+//{
+//    using std::swap;
+//    GtH5Node::swap(other);
+//    GtH5AbtsractDataSet::swap(other);
+//    swap(m_dataset, other.m_dataset);
+//    swap(m_properties, other.m_properties);
+//}
 
-void
-swap(GtH5DataSet& first, GtH5DataSet& other) noexcept
-{
-//    qDebug() << "swap(GtH5DataSet)";
-    first.swap(other);
-}
+//void
+//swap(GtH5DataSet& first, GtH5DataSet& other) noexcept
+//{
+////    qDebug() << "swap(GtH5DataSet)";
+//    first.swap(other);
+//}
 

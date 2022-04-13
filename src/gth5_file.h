@@ -77,11 +77,6 @@ public:
     GtH5File(QString const& path, AccessFlag flag);
     GtH5File(QByteArray const& path, AccessFlag flag);
 
-    GtH5File(GtH5File const& other);
-    GtH5File(GtH5File&& other) noexcept;
-    GtH5File& operator=(GtH5File const& other);
-    GtH5File& operator=(GtH5File&& other) noexcept;
-
     /**
      * @brief allows access of the base hdf5 object.
      * @return base hdf5 object
@@ -124,8 +119,6 @@ public:
      */
     void close();
 
-    void swap(GtH5File& other) noexcept;
-
 private:
 
     /// hdf5 base instance
@@ -135,7 +128,5 @@ private:
     /// cashes the associated root group
     mutable GtH5Group m_root{};
 };
-
-GTH5_EXPORT void swap(GtH5File& first, GtH5File& other) noexcept;
 
 #endif // GTH5FILE_H

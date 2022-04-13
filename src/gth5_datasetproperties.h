@@ -25,11 +25,6 @@ public:
     explicit GtH5DataSetProperties(QVector<uint64_t> const& chunkDimensions,
                                    int compression = 0);
 
-    GtH5DataSetProperties(GtH5DataSetProperties const& other);
-    GtH5DataSetProperties(GtH5DataSetProperties&& other) noexcept;
-    GtH5DataSetProperties& operator=(GtH5DataSetProperties const& other);
-    GtH5DataSetProperties& operator=(GtH5DataSetProperties&& other) noexcept;
-
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
@@ -67,15 +62,10 @@ public:
      */
     QVector<uint64_t> chunkDimensions() const;
 
-    void swap(GtH5DataSetProperties& other) noexcept;
-
 private:
 
     /// hdf5 base instance
     H5::DSetCreatPropList m_properties{};
 };
-
-GTH5_EXPORT void swap(GtH5DataSetProperties& first,
-                       GtH5DataSetProperties& other) noexcept;
 
 #endif // GTH5DATASETPROPERTIES_H

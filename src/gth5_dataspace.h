@@ -32,11 +32,6 @@ public:
     explicit GtH5DataSpace(QVector<uint64_t> const& dimensions);
     explicit GtH5DataSpace(H5::DataSpace const& dataspace);
 
-    GtH5DataSpace(GtH5DataSpace const& other);
-    GtH5DataSpace(GtH5DataSpace&& other) noexcept;
-    GtH5DataSpace& operator=(GtH5DataSpace const& other);
-    GtH5DataSpace& operator=(GtH5DataSpace&& other) noexcept;
-
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
@@ -62,8 +57,6 @@ public:
      */
     QVector<uint64_t> dimensions() const;
 
-   void swap(GtH5DataSpace& other) noexcept;
-
 private:
 
     /// hdf5 base instance
@@ -75,8 +68,6 @@ GTH5_EXPORT bool operator==(GtH5DataSpace const& first,
                              GtH5DataSpace const& other);
 GTH5_EXPORT bool operator!=(GtH5DataSpace const& first,
                              GtH5DataSpace const& other);
-
-GTH5_EXPORT void swap(GtH5DataSpace& first, GtH5DataSpace& other) noexcept;
 
 template<typename Tin, typename Tout> Tout inline
 GtH5DataSpace::sum(const QVector<Tin>& dimensions)
