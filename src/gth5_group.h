@@ -37,11 +37,6 @@ public:
               H5::Group const& group,
               QByteArray const& name = {});
 
-    GtH5Group(GtH5Group const& other) = default;
-    GtH5Group(GtH5Group&& other) = default;
-    GtH5Group& operator=(GtH5Group const& other);
-    GtH5Group& operator=(GtH5Group&& other) noexcept;
-
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
@@ -93,8 +88,6 @@ public:
     GtH5DataSet openDataset(QString const& name);
     GtH5DataSet openDataset(QByteArray const& name);
 
-    void swap(GtH5Group& other) noexcept;
-
 private:
 
     /// hdf5 base instance
@@ -102,7 +95,5 @@ private:
 
     friend class GtH5Reference;
 };
-
-GTH5_EXPORT void swap(GtH5Group& first, GtH5Group& other) noexcept;
 
 #endif // GTH5GROUP_H

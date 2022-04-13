@@ -32,36 +32,36 @@ GtH5DataSetProperties::GtH5DataSetProperties(
     setCompression(compression);
 }
 
-GtH5DataSetProperties::GtH5DataSetProperties(
-        GtH5DataSetProperties const& other) :
-    m_properties{other.m_properties}
-{
-//    qDebug() << "GtH5DataSpace::copy";
-}
+//GtH5DataSetProperties::GtH5DataSetProperties(
+//        GtH5DataSetProperties const& other) :
+//    m_properties{other.m_properties}
+//{
+////    qDebug() << "GtH5DataSpace::copy";
+//}
 
-GtH5DataSetProperties::GtH5DataSetProperties(
-        GtH5DataSetProperties&& other) noexcept :
-    m_properties{std::move(other.m_properties)}
-{
-//    qDebug() << "GtH5DataSpace::move";
-}
+//GtH5DataSetProperties::GtH5DataSetProperties(
+//        GtH5DataSetProperties&& other) noexcept :
+//    m_properties{std::move(other.m_properties)}
+//{
+////    qDebug() << "GtH5DataSpace::move";
+//}
 
-GtH5DataSetProperties&
-GtH5DataSetProperties::operator=(GtH5DataSetProperties const& other)
-{
-//    qDebug() << "GtH5DataSpace::copy=";
-    auto tmp{other};
-    swap(tmp);
-    return *this;
-}
+//GtH5DataSetProperties&
+//GtH5DataSetProperties::operator=(GtH5DataSetProperties const& other)
+//{
+////    qDebug() << "GtH5DataSpace::copy=";
+//    auto tmp{other};
+//    swap(tmp);
+//    return *this;
+//}
 
-GtH5DataSetProperties&
-GtH5DataSetProperties::operator=(GtH5DataSetProperties&& other) noexcept
-{
-//    qDebug() << "GtH5DataSpace::move=";
-    swap(other);
-    return *this;
-}
+//GtH5DataSetProperties&
+//GtH5DataSetProperties::operator=(GtH5DataSetProperties&& other) noexcept
+//{
+////    qDebug() << "GtH5DataSpace::move=";
+//    swap(other);
+//    return *this;
+//}
 
 QVector<uint64_t>
 GtH5DataSetProperties::autoChunk(GtH5DataSpace const& dataspace, int maxChunks)
@@ -161,16 +161,16 @@ GtH5DataSetProperties::toH5() const
     return m_properties;
 }
 
-void
-GtH5DataSetProperties::swap(GtH5DataSetProperties& other) noexcept
-{
-    using std::swap;
-    swap(m_properties, other.m_properties);
-}
+//void
+//GtH5DataSetProperties::swap(GtH5DataSetProperties& other) noexcept
+//{
+//    using std::swap;
+//    swap(m_properties, other.m_properties);
+//}
 
-void
-swap(GtH5DataSetProperties& first, GtH5DataSetProperties& other) noexcept
-{
-//    qDebug() << "swap(GtH5DataSetProperties)";
-    first.swap(other);
-}
+//void
+//swap(GtH5DataSetProperties& first, GtH5DataSetProperties& other) noexcept
+//{
+////    qDebug() << "swap(GtH5DataSetProperties)";
+//    first.swap(other);
+//}

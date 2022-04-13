@@ -82,19 +82,19 @@ GtH5Location::GtH5Location(std::shared_ptr<GtH5File> file,
 
 }
 
-GtH5Location::GtH5Location(GtH5Location const& other) :
-    m_file{other.m_file},
-    m_name{other.m_name}
-{
+//GtH5Location::GtH5Location(GtH5Location const& other) :
+//    m_file{other.m_file},
+//    m_name{other.m_name}
+//{
 
-}
+//}
 
-GtH5Location::GtH5Location(GtH5Location&& other) noexcept :
-    m_file{std::move(other.m_file)},
-    m_name{std::move(other.m_name)}
-{
+//GtH5Location::GtH5Location(GtH5Location&& other) noexcept :
+//    m_file{std::move(other.m_file)},
+//    m_name{std::move(other.m_name)}
+//{
 
-}
+//}
 
 QByteArray
 GtH5Location::path() const
@@ -162,11 +162,11 @@ GtH5Location::getAttrName(GtH5Attribute const& attr)
     return buffer.trimmed().chopped(1);
 }
 
-void
-GtH5Location::swap(GtH5Location& other) noexcept
-{
-//    qDebug() << "GtH5Location::swap";
-    using std::swap;
-    swap(m_file, other.m_file);
-    swap(m_name, other.m_name);
-}
+//void
+//GtH5Location::swap(GtH5Location& other) noexcept
+//{
+////    qDebug() << "GtH5Location::swap";
+//    using std::swap;
+//    swap(m_file, other.m_file);
+//    swap(m_name, other.m_name);
+//}

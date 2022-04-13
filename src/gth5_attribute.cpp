@@ -103,38 +103,38 @@ GtH5Attribute::GtH5Attribute(std::shared_ptr<GtH5File> file,
     }
 }
 
-GtH5Attribute::GtH5Attribute(GtH5Attribute const& other) :
-    GtH5Location(other),
-    GtH5AbtsractDataSet(other),
-    m_attribute{other.m_attribute}
-{
-//    qDebug() << "GtH5Attribute::copy";
-}
+//GtH5Attribute::GtH5Attribute(GtH5Attribute const& other) :
+//    GtH5Location(other),
+//    GtH5AbtsractDataSet(other),
+//    m_attribute{other.m_attribute}
+//{
+////    qDebug() << "GtH5Attribute::copy";
+//}
 
-GtH5Attribute::GtH5Attribute(GtH5Attribute&& other) noexcept :
-    GtH5Location(std::move(other)),
-    GtH5AbtsractDataSet(std::move(other)),
-    m_attribute{std::move(other.m_attribute)}
-{
-//    qDebug() << "GtH5Attribute::move";
-}
+//GtH5Attribute::GtH5Attribute(GtH5Attribute&& other) noexcept :
+//    GtH5Location(std::move(other)),
+//    GtH5AbtsractDataSet(std::move(other)),
+//    m_attribute{std::move(other.m_attribute)}
+//{
+////    qDebug() << "GtH5Attribute::move";
+//}
 
-GtH5Attribute&
-GtH5Attribute::operator=(GtH5Attribute const& other)
-{
-//    qDebug() << "GtH5Attribute::copy=";
-    auto dset{other};
-    swap(dset);
-    return *this;
-}
+//GtH5Attribute&
+//GtH5Attribute::operator=(GtH5Attribute const& other)
+//{
+////    qDebug() << "GtH5Attribute::copy=";
+//    auto dset{other};
+//    swap(dset);
+//    return *this;
+//}
 
-GtH5Attribute&
-GtH5Attribute::operator=(GtH5Attribute&& other) noexcept
-{
-//    qDebug() << "GtH5Attribute::move=";
-    swap(other);
-    return *this;
-}
+//GtH5Attribute&
+//GtH5Attribute::operator=(GtH5Attribute&& other) noexcept
+//{
+////    qDebug() << "GtH5Attribute::move=";
+//    swap(other);
+//    return *this;
+//}
 
 int64_t
 GtH5Attribute::id() const
@@ -235,17 +235,17 @@ GtH5Attribute::close()
     m_attribute.close();
 }
 
-void
-GtH5Attribute::swap(GtH5Attribute& other) noexcept
-{
-    using std::swap;
-    GtH5Location::swap(other);
-    GtH5AbtsractDataSet::swap(other);
-    swap(m_attribute, other.m_attribute);
-}
+//void
+//GtH5Attribute::swap(GtH5Attribute& other) noexcept
+//{
+//    using std::swap;
+//    GtH5Location::swap(other);
+//    GtH5AbtsractDataSet::swap(other);
+//    swap(m_attribute, other.m_attribute);
+//}
 
-void
-swap(GtH5Attribute& first, GtH5Attribute& other) noexcept
-{
-    first.swap(other);
-}
+//void
+//swap(GtH5Attribute& first, GtH5Attribute& other) noexcept
+//{
+//    first.swap(other);
+//}

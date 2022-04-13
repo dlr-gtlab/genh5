@@ -38,11 +38,6 @@ public:
                   H5::Attribute const& attr,
                   QByteArray const& name = {});
 
-    GtH5Attribute(GtH5Attribute const& other);
-    GtH5Attribute(GtH5Attribute&& other) noexcept;
-    GtH5Attribute& operator=(GtH5Attribute const& other);
-    GtH5Attribute& operator=(GtH5Attribute&& other)  noexcept;
-
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
@@ -85,8 +80,6 @@ public:
      */
     void close();
 
-    void swap(GtH5Attribute& other) noexcept;
-
 protected:
 
     bool doWrite(void const* data) const override;
@@ -99,7 +92,5 @@ private:
 
     friend class GtH5Reference;
 };
-
-GTH5_EXPORT void swap(GtH5Attribute& first, GtH5Attribute& other) noexcept;
 
 #endif // GTH5ATTRIBUTE_H

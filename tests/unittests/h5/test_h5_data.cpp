@@ -136,3 +136,39 @@ TEST_F(TestH5Data, serialization3D)
     EXPECT_EQ(orgIntData, intData);
     EXPECT_EQ(orgDoubleData, doubleData);
 }
+
+TEST_F(TestH5Data, copy)
+{
+    GtH5Data<QString, int, double> comData(stringData, intData, doubleData);
+    // data must be deserialized first
+
+    auto data{comData};
+    QStringList orgStrData;
+    QVector<int> orgIntData;
+    QVector<double> orgDoubleData;
+
+    data.deserialize(orgStrData, orgIntData, orgDoubleData);
+
+    EXPECT_EQ(orgStrData, stringData);
+    EXPECT_EQ(orgIntData, intData);
+    EXPECT_EQ(orgDoubleData, doubleData);
+}
+
+TEST_F(TestH5Data, assign)
+{
+    GtH5Data<QString, int, double> comData(stringData, intData, doubleData);
+    // data must be deserialized first
+
+    GtH5Data<QString, int, double> data;
+
+    data = comData;
+    QStringList orgStrData;
+    QVector<int> orgIntData;
+    QVector<double> orgDoubleData;
+
+    data.deserialize(orgStrData, orgIntData, orgDoubleData);
+
+    EXPECT_EQ(orgStrData, stringData);
+    EXPECT_EQ(orgIntData, intData);
+    EXPECT_EQ(orgDoubleData, doubleData);
+}

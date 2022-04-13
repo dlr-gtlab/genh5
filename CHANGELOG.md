@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed 
 
 ### Changed 
-- moved to c++14 - #4
-- updated prefix naming sceme to gth5 - #5
 
 ### Added
 
@@ -19,16 +17,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security  
 
+## [1.0.3] - 2022-04-13
+### Changed 
+- moved to c++14 - #4
+- updated prefix naming sceme to gth5 - #5
+- improved const correctness, minor interface changes - #4
+
+### Added
+- added versioning - #4
+
 ## [1.0.2] - 2021-11-17
-## Fixed
+### Fixed
 - Fixed error when inserting members in compound datatype when in debug mode - #2
 
 ## [1.0.1] - 2021-11-10
-## Fixed
+### Fixed
 - updated paths to the hdf5 debug libraries
 
 ## [1.0.0] - 2021-11-08
-## Added
+### Added
 - initial release
 - Creating, accessing and deleting files, groups, datasets and attributes
 - Chunked datasets and compression

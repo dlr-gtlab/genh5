@@ -39,10 +39,10 @@ public:
 
 protected:
 
-    GtH5Object(GtH5Object const& other) = delete;
-    GtH5Object(GtH5Object&& other) = delete;
-    GtH5Object& operator=(GtH5Object const& other) = delete;
-    GtH5Object& operator=(GtH5Object&& other) = delete;
+    GtH5Object(GtH5Object const& other) = default;
+    GtH5Object(GtH5Object&& other) = default;
+    GtH5Object& operator=(GtH5Object const& other) = default;
+    GtH5Object& operator=(GtH5Object&& other) = default;
 
     /**
      * @brief GtH5Object

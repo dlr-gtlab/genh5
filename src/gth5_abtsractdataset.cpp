@@ -50,11 +50,11 @@ GtH5AbtsractDataSet::dataSpace() const
     return m_dataspace;
 }
 
-void
-GtH5AbtsractDataSet::swap(GtH5AbtsractDataSet& other) noexcept
-{
-//    qDebug() << "GtH5AbtsractDataSet::swap";
-    using std::swap;
-    swap(m_datatype, other.m_datatype);
-    swap(m_dataspace, other.m_dataspace);
-}
+//void
+//GtH5AbtsractDataSet::swap(GtH5AbtsractDataSet& other) noexcept
+//{
+////    qDebug() << "GtH5AbtsractDataSet::swap";
+//    using std::swap;
+//    swap(m_datatype, other.m_datatype);
+//    swap(m_dataspace, other.m_dataspace);
+//}

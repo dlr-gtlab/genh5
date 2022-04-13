@@ -108,9 +108,6 @@ protected:
     GtH5Location(std::shared_ptr<GtH5File> file = {},
                  QByteArray const& name = {});
 
-    GtH5Location(GtH5Location const& other);
-    GtH5Location(GtH5Location&& other) noexcept;
-
     // shared file instance
     std::shared_ptr<GtH5File> m_file{};
     /// name of this location
@@ -129,8 +126,6 @@ protected:
      * @return name
      */
     static QByteArray getAttrName(GtH5Attribute const& attr);
-
-    void swap(GtH5Location& other) noexcept;
 };
 
 #endif // GTH5LOCATION_H

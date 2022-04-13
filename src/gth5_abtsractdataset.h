@@ -68,8 +68,6 @@ protected:
 
     virtual bool doWrite(void const* data) const = 0;
     virtual bool doRead(void* data) const = 0;
-
-    void swap(GtH5AbtsractDataSet& other) noexcept;
 };
 
 
