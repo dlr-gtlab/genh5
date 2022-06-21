@@ -8,55 +8,62 @@
 #### DO NOT CHANGE!
 ######################################################################
 
-include( $${PWD}/../../settings.pri )
+include($${PWD}/../../settings.pri)
 
 TARGET_DIR_NAME = unittests
 BUILD_DEST      = ../../build
-MOC_BUILD_DEST  = ../../build
+MOC_BUILD_DEST  = $${BUILD_DEST}
 
 TARGET = H5UnitTest
 
 QT += core
 
 TEMPLATE = app
-CONFIG += c++14 console silent
+CONFIG += console
 
+# H5Cpp specific
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
+# disable deprecated symbols
+DEFINES += H5_NO_DEPRECATED_SYMBOLS
+DEFINES += GTH5_NO_DEPRECATED_SYMBOLS
+
+CONFIG(debug, debug|release){
+    MOC_BUILD_DEST = $${MOC_BUILD_DEST}/debug_$${TARGET_DIR_NAME}
+} else {
+    MOC_BUILD_DEST = $${MOC_BUILD_DEST}/release_$${TARGET_DIR_NAME}
+}
+
+OBJECTS_DIR = $${MOC_BUILD_DEST}/obj
+MOC_DIR = $${MOC_BUILD_DEST}/moc
+RCC_DIR = $${MOC_BUILD_DEST}/rcc
+UI_DIR  = $${MOC_BUILD_DEST}/ui
+
+DESTDIR = $${BUILD_DEST}
 
 INCLUDEPATH += .\
 
 HEADERS += \
     testhelper.h
+
 SOURCES += \
     h5/test_h5.cpp \
     h5/test_h5_abstractdataset.cpp \
     h5/test_h5_attribute.cpp \
+    h5/test_h5_conversion.cpp \
     h5/test_h5_data.cpp \
     h5/test_h5_dataset.cpp \
-    h5/test_h5_datasetproperties.cpp \
+    h5/test_h5_datasetcproperties.cpp \
     h5/test_h5_dataspace.cpp \
     h5/test_h5_datatype.cpp \
     h5/test_h5_file.cpp \
     h5/test_h5_group.cpp \
     h5/test_h5_location.cpp \
     h5/test_h5_reference.cpp \
+    h5/test_h5_utils.cpp \
+    h5/test.cpp \
     main.cpp \
     testhelper.cpp
-
-CONFIG(debug, debug|release){
-    DESTDIR = $${BUILD_DEST}
-    OBJECTS_DIR = $${MOC_BUILD_DEST}/debug-src/$${TARGET_DIR_NAME}/obj
-    MOC_DIR = $${MOC_BUILD_DEST}/debug-src/$${TARGET_DIR_NAME}/moc
-    RCC_DIR = $${MOC_BUILD_DEST}/debug-src/$${TARGET_DIR_NAME}/rcc
-    UI_DIR  = $${MOC_BUILD_DEST}/debug-src/$${TARGET_DIR_NAME}/ui
-} else {
-    DESTDIR = $${BUILD_DEST}
-    OBJECTS_DIR = $${MOC_BUILD_DEST}/release-src/$${TARGET_DIR_NAME}/obj
-    MOC_DIR = $${MOC_BUILD_DEST}/release-src/$${TARGET_DIR_NAME}/moc
-    RCC_DIR = $${MOC_BUILD_DEST}/release-src/$${TARGET_DIR_NAME}/rcc
-    UI_DIR  = $${MOC_BUILD_DEST}/release-src/$${TARGET_DIR_NAME}/ui
-}
-
+	
 ### GTLAB HDF5
 INCLUDEPATH += ../../src
 LIBS        += -L../../lib/h5
@@ -68,8 +75,10 @@ INCLUDEPATH += $${GOOGLE_TEST_PATH}/include
 LIBS        += -L$${GOOGLE_TEST_PATH}/lib
 DEPENDPATH  += $${GOOGLE_TEST_PATH}/lib
 
+# THIRD PARTY
+LIBS += -lhdf5 -lhdf5_cpp
 CONFIG(debug, debug|release) {
-    LIBS += -lhdf5 -lhdf5_cpp
+    LIBS += -lGTlabH5-d
     # THIRD PARTY
     win32 {
         LIBS += -lgtestd
@@ -77,12 +86,8 @@ CONFIG(debug, debug|release) {
     unix {
         LIBS += -lgtest
     }
-    # MODULES
-    LIBS += -lGTlabH5-d
 } else {
-    # THIRD PARTY
-    LIBS += -lhdf5 -lhdf5_cpp
-    LIBS += -lgtest
-    # MODULES
     LIBS += -lGTlabH5
+    # THIRD PARTY
+    LIBS += -lgtest
 }

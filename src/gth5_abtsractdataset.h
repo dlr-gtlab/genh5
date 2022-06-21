@@ -6,160 +6,156 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GTH5ABTSRACTDATASET_H
-#define GTH5ABTSRACTDATASET_H
+#ifndef GTH5_ABTSRACTDATASET_H
+#define GTH5_ABTSRACTDATASET_H
 
 #include "gth5_exports.h"
 #include "gth5_datatype.h"
 #include "gth5_dataspace.h"
-#include "gth5_abstractdata.h"
+#include "gth5_data.h"
+#include "gth5_optional.h"
 
-#include <QVector>
 #include <QDebug>
 
+namespace GtH5
+{
+
 /**
- * @brief The GtH5AbtsractDataSet class
+ * @brief The AbtsractDataSet class
  */
-class GTH5_EXPORT GtH5AbtsractDataSet
+class GTH5_EXPORT AbstractDataSet
 {
 public:
-    virtual ~GtH5AbtsractDataSet() = default;
+
+    virtual ~AbstractDataSet() = default;
 
     /**
      * @brief dataType of this dataset
      * @return dataType
      */
-    GtH5DataType const& dataType() const;
+    DataType const& dataType() const;
     /**
      * @brief dataSpace of this dataset
      * @return dataSpace
      */
-    GtH5DataSpace const& dataSpace() const;
+    DataSpace const& dataSpace() const;
 
-    bool write(void const* data) const;
-    template<typename T>
-    bool write(QVector<T> const& data) const;
-    template<typename T>
-    bool write(GtH5AbstractData<T> const& data) const;
+    /**
+     * @brief writes data to dataset
+     * @param data buffer to write
+     * @return sucess
+     */
+    bool write(void const* data, Optional<DataType> dtype = {}) const;
 
-    bool read(void* data) const;
     template<typename T>
-    bool read(QVector<T>& data) const;
+    bool write(Vector<T> const& data, Optional<DataType> dtype = {}) const;
     template<typename T>
-    bool read(GtH5AbstractData<T>& data) const;
+    bool write(AbstractData<T> const& data, Optional<DataType> dtype = {}) const;
+
+    /**
+     * @brief reads data from dataset
+     * @param data buffer to write
+     * @return sucess
+     */
+    bool read(void* data, Optional<DataType> dtype = {}) const;
+
+    template<typename T>
+    bool read(Vector<T>& data, Optional<DataType> dtype = {}) const;
+
+    template<typename T>
+    bool read(AbstractData<T>& data, Optional<DataType> dtype = {}) const;
 
 protected:
 
-    /**
-     * @brief GtH5AbtsractDataSet
-     */
-    GtH5AbtsractDataSet(GtH5DataType const& dtype = {},
-                        GtH5DataSpace const& dspace = {});
-
-    GtH5AbtsractDataSet(GtH5AbtsractDataSet const& other) = default;
-    GtH5AbtsractDataSet(GtH5AbtsractDataSet&& other) = default;
-    GtH5AbtsractDataSet& operator=(GtH5AbtsractDataSet const& other) = default;
-    GtH5AbtsractDataSet& operator=(GtH5AbtsractDataSet&& other) = default;
-
     /// datatype of this dataset
-    GtH5DataType  m_datatype{};
+    DataType  m_datatype{};
     /// dataspace of this dataset
-    GtH5DataSpace m_dataspace{};
+    DataSpace m_dataspace{};
 
-    virtual bool doWrite(void const* data) const = 0;
-    virtual bool doRead(void* data) const = 0;
+    /**
+     * @brief Method for wirte implementation
+     * @param data Data buffer to write
+     * @return success
+     */
+    virtual bool doWrite(void const* data, DataType const& dtype) const = 0;
+
+    /**
+     * @brief Method for read implementation
+     * @param data Data buffer to read
+     * @return success
+     */
+    virtual bool doRead(void* data, DataType const& dtype) const = 0;
+
+    /**
+     * @brief AbtsractDataSet
+     */
+    AbstractDataSet(DataType dtype = {},
+                    DataSpace dspace = {});
+
+    AbstractDataSet(AbstractDataSet const& other) = default;
+    AbstractDataSet(AbstractDataSet&& other) = default;
+    AbstractDataSet& operator=(AbstractDataSet const& other) = default;
+    AbstractDataSet& operator=(AbstractDataSet&& other) = default;
 };
 
-
-
-template<typename T> bool
-GtH5AbtsractDataSet::write(QVector<T> const& data) const
+template<typename T>
+inline bool
+AbstractDataSet::write(Vector<T> const& data, Optional<DataType> dtype) const
 {
-    if (data.length() < dataSpace().sum())
+    if (data.size() < dataSpace().selectionSize())
     {
         qCritical() << "HDF5: Writing data failed!" <<
-                       "(To few data elements)";
+                       "(Too few data elements:"
+                    << data.length() << "vs."
+                    << m_dataspace.dimensions()
+                    << m_dataspace.selectionSize() << "elements)";
         return false;
     }
 
-    return write(static_cast<const void*>(data.data()));
+    return write(data.data(), std::move(dtype));
 }
 
-template<typename T> bool
-GtH5AbtsractDataSet::write(GtH5AbstractData<T> const& data) const
+template<typename T>
+inline bool
+AbstractDataSet::write(AbstractData<T> const& data, Optional<DataType> dtype) const
 {
-    static_assert (GtH5AbstractData<T>::isImplemented::value,
-                   "HDF5: Datavector specialization is not implemented!");
-
-    if (data.dataType() != dataType())
+    if (dtype.isDefault())
     {
-        qCritical() << "HDF5: Writing datavector failed!"
-                    << "(Datatype mismatch)";
-        return false;
+        dtype = data.dataType();
     }
 
-    if (data.dataPtr() == nullptr)
-    {
-        qCritical() << "HDF5: Writing datavector failed!"
-                    << "(Datavector is invalid)";
-        return false;
-    }
-
-    const int size = dataSpace().sum();
-
-    if (data.length() < size)
-    {
-        qCritical() << "HDF5: Writing datavector failed"
-                    << "(To few data elements for dataspace:"
-                    << data.length() << "vs." << size << "elements)";
-        return false;
-    }
-
-    return write(data.dataPtr());
+    return write(data.c(), std::move(dtype));
 }
 
-template<typename T> bool
-GtH5AbtsractDataSet::read(QVector<T>& data) const
+template<typename T>
+inline bool
+AbstractDataSet::read(Vector<T>& data, Optional<DataType> dtype) const
 {
-    data.clear();
-    data.resize(dataSpace().sum());
+    auto& dspace = dataSpace();
+    data.resize(dspace.selectionSize());
 
-    return read(data.data());
+    return read(data.data(), std::move(dtype));
 }
 
-template<typename T> bool
-GtH5AbtsractDataSet::read(GtH5AbstractData<T>& data) const
+template<typename T>
+inline bool
+AbstractDataSet::read(AbstractData<T>& data, Optional<DataType> dtype) const
 {
-    static_assert (GtH5AbstractData<T>::isImplemented::value,
-                   "HDF5: Datavector specialization is not implemented!");
+    auto& dspace = dataSpace();
+    data.resize(dspace.selectionSize());
 
-    if (data.dataType() != dataType())
+    if (dtype.isDefault())
     {
-        qCritical() << "HDF5: Reading datavector failed!"
-                    << "(Datatype mismatch)";
-        return false;
+        dtype = data.dataType();
     }
 
-    if (data.dataPtr() == nullptr)
-    {
-        qCritical() << "HDF5: Reading datavector failed!"
-                    << "(Datavector is invalid)";
-        return false;
-    }
-
-    const int size = dataSpace().sum();
-
-    data.resize(size);
-
-    if (data.length() != size)
-    {
-        qCritical() << "HDF5: Reading datavector failed!"
-                    << "(Datavector allocation failed:"
-                    << data.length() << "vs." << size << "elements)";
-        return false;
-    }
-
-    return read(data.dataPtr());
+    return read(data.data(), std::move(dtype));
 }
 
-#endif // GTH5ABTSRACTDATASET_H
+} // namespace GtH5
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5AbstractDataSet = GtH5::AbstractDataSet;
+#endif
+
+#endif // GTH5_ABTSRACTDATASET_H

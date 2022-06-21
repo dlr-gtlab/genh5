@@ -11,7 +11,6 @@
 include(settings.pri)
 
 TEMPLATE = subdirs
-CONFIG += ordered console
 CONFIG += c++14
 
 #### Interface ####
@@ -23,7 +22,16 @@ contains(BUILD_HDF5, true) {
 #### UNIT TESTS ####
 contains(BUILD_UNITTESTS, true) {
     message("BUILD_UNITTESTS = true")
-    SUBDIRS += tests/unittests
+    SUBDIRS += unittests
+    unittests.subdir = tests/unittests
+    unittests.depends = src
+}
+
+#### UNIT TESTS ####
+contains(BUILD_EXAMPLES, true) {
+    message("BUILD_EXAMPLES = true")
+    SUBDIRS += examples
+    examples.depends = src
 }
 
 ######################################################################

@@ -6,48 +6,69 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GTH5OBJECT_H
-#define GTH5OBJECT_H
+#ifndef GTH5_OBJECT_H
+#define GTH5_OBJECT_H
 
-#include "stdint.h"
 #include "gth5_exports.h"
 #include "H5Cpp.h"
 
+
+namespace GtH5
+{
+
 /**
- * @brief The GtH5Object class
+ * @brief The Object class
  */
-class GTH5_EXPORT GtH5Object
+class /*GTH5_EXPORT*/ Object
 {
 public:
 
-    virtual ~GtH5Object() = default;
+    virtual ~Object() = default;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    virtual int64_t id() const = 0;
+    virtual hid_t id() const = 0;
 
     /**
      * @brief returns whether the object id is valid and can be used for further
-     * actions. Call this after instantion to verify the resource allocation.
+     * actions. This should be called after instanting any resource for
+     * verification
      * @return whether object id is valid
      */
-    virtual bool isValid() const;
+    virtual bool isValid() const
+    {
+        return H5Iis_valid(id());
+    }
 
-    static bool isValid(int64_t id);
+    /**
+     * @brief Static version of is valid
+     * @param id id
+     * @return is valid
+     */
+    static bool isValid(hid_t id)
+    {
+        return H5Iis_valid(id);
+    }
 
 protected:
 
-    GtH5Object(GtH5Object const& other) = default;
-    GtH5Object(GtH5Object&& other) = default;
-    GtH5Object& operator=(GtH5Object const& other) = default;
-    GtH5Object& operator=(GtH5Object&& other) = default;
+    Object(Object const& other) = default;
+    Object(Object&& other) = default;
+    Object& operator=(Object const& other) = default;
+    Object& operator=(Object&& other) = default;
 
     /**
-     * @brief GtH5Object
+     * @brief Object
      */
-    GtH5Object();
+    Object() = default;
 };
 
-#endif // GTH5OBJECT_H
+} // namespace GtH5
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5Object = GtH5::Object;
+#endif
+
+#endif // GTH5_OBJECT_H

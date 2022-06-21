@@ -21,29 +21,28 @@ protected:
 
     virtual void SetUp() override
     {
-        doubleData = QVector<double>{1, 2, 3, 4, 5};
-        intData    = QVector<int>{1, 2, 3, 4, 5};
+        doubleData = GtH5::Vector<double>{1, 2, 3, 4, 5};
+        intData    = GtH5::Vector<int>{1, 2, 3, 4, 5};
         stringData = QStringList{"1", "2", "3", "4", "5", "6"};
 
-        file = GtH5File(TestHelper::instance()->newFilePath(),
-                        GtH5File::CreateOverwrite);
+        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::CreateOnly);
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
         ASSERT_TRUE(group.isValid());
     }
 
-    GtH5File file;
-    GtH5Group group;
+    GtH5::File file;
+    GtH5::Group group;
 
-    GtH5Data<int> intData;
-    GtH5Data<double> doubleData;
-    GtH5Data<QString> stringData;
+    GtH5::Data<int> intData;
+    GtH5::Data<double> doubleData;
+    GtH5::Data<QString> stringData;
 };
 
 TEST_F(TestH5DataSet, isValid)
 {
-    GtH5DataSet dset;
+    GtH5::DataSet dset;
     // test invalid dataset
     EXPECT_FALSE(dset.isValid());
 
@@ -59,48 +58,9 @@ TEST_F(TestH5DataSet, isValid)
     EXPECT_TRUE(dset.isValid());
 }
 
-TEST_F(TestH5DataSet, RW)
-{
-    // create new dataset
-    GtH5DataSet dset = group.createDataset(QByteArrayLiteral("test"),
-                                           doubleData.dataType(),
-                                           doubleData.dataSpace());
-    ASSERT_TRUE(dset.isValid());
-
-    // write data
-    EXPECT_FALSE(dset.write(nullptr));
-    EXPECT_TRUE(dset.write(doubleData));
-
-    GtH5Data<double> readData;
-
-    // read data
-    EXPECT_FALSE(dset.read(nullptr));
-    EXPECT_TRUE(dset.read(readData));
-
-    // compare data
-    EXPECT_EQ(readData.data(), doubleData.data());
-
-
-    // when data.length != dataspace.sum
-    // to few elements
-    QVector<double> doubleData2{ 0.2, 0.3 };
-    // to many elements
-    QVector<double> doubleData3;
-    doubleData3 = doubleData2 + doubleData.data();
-
-    // writing less than allocated is not allowed
-    EXPECT_FALSE(dset.write(doubleData2));
-    // writing more than allocated is technically allowed
-    EXPECT_TRUE(dset.write(doubleData3));
-
-    // only the first entries were actually written
-    EXPECT_TRUE(dset.read(readData));
-    EXPECT_EQ(readData.data(), doubleData3.mid(0, doubleData.length()));
-}
-
 TEST_F(TestH5DataSet, deleteLink)
 {
-    GtH5DataSet dset;
+    GtH5::DataSet dset;
     // test invalid attribute
     EXPECT_FALSE(dset.isValid());
 
@@ -118,7 +78,7 @@ TEST_F(TestH5DataSet, deleteLink)
 TEST_F(TestH5DataSet, resize)
 {
     // create new dataset
-    GtH5DataSet dset = group.createDataset(QByteArrayLiteral("test"),
+    GtH5::DataSet dset = group.createDataset(QByteArrayLiteral("test"),
                                            doubleData.dataType(),
                                            doubleData.dataSpace());
     ASSERT_TRUE(dset.isValid());
@@ -126,10 +86,200 @@ TEST_F(TestH5DataSet, resize)
     // resize to zero
     EXPECT_TRUE(dset.resize({0}));
     EXPECT_TRUE(dset.isValid());
-    EXPECT_EQ(dset.dataSpace().sum(), 0);
+    EXPECT_EQ(dset.dataSpace().size(), 0);
 
     // cannot extend dataset beyond original dimensions
 //    EXPECT_FALSE(dset.resize({(uint64_t) (2 * doubleData.length())}));
 //    EXPECT_TRUE(dset.isValid());
 //    EXPECT_EQ(dset.dataSpace().sum(), 0);
 }
+
+TEST_F(TestH5DataSet, writeSelection)
+{
+    GtH5::Data<float> data{h5TestHelper->linearDataVector<float>(42, 1, 1)};
+    GtH5::DataSpace dspace{2, 3, 7};
+
+    ASSERT_EQ(dspace.size(), data.length());
+
+    // create new dataset
+    GtH5::DataSet dset = group.createDataset(QByteArrayLiteral("test_selec"),
+                                             data.dataType(),
+                                             dspace);
+    ASSERT_TRUE(dset.isValid());
+
+    /* WRITE */
+    GtH5::Dimensions count{1, 1, 6};
+    auto selSize = GtH5::prod(count);
+    auto selection = GtH5::makeSelection(dspace, count, {1, 2, 1});
+    ASSERT_EQ(selection.size(), selSize);
+
+    dset.write(data, selection);
+
+    /* READ */
+    GtH5::Data<float> read;
+    dset.read(read);
+
+    auto size = data.length();
+
+    GtH5::Vector<float> dummy;
+    dummy.resize(size-selSize-1);
+    dummy.fill(0);
+
+    EXPECT_EQ(read.mid(size-selSize), data.mid(0, selSize));
+    EXPECT_EQ(read.mid(0, size-selSize-1), dummy);
+}
+
+TEST_F(TestH5DataSet, readSelection)
+{
+    GtH5::Data<uint64_t> data{h5TestHelper->linearDataVector<uint64_t>(48, 1, 1)};
+    GtH5::DataSpace dspace{4, 12};
+
+    ASSERT_EQ(dspace.size(), data.length());
+
+    // create new dataset
+    GtH5::DataSet dset = group.createDataset(QByteArrayLiteral("test_selec"),
+                                             data.dataType(),
+                                             dspace);
+    ASSERT_TRUE(dset.isValid());
+
+    /* WRITE */
+    dset.write(data, dspace);
+
+    /* READ */
+    // reads every second element
+    GtH5::Dimensions count{4, 6};
+    GtH5::DataSpaceSelection selection(dspace, count);
+    selection.setStride({1, 2});
+
+    auto selSize = GtH5::prod(count);
+
+    ASSERT_EQ(selection.size(), selSize);
+
+    GtH5::Data<uint64_t> read;
+    dset.read(read, selection);
+
+    auto dummy = h5TestHelper->linearDataVector<uint64_t>(selSize, 1, 2);
+    EXPECT_EQ(read.c(), dummy);
+}
+
+#if 0
+TEST_F(TestH5DataSpace, h5selection) // test selection in hdf5
+{
+    auto file = GtH5::File(h5TestHelper->newFilePath(), GtH5::CreateOnly);
+
+    GtH5::Reference ref;
+    constexpr uint row = 3;
+    constexpr uint col = 6;
+
+    /* WRITE */
+    {
+        double plaindata[row][col] = {
+            {1, 2, 3, 4, 5, 6},
+            {7, 8, 9, 9, 8, 7},
+            {6, 5, 4, 3, 2, 1}
+        };
+
+        GtH5::Data<double> data{h5TestHelper->linearDataVector<double>(row*col, 1, 1)};
+
+        GtH5::DataSpace dspace{row, col};
+
+        auto dset = file.root().createDataset(QByteArray{"test_2d"},
+                                              data.dataType(),
+                                              dspace);
+        ASSERT_TRUE(dset.isValid());
+
+#if 0
+
+        // file space layout
+        H5::DataSpace hspace{dspace.toH5()};
+
+        QVector<hsize_t> count{2, 5};
+        QVector<hsize_t> offset{0, 1};
+        QVector<hsize_t> stride{1, 1};
+        QVector<hsize_t> block{1, 1};
+
+        // file space selection
+        hspace.selectHyperslab(H5S_SELECT_SET,
+                               count.constData(),
+                               offset.constData(),
+                               stride.constData(),
+                               block.constData());
+
+        // memory layout
+        QVector<hsize_t> memDims{10};
+        H5::DataSpace memspace{memDims.length(), memDims.constData()};
+
+        dset.toH5().write(plaindata,
+                          H5::PredType::NATIVE_DOUBLE,
+                          memspace,
+                          hspace);
+
+#elif 1
+
+        // same as above
+        dset.write(data, GtH5::makeSelection(dspace,
+                                             GtH5::Dimensions{2, 5},
+                                             GtH5::Dimensions{1, 1}));
+
+#elif 1
+
+        // writes to every second element
+        dset.write(data, GtH5::makeSelection(dspace,
+                                             GtH5::Dimensions{3, 3},
+                                             GtH5::Dimensions{0, 0},
+                                             GtH5::Dimensions{1, 2}));
+
+#elif 1
+
+        // write all
+        dset.write(data);
+
+#endif
+
+        ref = dset.toReference();
+
+        file.close();
+    }
+
+    /* READ */
+    if (ref.isValid())
+    {
+        qDebug() << "reading...";
+
+        file = GtH5::File(file.filePath(), GtH5::OpenOnly);
+
+        ASSERT_TRUE(file.isValid());
+
+        auto dset = ref.toDataSet(file);
+
+#if 0
+        for (uint i = 0; i < 2; ++i)
+        {
+            auto selection = GtH5::makeSelection(dset.dataSpace(),
+                                                 GtH5::Dimensions{3, 3},
+                                                 GtH5::Dimensions{0, i},
+                                                 GtH5::Dimensions{1, 2});
+
+            qDebug() << "selection:"
+                     << selection.dimensions()
+                     << selection.selectionSize();
+
+            GtH5Data<double> partial;
+            dset.read(partial, selection);
+
+            qDebug() << "data:"
+                     << partial << partial.capacity();
+        }
+#endif
+
+        GtH5::Data<double> readData;
+        dset.read(readData);
+
+        for (uint r = 0; r < row; ++r)
+        {
+            qDebug().nospace() << "Dim " << r << ": " << readData.mid(r*col, col);
+        }
+    }
+}
+#endif
+

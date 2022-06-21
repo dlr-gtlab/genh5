@@ -18,11 +18,11 @@
 TestHelper*
 TestHelper::instance()
 {
-    static TestHelper* instance = new TestHelper();
-    return instance;
+    static TestHelper instance{};
+    return &instance;
 }
 
-QString
+QByteArray
 TestHelper::newFilePath() const
 {
     QDir dir(tempPath());
@@ -30,11 +30,11 @@ TestHelper::newFilePath() const
     if (!dir.mkpath(dir.absolutePath()))
     {
         qCritical() << "Error: could not create temp dir!";
-        return QString();
+        return {};
     }
 
     return dir.absoluteFilePath(QUuid::createUuid().toString() +
-                                GtH5File::dotFileSuffix());
+                                GtH5::File::dotFileSuffix()).toUtf8();
 }
 
 QString
@@ -53,4 +53,32 @@ TestHelper::reset()
     {
         tempDir.removeRecursively();
     }
+}
+
+QStringList
+TestHelper::randomStringList(int length) const
+{
+    QStringList retVal;
+    retVal.reserve(length);
+
+    for (int i = 0; i < length; ++i)
+    {
+        retVal.append(QUuid::createUuid().toString());
+    }
+
+    return retVal;
+}
+
+QVector<QByteArray>
+TestHelper::randomByteArrays(int length) const
+{
+    QVector<QByteArray> retVal;
+    retVal.reserve(length);
+
+    for (int i = 0; i < length; ++i)
+    {
+        retVal.append(QUuid::createUuid().toString().toUtf8());
+    }
+
+    return retVal;
 }
