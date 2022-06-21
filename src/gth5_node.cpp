@@ -13,48 +13,110 @@
 #include "gth5_datatype.h"
 
 
-GtH5Node::GtH5Node(std::shared_ptr<GtH5File> file, QByteArray const& name) :
-    GtH5Location(std::move(file), name)
+GtH5::Node::Node(std::shared_ptr<File> file, String name) :
+    Location{std::move(file), std::move(name)}
 {
 
 }
 
-const H5::H5Location*
-GtH5Node::toH5Location() const
+H5::H5Location const*
+GtH5::Node::toH5Location() const
 {
-    return this->toH5Object();
+    return toH5Object();
 }
 
 bool
-GtH5Node::hasAttribute(QByteArray const& name) const
+GtH5::Node::hasAttribute(String const& name) const
 {
-    return this->toH5Object()->attrExists(name.constData());
+    return toH5Object()->attrExists(name.constData());
 }
 
-GtH5Attribute
-GtH5Node::createAttribute(QString const& name,
-                              GtH5DataType const& dtype,
-                              GtH5DataSpace const& dspace) const
+GtH5::Attribute
+GtH5::Node::createAttribute(QString const& name,
+                            DataType const& dtype,
+                            DataSpace const& dspace) const
 {
     return createAttribute(name.toUtf8(), dtype, dspace);
 }
 
-GtH5Attribute
-GtH5Node::createAttribute(QByteArray const& name,
-                              GtH5DataType const& dtype,
-                              GtH5DataSpace const& dspace) const
+GtH5::Attribute
+GtH5::Node::createAttribute(String name,
+                            DataType const& dtype,
+                            DataSpace const& dspace) const
 {
-    return GtH5Attribute::create(*this, name, dtype, dspace);
+    auto const& parent = *this;
+
+    // create new attribute!
+    if (!parent.hasAttribute(name))
+    {
+        H5::Attribute attr;
+        try
+        {
+            attr = parent.toH5Object()->createAttribute(name.constData(),
+                                                        dtype.toH5(),
+                                                        dspace.toH5());
+        }
+        catch (H5::AttributeIException& /*e*/)
+        {
+            qCritical() << "HDF5: Creating attribute failed! -" << name;
+            return {};
+        }
+        catch (H5::Exception& /*e*/)
+        {
+            qCritical() << "HDF5: [EXCEPTION] GtH5::Attribute::create failed! -"
+                        << name;
+            return {};
+        }
+
+        return {parent.file(), std::move(attr), std::move(name)};
+    }
+
+    // open existing attribute
+    auto attr = openAttribute(name);
+
+    // check if memory layout is equal
+    if (attr.dataType() == dtype && attr.dataSpace() == dspace)
+    {
+        return attr;
+    }
+
+    // attribute cannot be resized and must be deleted
+    qWarning() << "HDF5: Invalid memory layout! Overwriting dataset! -" << name;
+    if (!attr.deleteLink())
+    {
+        return {};
+    }
+
+    return createAttribute(std::move(name), dtype, dspace);
+//    return GtH5Attribute::create(*this, name, dtype, dspace);
 }
 
-GtH5Attribute
-GtH5Node::openAttribute(QString const& name) const
+GtH5::Attribute
+GtH5::Node::openAttribute(QString const& name) const
 {
-    return GtH5Attribute::open(*this, name.toUtf8());
+    return openAttribute(name.toUtf8());
 }
 
-GtH5Attribute
-GtH5Node::openAttribute(QByteArray const& name) const
+GtH5::Attribute
+GtH5::Node::openAttribute(String name) const
 {
-    return GtH5Attribute::open(*this, name);
+    auto const& parent = *this;
+    H5::Attribute attr;
+    try
+    {
+        attr = parent.toH5Object()->openAttribute(name.constData());
+    }
+    catch (H5::DataSetIException& /*e*/)
+    {
+        qCritical() << "HDF5: Opening attribute failed! -" << name;
+        return {};
+    }
+    catch (H5::Exception& /*e*/)
+    {
+        qCritical() << "HDF5: [EXCEPTION] GtH5::Attribute::open failed! -"
+                    << name;
+        return {};
+    }
+
+    return {parent.file(), std::move(attr), std::move(name)};
 }

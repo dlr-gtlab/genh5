@@ -6,21 +6,50 @@
  * Email: marius.broecker@dlr.de
  */
 
+#ifndef GTH5_NODE_H
+#define GTH5_NODE_H
+
 #include "gth5_location.h"
 
-#ifndef GTH5NODE_H
-#define GTH5NODE_H
 
-class GtH5DataType;
-class GtH5DataSpace;
-class GtH5Attribute;
+namespace GtH5
+{
+// forward decl
+class DataType;
+class DataSpace;
+class Attribute;
 
 /**
  * @brief The GtH5Leaf class
  */
-class GTH5_EXPORT GtH5Node : public GtH5Location
+class GTH5_EXPORT Node : public Location
 {
 public:
+
+    /**
+     * @brief returns whether the attribute exists at this node
+     * @param name of the attribute
+     * @return whether attibuet exists
+     */
+    bool hasAttribute(String const& name) const;
+
+    GtH5::Attribute createAttribute(QString const& name,
+                                    DataType const& dtype,
+                                    DataSpace const& dspace) const;
+    GtH5::Attribute createAttribute(GtH5::String name,
+                                    DataType const& dtype,
+                                    DataSpace const& dspace) const;
+
+    GtH5::Attribute openAttribute(QString const& name) const;
+    GtH5::Attribute openAttribute(String name) const;
+
+protected:
+
+    /**
+     * @brief GtH5Leaf
+     */
+    Node(std::shared_ptr<File> file = {},
+         String name = {});
 
     /**
      * @brief returns the hdf5 object as a h5object
@@ -33,31 +62,12 @@ public:
      * @return h5location
      */
     H5::H5Location const* toH5Location() const override;
-
-    /**
-     * @brief returns whether the attribute exists at this node
-     * @param name of the attribute
-     * @return whether attibuet exists
-     */
-    bool hasAttribute(QByteArray const& name) const;
-
-    GtH5Attribute createAttribute(QString const& name,
-                                  GtH5DataType const& dtype,
-                                  GtH5DataSpace const& dspace) const;
-    GtH5Attribute createAttribute(QByteArray const& name,
-                                  GtH5DataType const& dtype,
-                                  GtH5DataSpace const& dspace) const;
-
-    GtH5Attribute openAttribute(QString const& name) const;
-    GtH5Attribute openAttribute(QByteArray const& name) const;
-
-protected:
-
-    /**
-     * @brief GtH5Leaf
-     */
-    GtH5Node(std::shared_ptr<GtH5File> file = {},
-                 QByteArray const& name = {});
 };
 
-#endif // GTH5NODE_H
+} // namespace GtH5
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5Node = GtH5::Node;
+#endif
+
+#endif // GTH5_NODE_H

@@ -9,52 +9,70 @@
 #include "gth5_abtsractdataset.h"
 
 
-GtH5AbtsractDataSet::GtH5AbtsractDataSet(GtH5DataType const& dtype,
-                                         GtH5DataSpace const& dspace) :
-    m_datatype(dtype), m_dataspace(dspace)
+GtH5::AbstractDataSet::AbstractDataSet(DataType dtype,
+                                       DataSpace dspace) :
+    m_datatype(std::move(dtype)),
+    m_dataspace(std::move(dspace))
 {
 
 }
 
 bool
-GtH5AbtsractDataSet::write(void const* data) const
+GtH5::AbstractDataSet::write(void const* data, Optional<DataType> dtype) const
 {
-    if (data == nullptr)
+    if (m_dataspace.isNull())
     {
+        qCritical() << "HDF5: Writing data vector failed!"
+                    << "(Null dataspace)";
+        return false;
+    }
+    if (!data)
+    {
+        qCritical() << "HDF5: Writing data vector failed!"
+                    << "(Data vector is invalid)";
         return false;
     }
 
-    return doWrite(data);
+    if (dtype.isDefault() || dtype == m_datatype)
+    {
+        dtype = m_datatype;
+    }
+
+    return doWrite(data, dtype);
 }
 
 bool
-GtH5AbtsractDataSet::read(void* data) const
+GtH5::AbstractDataSet::read(void* data, Optional<DataType> dtype) const
 {
-    if (data == nullptr)
+    if (m_dataspace.isNull())
     {
+        qCritical() << "HDF5: Reading data vector failed!"
+                    << "(Null dataspace)";
+        return false;
+    }
+    if (!data)
+    {
+        qCritical() << "HDF5: Reading data vector failed!"
+                    << "(Data vector is invalid)";
         return false;
     }
 
-    return doRead(data);
+    if (dtype.isDefault() || dtype == m_datatype)
+    {
+        dtype = m_datatype;
+    }
+
+    return doRead(data, dtype);
 }
 
-GtH5DataType const&
-GtH5AbtsractDataSet::dataType() const
+GtH5::DataType const&
+GtH5::AbstractDataSet::dataType() const
 {
     return m_datatype;
 }
 
-GtH5DataSpace const&
-GtH5AbtsractDataSet::dataSpace() const
+GtH5::DataSpace const&
+GtH5::AbstractDataSet::dataSpace() const
 {
     return m_dataspace;
 }
-
-//void
-//GtH5AbtsractDataSet::swap(GtH5AbtsractDataSet& other) noexcept
-//{
-////    qDebug() << "GtH5AbtsractDataSet::swap";
-//    using std::swap;
-//    swap(m_datatype, other.m_datatype);
-//    swap(m_dataspace, other.m_dataspace);
-//}

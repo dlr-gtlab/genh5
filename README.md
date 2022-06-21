@@ -8,10 +8,12 @@ A good introduction to the data format can be found here: https://portal.hdfgrou
 
 ## Functionalities
 
+> The wrapper does not use exceptions
+
 The wrapper covers the following aspects:
  - Creating, accessing and deleting files, groups, datsets and attributes
  - Chunked datasets and compression
- - Flexible template-based datatype interface for simple and comlex compound types (using `GtH5Data<...>`)
+ - Flexible template-based datatype interface for simple and complex compound types (using `GtH5Data<...>` supports upto 3 members)
  - Simple interface for dataspaces
  - Simple interface for (de-) referencing nodes and attributes
 
@@ -19,7 +21,7 @@ Currently not covered:
  - Accessing dataset regions
  - External HDF5 files and datasets
  - Creating soft/hard links to nodes
- - Certain datatypes (eg. opaque types or compound types containing arrays or more than three components)
+ - Certain datatypes (eg. opaque types, `bool`, `QPointf` etc.)
 
 ## How to use the wrapper
 
@@ -42,7 +44,7 @@ if (!file.isValid()) {
 // access the root group of the file and create a subgroup
 GtH5Group group = file.root().createGroup(QByteArrayLiteral("my_group"));
 // create simple dataset at '/my_group/my_data'
-GtH5DataSet dataset = group.createDataset(QByteArrayLiteral("my_data"), data.dataType(), data.length());
+GtH5DataSet dataset = group.createDataset(QByteArrayLiteral("my_data"), data.dataType(), data.dataSpace());
 // write the data
 dataset.write(data);
 ```
@@ -74,8 +76,10 @@ Referencing an attribute:
 ```c++
 // create or open the file if it exists
 GtH5File file = GtH5File(QByteArrayLiteral("my_file.h5"), GtH5File::CreateReadWrite);
+// create data container
+GtH5Data<float> data{0f};
 // access the root group of the file and create an attribute
-GtH5Attribute attr = file.root().createAttribute(QByteArrayLiteral("my_attribute"), GtH5Data<float>().dataType(), 1);
+GtH5Attribute attr = file.root().createAttribute(QByteArrayLiteral("my_attribute"), data.dataType(), data.dataSpace());
 if (!attr.isValid) {
     return; // error handling
 }

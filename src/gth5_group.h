@@ -6,48 +6,50 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GTH5GROUP_H
-#define GTH5GROUP_H
+#ifndef GTH5_GROUP_H
+#define GTH5_GROUP_H
 
 #include "gth5_node.h"
 
-class GtH5File;
-class GtH5DataType;
-class GtH5DataSpace;
-class GtH5DataSet;
+#include "gth5_datasetcproperties.h"
+#include "gth5_utils.h"
+#include "gth5_optional.h"
+
+namespace GtH5
+{
+// forward decl
+class DataType;
+class File;
+class DataSpace;
+class DataSet;
 
 /**
- * @brief The GtH5Group class
+ * @brief The Group class
  */
-class GTH5_EXPORT GtH5Group : public GtH5Node
+class GTH5_EXPORT Group : public Node
 {
 public:
 
-    static GtH5Group create(const GtH5Group& parent,
-                            const QByteArray& name);
-    static GtH5Group open(const GtH5Group& parent,
-                          const QByteArray& name);
-
     /**
-     * @brief GtH5Group
+     * @brief Group
      */
-    GtH5Group();
-    explicit GtH5Group(GtH5File& file);
-    GtH5Group(std::shared_ptr<GtH5File> file,
-              H5::Group const& group,
-              QByteArray const& name = {});
+    Group();
+    explicit Group(File const& file);
+    Group(std::shared_ptr<File> file,
+          H5::Group group,
+          String name = {});
 
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::Group toH5() const;
+    H5::Group const& toH5() const;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    int64_t id() const override;
+    hid_t id() const override;
 
     /**
      * @brief deletes the object.
@@ -62,38 +64,48 @@ public:
     ObjectType type() const override;
 
     /**
-     * @brief returns the hdf5 object as a h5object
-     * @return h5object
-     */
-    const H5::H5Object* toH5Object() const override;
-
-    /**
      * @brief explicitly closes the resource handle
      */
     void close();
 
     // groups
-    GtH5Group createGroup(QString const& name);
-    GtH5Group createGroup(QByteArray const& name);
-    GtH5Group openGroup(QString const& name);
-    GtH5Group openGroup(QByteArray const& name);
+    Group createGroup(QString const& name);
+    Group createGroup(String name);
+    Group openGroup(QString const& name);
+    Group openGroup(String name);
 
     // datasets
-    GtH5DataSet createDataset(QString const& name,
-                              GtH5DataType const& dtype,
-                              GtH5DataSpace const& dspace);
-    GtH5DataSet createDataset(QByteArray const& name,
-                              GtH5DataType const& dtype,
-                              GtH5DataSpace const& dspace);
-    GtH5DataSet openDataset(QString const& name);
-    GtH5DataSet openDataset(QByteArray const& name);
+    GtH5::DataSet createDataset(QString const& name,
+                                DataType const& dtype,
+                                DataSpace const& dspace,
+                                Optional<DataSetCProperties> properties = {});
+    GtH5::DataSet createDataset(String name,
+                                DataType const& dtype,
+                                DataSpace const& dspace,
+                                Optional<DataSetCProperties> properties = {});
+    GtH5::DataSet openDataset(QString const& name);
+    GtH5::DataSet openDataset(String name);
+
+protected:
+
+    /**
+     * @brief returns the hdf5 object as a h5object
+     * @return h5object
+     */
+    H5::H5Object const* toH5Object() const override;
 
 private:
 
     /// hdf5 base instance
     H5::Group m_group{};
 
-    friend class GtH5Reference;
+    friend class Reference;
 };
 
-#endif // GTH5GROUP_H
+} // namespace GtH5
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5Group = GtH5::Group;
+#endif
+
+#endif // GTH5_GROUP_H

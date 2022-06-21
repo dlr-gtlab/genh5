@@ -6,36 +6,39 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GTH5LOCATION_H
-#define GTH5LOCATION_H
+#ifndef GTH5_LOCATION_H
+#define GTH5_LOCATION_H
 
 #include "gth5_object.h"
+#include "gth5_utils.h"
 
-#include <QByteArray>
-#include <QByteArrayList>
 #include <memory>
 
-class GtH5File;
-class GtH5Attribute;
-class GtH5Reference;
+
+namespace GtH5
+{
+// forward decl
+class File;
+class Attribute;
+class Reference;
 
 /**
- * @brief The GtH5Location class
+ * @brief The ObjectType enum
  */
-class GTH5_EXPORT GtH5Location : public GtH5Object
+enum ObjectType
+{
+    UnkownType = 1,     // invalid object type
+    GroupType = 2,      // group
+    DataSetType = 4,    // dataset
+    AttributeType = 8   // attribute
+};
+
+/**
+ * @brief The Location class
+ */
+class GTH5_EXPORT Location : public Object
 {
 public:
-
-    /**
-     * @brief The ObjectType enum
-     */
-    enum ObjectType
-    {
-        Unkown = 1,     // invalid object type
-        Group = 2,      // group
-        DataSet = 4,    // dataset
-        Attribute = 8   // attribute
-    };
 
     /**
      * @brief returns whether the object id is valid and can be used for further
@@ -57,75 +60,80 @@ public:
     virtual ObjectType type() const;
 
     /**
-     * @brief returns the hdf5 object as a h5location.
-     * @return h5location
+     * @brief exists
+     * @param path
+     * @return
      */
-    virtual H5::H5Location const* toH5Location() const = 0;
+    bool exists(String const& path) const;
 
     /**
      * @brief exists
      * @param path
      * @return
      */
-    bool exists(QByteArray const& path) const;
-
-    /**
-     * @brief exists
-     * @param path
-     * @return
-     */
-    bool exists(QByteArrayList const& path) const;
+    bool exists(Vector<String> const& path) const;
 
     /**
      * @brief internal path
      * @return path
      */
-    QByteArray path() const;
+    String path() const;
 
     /**
      * @brief internal name
      * @return name
      */
-    QByteArray const& name() const;
+    String const& name() const;
 
     /**
      * @brief returns a reference to this object.
      * @return reference
      */
-    GtH5Reference toReference();
+    Reference toReference();
 
     /**
      * @brief pointer to the shared file instance of this object
      * @return file
      */
-    std::shared_ptr<GtH5File> file() const;
+    std::shared_ptr<File> const& file() const;
 
 protected:
 
     /**
-     * @brief GtH5Location
+     * @brief Location
      */
-    GtH5Location(std::shared_ptr<GtH5File> file = {},
-                 QByteArray const& name = {});
+    Location(std::shared_ptr<File> file = {},
+             String name = {});
 
     // shared file instance
-    std::shared_ptr<GtH5File> m_file{};
+    std::shared_ptr<File> m_file{};
     /// name of this location
-    QByteArray m_name{};
+    String m_name{};
 
     /**
-     * @brief helper function to retrieve the name of the location
-     * @param location
-     * @return name
+     * @brief returns the hdf5 object as a h5location.
+     * @return h5location
      */
-    static QByteArray getObjectName(GtH5Location const& location);
-
-    /**
-     * @brief helper function to retrieve the name of an attribute
-     * @param attr
-     * @return name
-     */
-    static QByteArray getAttrName(GtH5Attribute const& attr);
+    virtual H5::H5Location const* toH5Location() const = 0;
 };
 
-#endif // GTH5LOCATION_H
+/**
+ * @brief helper function to retrieve the name of the location
+ * @param location
+ * @return name
+ */
+GTH5_EXPORT String getObjectName(Location const& location);
+
+} // namespace GtH5
+
+inline std::shared_ptr<GtH5::File> const&
+GtH5::Location::file() const
+{
+    return m_file;
+}
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5Location = GtH5::Location;
+#endif
+
+#endif // GTH5_LOCATION_H

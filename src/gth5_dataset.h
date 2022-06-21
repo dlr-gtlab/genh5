@@ -6,54 +6,49 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GTH5DATASET_H
-#define GTH5DATASET_H
+#ifndef GTH5_DATASET_H
+#define GTH5_DATASET_H
 
 #include "gth5_node.h"
 #include "gth5_abtsractdataset.h"
 #include "gth5_reference.h"
-#include "gth5_datasetproperties.h"
+#include "gth5_datasetcproperties.h"
 
 
-class GtH5Node;
-class GtH5Reference;
+namespace GtH5
+{
+// forward decl
+class File;
+class Node;
+class Reference;
 
 /**
- * @brief The GtH5DataSet class
+ * @brief The DataSet class
  */
-class GTH5_EXPORT GtH5DataSet : public GtH5Node,
-                                 public GtH5AbtsractDataSet
+class GTH5_EXPORT DataSet : public Node,
+                            public AbstractDataSet
 {
 public:
 
-    static GtH5DataSet create(GtH5Group const& parent,
-                              QByteArray const& name,
-                              GtH5DataType const& dtype,
-                              GtH5DataSpace const& dspace,
-                              GtH5DataSetProperties const& properties = {});
-
-    static GtH5DataSet open(GtH5Group const& parent,
-                            QByteArray const& name);
-
     /**
-     * @brief GtH5DataSet
+     * @brief DataSet
      */
-    GtH5DataSet();
-    GtH5DataSet(std::shared_ptr<GtH5File> file,
-                H5::DataSet const & dset,
-                QByteArray const& name = {});
+    DataSet();
+    DataSet(std::shared_ptr<File> file,
+            H5::DataSet dset,
+            String name = {});
 
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::DataSet toH5() const;
+    H5::DataSet const& toH5() const;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    int64_t id() const override;
+    hid_t id() const override;
 
     /**
      * @brief returns whether the object id is valid and can be used for further
@@ -75,16 +70,10 @@ public:
     ObjectType type() const override;
 
     /**
-     * @brief returns the hdf5 object as a h5object
-     * @return h5object
-     */
-    H5::H5Object const* toH5Object() const override;
-
-    /**
      * @brief properties used to create this object.
      * @return create properties
      */
-    GtH5DataSetProperties const& properties() const;
+    DataSetCProperties const& properties() const;
 
     /**
      * @brief resizes this dataset.
@@ -92,26 +81,158 @@ public:
      * Number of dimensions must match the current number
      * @return success
      */
-    bool resize(const QVector<uint64_t>& dimensions);
+    bool resize(Dimensions const& dimensions);
 
     /**
      * @brief explicitly closes the resource handle
      */
     void close();
 
+    using AbstractDataSet::write;
+    /**
+     * @brief overload for writing selections
+     * @param data buffer to write
+     * @param fileSpace Dataspace selection for file layout
+     * @param memSpace Dataspace selection for data layout
+     * @return sucess
+     */
+    bool write(void const* data,
+               DataSpace const& fileSpace,
+               DataSpace const& memSpace,
+               Optional<DataType> dtype = {}) const;
+
+    template<typename T>
+    bool write(Vector<T> const& data,
+               DataSpace const& fileSpace,
+               Optional<DataSpace> memSpace = {},
+               Optional<DataType> dtype = {}) const;
+
+    template<typename T>
+    bool write(AbstractData<T> const& data,
+               DataSpace const& fileSpace,
+               Optional<DataSpace> memSpace = {},
+               Optional<DataType> dtype = {}) const;
+
+    using AbstractDataSet::read;
+    /**
+     * @brief overload for reading selections
+     * @param data buffer to read
+     * @param fileSpace Dataspace selection for file layout
+     * @param memSpace Dataspace selection for data layout
+     * @return sucess
+     */
+    bool read(void* data,
+              DataSpace const& fileSpace,
+              DataSpace const& memSpace,
+              Optional<DataType> dtype = {});
+
+    template<typename T>
+    bool read(Vector<T>& data,
+              DataSpace const& fileSpace,
+              Optional<DataType> dtype = {});
+
+    template<typename T>
+    bool read(AbstractData<T>& data,
+              DataSpace const& fileSpace,
+              Optional<DataType> dtype = {});
+
 protected:
 
-    bool doWrite(void const* data) const override;
-    bool doRead(void* data) const override;
+    bool doWrite(void const* data, DataType const& dtype) const override;
+    bool doRead(void* data, DataType const& dtype) const override;
+
+    /**
+     * @brief returns the hdf5 object as a h5object
+     * @return h5object
+     */
+    H5::H5Object const* toH5Object() const override;
 
 private:
 
     /// hdf5 base instance
     H5::DataSet m_dataset{};
     /// dataset create properties associated with this object
-    GtH5DataSetProperties m_properties{};
+    DataSetCProperties m_properties{};
 
-    friend class GtH5Reference;
+    friend class Reference;
 };
 
-#endif // GTH5DATASET_H
+template<typename T>
+inline bool
+DataSet::write(Vector<T> const& data,
+               DataSpace const& fileSpace,
+               Optional<DataSpace> memSpace,
+               Optional<DataType> dtype) const
+{
+    auto selected = fileSpace.selectionSize();
+
+    if (selected > data.length())
+    {
+        qCritical() << "HDF5: Writing data failed!"
+                    << "(Too few data elements for selection:"
+                    << data.length() << "vs."
+                    << selected << "selected)";
+        return false;
+    }
+
+    if (memSpace.isDefault())
+    {
+        memSpace = DataSpace::linear(selected);
+    }
+
+    return write(data.constData(), fileSpace, memSpace, dtype);
+}
+
+template<typename T>
+inline bool
+DataSet::write(AbstractData<T> const& data,
+               DataSpace const& fileSpace,
+               Optional<DataSpace> memSpace,
+               Optional<DataType> dtype) const
+{
+
+    if (dtype.isDefault())
+    {
+        dtype = data.dataType();
+    }
+
+    return write(static_cast<Vector<T>>(data),
+                 fileSpace, std::move(memSpace), std::move(dtype));
+}
+
+template<typename T>
+inline bool
+DataSet::read(Vector<T>& data,
+              DataSpace const& fileSpace,
+              Optional<DataType> dtype)
+{
+    data.resize(fileSpace.selectionSize());
+
+    return read(data.data(), fileSpace, DataSpace::linear(data.size()),
+                std::move(dtype));
+}
+
+template<typename T>
+inline bool
+DataSet::read(AbstractData<T>& data,
+              DataSpace const& fileSpace,
+              Optional<DataType> dtype)
+{
+    data.resize(fileSpace.selectionSize());
+
+    if (dtype.isDefault())
+    {
+        dtype = data.dataType();
+    }
+
+    return read(data.data(), fileSpace, data.dataSpace(), std::move(dtype));
+}
+
+} // namespace GtH5
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5DataSet = GtH5::DataSet;
+#endif
+
+
+#endif // GTH5_DATASET_H

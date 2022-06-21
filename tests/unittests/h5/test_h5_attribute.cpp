@@ -22,35 +22,35 @@ protected:
 
     virtual void SetUp() override
     {
-        doubleData = QVector<double>{1, 2, 3, 4, 5};
-        intData    = QVector<int>{1, 2, 3, 4, 5};
+        doubleData = GtH5::Vector<double>{1, 2, 3, 4, 5};
+        intData    = GtH5::Vector<int>{1, 2, 3, 4, 5};
         stringData = QStringList{"1", "2", "3", "4", "5", "6"};
 
-        file = GtH5File(TestHelper::instance()->newFilePath(),
-                        GtH5File::CreateOverwrite);
+        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::CreateOnly);
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
         ASSERT_TRUE(group.isValid());
 
         dataset = group.createDataset(QByteArrayLiteral("dataset"),
-                                      intData.dataType(), GtH5DataSpace{0});
+                                      intData.dataType(),
+                                      GtH5::DataSpace::Scalar);
         ASSERT_TRUE(dataset.isValid());
     }
 
-    GtH5File file;
-    GtH5Group group;
-    GtH5DataSet dataset;
+    GtH5::File file;
+    GtH5::Group group;
+    GtH5::DataSet dataset;
 
-    GtH5Data<int> intData;
-    GtH5Data<double> doubleData;
-    GtH5Data<QString> stringData;
+    GtH5::Data<int> intData;
+    GtH5::Data<double> doubleData;
+    GtH5::Data<QString> stringData;
 };
 
 
 TEST_F(TestH5Attribute, isValid)
 {
-    GtH5Attribute attr;
+    GtH5::Attribute attr;
     // test invalid attribute
     EXPECT_FALSE(attr.isValid());
 
@@ -77,27 +77,27 @@ TEST_F(TestH5Attribute, isValid)
 TEST_F(TestH5Attribute, RW)
 {
     // create new dataset
-    GtH5Attribute attr = group.createAttribute(QByteArrayLiteral("test"),
-                                               doubleData.dataType(),
-                                               doubleData.dataSpace());
+    GtH5::Attribute attr = group.createAttribute(QByteArrayLiteral("test"),
+                                                 doubleData.dataType(),
+                                                 doubleData.dataSpace());
     ASSERT_TRUE(attr.isValid());
 
     // write data
-    EXPECT_FALSE(attr.write(nullptr));
+    EXPECT_FALSE(attr.write(nullptr)); // cannot write from null
     EXPECT_TRUE(attr.write(doubleData));
 
-    GtH5Data<double> readData;
+    GtH5::Data<double> readData;
     // read data
-    EXPECT_FALSE(attr.read(nullptr));
+    EXPECT_FALSE(attr.read(nullptr)); // cannot read to null
     EXPECT_TRUE(attr.read(readData));
 
     // compare data
-    EXPECT_EQ(readData.data(), doubleData.data());
+    EXPECT_EQ(readData.c(), doubleData.c());
 }
 
 TEST_F(TestH5Attribute, deleteLink)
 {
-    GtH5Attribute attr;
+    GtH5::Attribute attr;
     // test invalid attribute
     EXPECT_FALSE(attr.isValid());
 
@@ -111,7 +111,3 @@ TEST_F(TestH5Attribute, deleteLink)
     attr.deleteLink();
     EXPECT_FALSE(attr.isValid());
 }
-
-//TEST_F(TestH5Attribute, accessFlags)
-//{
-//}

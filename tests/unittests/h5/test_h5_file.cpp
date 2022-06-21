@@ -23,7 +23,7 @@ protected:
 
     virtual void SetUp() override
     {
-        filePath = TestHelper::instance()->newFilePath();
+        filePath = h5TestHelper->newFilePath();
     }
 
     QString filePath;
@@ -31,30 +31,30 @@ protected:
 
 TEST_F(TestH5File, isValid)
 {
-    GtH5File file;
+    GtH5::File file;
     // default file object should be invalid
     EXPECT_FALSE(file.isValid());
     // file should not exist and therefore not be valid
-    EXPECT_FALSE(GtH5File::isValidH5File(filePath));
+    EXPECT_FALSE(GtH5::File::isValidH5File(filePath));
 
     // create a new file
-    file = GtH5File(filePath, GtH5File::CreateOverwrite);
+    file = GtH5::File(filePath, GtH5::CreateOnly);
     EXPECT_TRUE(file.isValid());
     // file path should exist and be valid
-    EXPECT_TRUE(GtH5File::isValidH5File(filePath));
+    EXPECT_TRUE(GtH5::File::isValidH5File(filePath));
 }
 
 TEST_F(TestH5File, root)
 {
-    GtH5File file;
+    GtH5::File file;
     // default file object should be invalid
     EXPECT_FALSE(file.isValid());
     // root group should also be invalid
-    GtH5Group root = file.root();
+    GtH5::Group root = file.root();
     EXPECT_FALSE(root.isValid());
 
     // create a new file
-    file = GtH5File(filePath, GtH5File::CreateOverwrite);
+    file = GtH5::File(filePath, GtH5::CreateOnly);
     EXPECT_TRUE(file.isValid());
     // root group should be valid
     root = file.root();
@@ -67,30 +67,30 @@ TEST_F(TestH5File, root)
 
 TEST_F(TestH5File, filePath)
 {
-    GtH5File file;
+    GtH5::File file;
     // default file object should not have a filepath or filename associated
-    EXPECT_EQ(file.fileName(), QString());
-    EXPECT_EQ(file.fileBaseName(), QString());
-    EXPECT_EQ(file.filePath(), QByteArray());
+    EXPECT_EQ(file.fileName(), QString{});
+    EXPECT_EQ(file.fileBaseName(), QString{});
+    EXPECT_EQ(file.filePath(), QByteArray{});
 
     // a created file should have the valid filename and filepath associated
     QString fileName = filePath.split(QStringLiteral("/")).last();
-    file = GtH5File(filePath, GtH5File::CreateOverwrite);
+    file = GtH5::File(filePath, GtH5::CreateOnly);
     EXPECT_EQ(file.filePath(), filePath);
     EXPECT_EQ(file.fileName(), fileName);
-    EXPECT_EQ(file.fileBaseName() + GtH5File::dotFileSuffix(), fileName);
+    EXPECT_EQ(file.fileBaseName() + GtH5::File::dotFileSuffix(), fileName);
 }
 
 TEST_F(TestH5File, creation)
 {
-    GtH5File file;
+    GtH5::File file;
     // file does not exist
     // OpenReadOnly -> fail
-    file = GtH5File(filePath, GtH5File::OpenReadOnly);
+    file = GtH5::File(filePath, GtH5::OpenOnly);
     EXPECT_FALSE(file.isValid());
     ASSERT_FALSE(file.fileExists(filePath));
     // OpenReadWrite -> fail
-    file = GtH5File(filePath, GtH5File::OpenReadOnly);
+    file = GtH5::File(filePath, { GtH5::OpenOnly | GtH5::ReadOnly });
     EXPECT_FALSE(file.isValid());
     ASSERT_FALSE(file.fileExists(filePath));
 
@@ -98,40 +98,40 @@ TEST_F(TestH5File, creation)
     EXPECT_NO_THROW(file.close());
 
     // create new file
-    file = GtH5File(filePath, GtH5File::CreateReadWrite);
+    file = GtH5::File(filePath, { GtH5::CreateOnly });
     EXPECT_TRUE(file.isValid());
     ASSERT_TRUE(file.fileExists(filePath));
     // file does already exist -> fail
-    file = GtH5File(filePath, GtH5File::CreateNotExisting);
+    file = GtH5::File(filePath, GtH5::CreateOnly);
     EXPECT_FALSE(file.isValid());
     ASSERT_TRUE(file.fileExists(filePath));
     // file will be overwritten
-    file = GtH5File(filePath, GtH5File::CreateOverwrite);
+    file = GtH5::File(filePath, GtH5::Overwrite);
     EXPECT_TRUE(file.isValid());
     ASSERT_TRUE(file.fileExists(filePath));
 
     // file must be closed
     EXPECT_NO_THROW(file.close());
 
-    QDir dir(TestHelper::instance()->tempPath());
+    QDir dir{h5TestHelper->tempPath()};
     ASSERT_TRUE(dir.remove(filePath));
 
     ASSERT_FALSE(file.fileExists(filePath));
     // file does not exist -> fail
-    file = GtH5File(filePath, GtH5File::CreateNotExisting);
-    EXPECT_TRUE(file.isValid());
-    ASSERT_TRUE(file.fileExists(filePath));
+    file = GtH5::File(filePath, GtH5::OpenOnly);
+    ASSERT_FALSE(file.isValid());
+    ASSERT_FALSE(file.fileExists(filePath));
 }
 
 TEST_F(TestH5File, fileLock)
 {
     QByteArray fileName;
-    QDir dir(filePath);
+    QDir dir{filePath};
 
     // test scope
     {
         // cretae file instance
-        GtH5File file(filePath, GtH5File::CreateNotExisting);
+        GtH5::File file(filePath, GtH5::CreateOnly);
         ASSERT_TRUE(file.isValid());
 
 #ifdef Q_OS_WIN

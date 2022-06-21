@@ -14,12 +14,91 @@
 #include <QDebug>
 
 
-GtH5Group::GtH5Group() = default;
+GtH5::Group::Group() = default;
 
-GtH5Group
-GtH5Group::create(GtH5Group const& parent,
-                  QByteArray const& name)
+GtH5::Group::Group(const File& file) :
+    Node{nullptr, QByteArrayLiteral("/")}
 {
+    if (!file.isValid())
+    {
+        return;
+    }
+
+    m_file = std::make_shared<File>(file);
+
+    try
+    {
+        m_group = file.toH5().openGroup(m_name.constData());
+    }
+    catch (H5::GroupIException& /*e*/)
+    {
+        qCritical() << "HDF5: Opening root group failed!";
+    }
+    catch(H5::Exception& /*e*/)
+    {
+        qCritical() << "HDF5: [EXCEPTION] GtH5::Group::GtH5Group root failed!";
+    }
+}
+
+GtH5::Group::Group(std::shared_ptr<File> file,
+                   H5::Group group,
+                   String name) :
+    Node{std::move(file),  std::move(name)},
+    m_group{std::move(group)}
+{
+    if (m_name.isEmpty())
+    {
+        m_name = GtH5::getObjectName(*this);
+    }
+}
+
+hid_t
+GtH5::Group::id() const
+{
+    return m_group.getId();
+}
+
+bool
+GtH5::Group::deleteLink()
+{
+    return false;
+}
+
+GtH5::ObjectType
+GtH5::Group::type() const
+{
+    return GroupType;
+}
+
+H5::H5Object const*
+GtH5::Group::toH5Object() const
+{
+    return &m_group;
+}
+
+H5::Group const&
+GtH5::Group::toH5() const
+{
+    return m_group;
+}
+
+void
+GtH5::Group::close()
+{
+    m_group.close();
+}
+
+GtH5::Group
+GtH5::Group::createGroup(QString const& name)
+{
+    return createGroup(name.toUtf8());
+}
+
+GtH5::Group
+GtH5::Group::createGroup(String name)
+{
+    auto const& parent = *this;
+
     if (!parent.isValid())
     {
         return {};
@@ -39,23 +118,30 @@ GtH5Group::create(GtH5Group const& parent,
         }
         catch (H5::Exception& /*e*/)
         {
-            qCritical() << "HDF5: [EXCEPTION] GtH5Group::create failed!";
+            qCritical() << "HDF5: [EXCEPTION] GtH5::Group::create failed!";
         }
 
-        return {parent.file(), group, name};
+        return {parent.file(), std::move(group), std::move(name)};
     }
 
     // open existing group
-    return open(parent, name);
+    return openGroup(std::move(name));
 }
 
-GtH5Group
-GtH5Group::open(GtH5Group const& parent,
-                QByteArray const& name)
+GtH5::Group
+GtH5::Group::openGroup(QString const& name)
 {
+    return openGroup(name.toUtf8());
+}
+
+GtH5::Group
+GtH5::Group::openGroup(String name)
+{
+    auto const& parent = *this;
+
     if (!parent.isValid())
     {
-        return GtH5Group();
+        return {};
     }
 
     H5::Group group;
@@ -66,178 +152,133 @@ GtH5Group::open(GtH5Group const& parent,
     catch (H5::GroupIException& /*e*/)
     {
         qCritical() << "HDF5: Opening group failed!" << name;
-        return GtH5Group();
+        return Group();
     }
     catch(H5::Exception& /*e*/)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5Group::open failed!" << name;
-        return GtH5Group();
+        qCritical() << "HDF5: [EXCEPTION] GtH5::Group::open failed!" << name;
+        return Group();
     }
 
-    return {parent.file(), group, name};
+    return {parent.file(), std::move(group), std::move(name)};
 }
 
-GtH5Group::GtH5Group(GtH5File& file) :
-    GtH5Node(nullptr, QByteArrayLiteral("/"))
+GtH5::DataSet
+GtH5::Group::createDataset(QString const& name,
+                           DataType const& dtype,
+                           DataSpace const& dspace,
+                           Optional<DataSetCProperties> properties)
 {
-    if (!file.isValid())
+    return createDataset(name.toUtf8(), dtype, dspace, std::move(properties));
+}
+
+GtH5::DataSet
+GtH5::Group::createDataset(String name,
+                           DataType const& dtype,
+                           DataSpace const& dspace,
+                           Optional<DataSetCProperties> properties)
+{
+    auto const& parent = *this;
+
+    if (!parent.isValid())
     {
-        return;
+        return {};
     }
 
-    m_file = std::make_shared<GtH5File>(file);
-
-    try
-    {
-        m_group = file.toH5().openGroup(m_name.constData());
-    }
-    catch (H5::GroupIException& /*e*/)
-    {
-        qCritical() << "HDF5: Opening root group failed!";
-    }
-    catch(H5::Exception& /*e*/)
-    {
-        qCritical() << "HDF5: [EXCEPTION] GtH5Group::GtH5Group root failed!";
-    }
-}
-
-GtH5Group::GtH5Group(std::shared_ptr<GtH5File> file,
-                     H5::Group const& group,
-                     QByteArray const& name) :
-    GtH5Node(std::move(file), name),
-    m_group(group)
-{
-    if (m_name.isEmpty())
-    {
-        m_name = getObjectName(*this);
-    }
-}
-
-//GtH5Group&
-//GtH5Group::operator=(GtH5Group const& other)
-//{
-////    qDebug() << "GtH5Group::copy=";
-//    auto tmp{other};
-//    swap(tmp);
-//    return *this;
-//}
-
-//GtH5Group&
-//GtH5Group::operator=(GtH5Group&& other) noexcept
-//{
-////    qDebug() << "GtH5Group::move=";
-//    swap(other);
-//    return *this;
-//}
-
-int64_t
-GtH5Group::id() const
-{
-    return m_group.getId();
-}
-
-bool
-GtH5Group::deleteLink()
-{
-    return false;
-}
-
-GtH5Location::ObjectType
-GtH5Group::type() const
-{
-    return GtH5Location::ObjectType::Group;
-}
-
-H5::H5Object const*
-GtH5Group::toH5Object() const
-{
-    return &m_group;
-}
-
-H5::Group
-GtH5Group::toH5() const
-{
-    return m_group;
-}
-
-void
-GtH5Group::close()
-{
-    m_group.close();
-}
-
-GtH5Group
-GtH5Group::createGroup(QString const& name)
-{
-    return createGroup(name.toUtf8());
-}
-
-GtH5Group
-GtH5Group::createGroup(QByteArray const& name)
-{
-    return GtH5Group::create(*this, name);
-}
-
-GtH5Group
-GtH5Group::openGroup(QString const& name)
-{
-    return openGroup(name.toUtf8());
-}
-
-GtH5Group
-GtH5Group::openGroup(QByteArray const& name)
-{
-    return GtH5Group::open(*this, name);
-}
-
-GtH5DataSet
-GtH5Group::createDataset(QString const& name,
-                        GtH5DataType const& dtype,
-                        GtH5DataSpace const& dspace)
-{
-    return createDataset(name.toUtf8(), dtype, dspace);
-}
-
-GtH5DataSet
-GtH5Group::createDataset(QByteArray const& name,
-                        GtH5DataType const& dtype,
-                        GtH5DataSpace const& dspace)
-{
     // chunk dataset by default
-    auto props{GtH5DataSetProperties::autoChunk(dspace)};
+    if (properties.isDefault() && !dspace.isScalar() && dspace.size() > 0)
+    {
+        properties = DataSetCProperties::autoChunked(dspace);
+    }
 
-    return GtH5DataSet::create(*this, name, dtype, dspace,
-                               GtH5DataSetProperties{props});
+    // create new dataset
+    if (!parent.exists(name))
+    {
+        H5::DataSet dset;
+        try
+        {
+            dset = parent.toH5Object()->createDataSet(name.constData(),
+                                                      dtype.toH5(),
+                                                      dspace.toH5(),
+                                                      properties->toH5());
+        }
+        catch (H5::DataSetIException& /*e*/)
+        {
+            qCritical() << "HDF5: Creating dataset failed! -" << name;
+            return {};
+        }
+        catch (H5::Exception& /*e*/)
+        {
+            qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::create failed! -"
+                        << name;
+            return {};
+        }
+
+        DataSetCProperties props{dset.getCreatePlist()};
+
+        return {parent.file(), std::move(dset), std::move(name)};
+    }
+
+    // open existing dataset
+    auto dset = openDataset(name);
+
+    // check if datatype is equal
+    if (dset.dataType() == dtype)
+    {
+        // check if dataspace is equal
+        if (dset.dataSpace() == dspace)
+        {
+            return dset;
+        }
+
+        // try resizing the existing dataset
+        if (dset.resize(dspace.dimensions()))
+        {
+            return dset;
+        }
+    }
+
+    // dataset cannot be resized and must be deleted
+    qWarning() << "HDF5: Invalid memory layout! Overwriting dataset! -" << name;
+    if (!dset.deleteLink())
+    {
+        return {};
+    }
+
+    return createDataset(std::move(name), dtype, dspace, std::move(properties));
 }
 
-GtH5DataSet
-GtH5Group::openDataset(QString const& name)
+GtH5::DataSet
+GtH5::Group::openDataset(QString const& name)
 {
     return openDataset(name.toUtf8());
 }
 
-GtH5DataSet
-GtH5Group::openDataset(QByteArray const& name)
+GtH5::DataSet
+GtH5::Group::openDataset(String name)
 {
-    if (!this->exists(name))
+    auto const& parent = *this;
+
+    if (!parent.isValid())
     {
-        qWarning().nospace() << "HDF5 dataset '" << name << "' does not exist";
         return {};
     }
-    return GtH5DataSet::open(*this, name);
+
+    H5::DataSet dset;
+    try
+    {
+        dset = parent.toH5Object()->openDataSet(name.constData());
+    }
+    catch (H5::DataSetIException& /*e*/)
+    {
+        qCritical() << "HDF5: Opening dataset failed! -" << name;
+        return {};
+    }
+    catch (H5::Exception& /*e*/)
+    {
+        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::open failed! -" << name;
+        return {};
+    }
+
+    return {parent.file(), std::move(dset), std::move(name)};
 }
-
-//void
-//GtH5Group::swap(GtH5Group& other) noexcept
-//{
-//    using std::swap;
-//    GtH5Node::swap(other);
-//    swap(m_group, other.m_group);
-//}
-
-//void
-//swap(GtH5Group& first, GtH5Group& other) noexcept
-//{
-////    qDebug() << "swap(GtH5Group)";
-//    first.swap(other);
-//}

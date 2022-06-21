@@ -6,25 +6,40 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GTH5FILE_H
-#define GTH5FILE_H
+#ifndef GTH5_FILE_H
+#define GTH5_FILE_H
 
 #include "gth5_object.h"
 #include "gth5_group.h"
 
-#include <QByteArray>
-
+// forward decl
 class QFile;
+
+namespace GtH5
+{
+
 /**
- * @brief The GtH5File class
+ * @brief The AccessFlag enum
  */
-class GTH5_EXPORT GtH5File : public GtH5Object
+enum AccessFlag
+{
+    CreateOnly = 1,
+    OpenOnly = 2,
+    Overwrite = 4,
+    ReadOnly = 8,
+    ReadWrite = 16
+};
+Q_DECLARE_FLAGS(AccessFlags, AccessFlag)
+
+
+/**
+ * @brief The File class
+ */
+class GTH5_EXPORT File : public Object
 {
 public:
 
-    /**
-     * @brief The AccessFlag enum
-     */
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
     enum AccessFlag
     {
         OpenReadOnly = 1,
@@ -34,13 +49,15 @@ public:
         CreateOverwrite = 16
     };
 
+    static uint32_t accessMode(AccessFlag mode);
+#endif
     /**
      * @brief translates the access flags to hdf5 compatible access flags
      * (eg. H5F_ACC_TRUNC).
-     * @param mode access mode
+     * @param flags access mode
      * @return hdf5 access mode
      */
-    static uint32_t accessMode(AccessFlag mode);
+    static uint32_t accessMode(AccessFlags flags);
 
     /**
      * @brief returns whether the file exists
@@ -56,63 +73,67 @@ public:
      * @return whether the file is a valid hdf5 file
      */
     static bool isValidH5File(QString const& filePath);
-    static bool isValidH5File(QByteArray const& filePath);
+    static bool isValidH5File(String const& filePath);
 
     /**
      * @brief hdf5 file suffix not including dot
      * @return file suffix
      */
-    static QByteArray fileSuffix();
+    static String fileSuffix();
     /**
-     * @brief hdf5 file suffix not including dot
+     * @brief hdf5 file suffix including dot
      * @return file suffix
      */
-    static QByteArray dotFileSuffix();
+    static String dotFileSuffix();
 
     /**
-     * @brief GtH5File
+     * @brief File
      */
-    GtH5File();
-    GtH5File(QFile const& h5File, AccessFlag flag);
-    GtH5File(QString const& path, AccessFlag flag);
-    GtH5File(QByteArray const& path, AccessFlag flag);
+    File();
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+    File(QFile const& h5File, AccessFlag flag);
+    File(QString const& path, AccessFlag flag);
+    File(String path, AccessFlag flag);
+#endif
+    explicit File(QFile const& h5File, AccessFlags flags = ReadWrite);
+    explicit File(String path, AccessFlags flags = ReadWrite);
 
     /**
      * @brief allows access of the base hdf5 object.
      * @return base hdf5 object
      */
-    H5::H5File toH5() const;
+    H5::H5File const& toH5() const;
 
     /**
      * @brief id or handle of the hdf5 resource.
      * @return id
      */
-    int64_t id() const override;
+    hid_t id() const override;
 
     /**
      * @brief returns the root group of the file. The resulting object should
      * be valid as long as this object is valid.
      * @return root group of the file
      */
-    GtH5Group root() const;
+    Group root() const;
 
     /**
      * @brief fileName including file suffix.
      * @return filename
      */
-    QByteArray fileName() const;
+    String fileName() const;
 
     /**
      * @brief file base name not including suffix.
      * @return filename
      */
-    QByteArray fileBaseName() const;
+    String fileBaseName() const;
 
     /**
      * @brief file path used to create this file.
      * @return filepath
      */
-    QByteArray const& filePath() const;
+    String const& filePath() const;
 
     /**
      * @brief explicitly closes the resource handle.
@@ -124,9 +145,15 @@ private:
     /// hdf5 base instance
     H5::H5File m_file{};
     /// stores the file path used to create this object
-    QByteArray m_filePath{};
+    String m_filePath{};
     /// cashes the associated root group
-    mutable GtH5Group m_root{};
+    mutable Group m_root{};
 };
 
-#endif // GTH5FILE_H
+} // namespace GtH5
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5File = GtH5::File;
+#endif
+
+#endif // GTH5_FILE_H

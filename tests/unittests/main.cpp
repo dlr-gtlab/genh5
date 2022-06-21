@@ -13,12 +13,12 @@
 
 #include "testhelper.h"
 
-
 int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
 
-    QScopedPointer<TestHelper> helper (TestHelper::instance());
+    auto* helper = TestHelper::instance();
+    Q_UNUSED(helper)
 
     testing::InitGoogleTest(&argc, argv);
 

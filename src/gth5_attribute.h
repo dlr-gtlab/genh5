@@ -6,49 +6,42 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GTH5ATTRIBUTE_H
-#define GTH5ATTRIBUTE_H
+#ifndef GTH5_ATTRIBUTE_H
+#define GTH5_ATTRIBUTE_H
 
 #include "gth5_location.h"
 #include "gth5_abtsractdataset.h"
 
-class GtH5Node;
+namespace GtH5
+{
 
 /**
- * @brief The GtH5Attribute class
+ * @brief The Attribute class
  */
-class GTH5_EXPORT GtH5Attribute : public GtH5Location,
-                                   public GtH5AbtsractDataSet
+class GTH5_EXPORT Attribute : public Location,
+                              public AbstractDataSet
 {
 public:
 
-    static GtH5Attribute create(GtH5Node const& parent,
-                                QByteArray const& name,
-                                GtH5DataType const& dtype,
-                                GtH5DataSpace const& dspace);
-
-    static GtH5Attribute open(GtH5Node const& parent,
-                              QByteArray const& name);
-
     /**
-     * @brief GtH5Attribute
+     * @brief Attribute
      */
-    GtH5Attribute();
-    GtH5Attribute(std::shared_ptr<GtH5File> file,
-                  H5::Attribute const& attr,
-                  QByteArray const& name = {});
+    Attribute();
+    Attribute(std::shared_ptr<File> file,
+              H5::Attribute attr,
+              String name = {});
 
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::Attribute toH5() const;
+    H5::Attribute const& toH5() const;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    int64_t id() const override;
+    hid_t id() const override;
 
     /**
      * @brief returns whether the object id is valid and can be used for further
@@ -70,27 +63,40 @@ public:
     ObjectType type() const override;
 
     /**
-     * @brief returns the hdf5 object as a h5location.
-     * @return h5location
-     */
-    H5::H5Location const* toH5Location() const override;
-
-    /**
      * @brief explicitly closes the resource handle
      */
     void close();
 
 protected:
 
-    bool doWrite(void const* data) const override;
-    bool doRead(void* data) const override;
+    bool doWrite(void const* data, DataType const&) const override;
+    bool doRead(void* data, DataType const&) const override;
+
+    /**
+     * @brief returns the hdf5 object as a h5location.
+     * @return h5location
+     */
+    H5::H5Location const* toH5Location() const override;
 
 private:
 
     /// hdf5 base instance
     H5::Attribute m_attribute{};
 
-    friend class GtH5Reference;
+    friend class Reference;
 };
 
-#endif // GTH5ATTRIBUTE_H
+/**
+ * @brief helper function to retrieve the name of an attribute
+ * @param attr
+ * @return name
+ */
+GTH5_EXPORT String getAttributeName(Attribute const& attr);
+
+} // namespace GtH5
+
+#ifndef GTH5_NO_DEPRECATED_SYMBOLS
+using GtH5Attribute = GtH5::Attribute;
+#endif
+
+#endif // GTH5_ATTRIBUTE_H

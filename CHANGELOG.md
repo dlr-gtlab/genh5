@@ -5,17 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Fixed 
-
-### Changed 
-
 ### Added
+- `GTH5_VERSION_CHECK` macro
+- support for additional datatypes (fixed sized arrays, predefined types, varlen and compound types) - #7
+- support for partial read/write operations (i.e. hyperslap selections) - #7 
 
 ### Deprecated 
+- `GtH5DataSpace::sum` use `size` or `GtH5::noe` instead
+- `GtH5Data` and `GtH5AbstractData` use `GtH5::Data` or `GtH5::CompData` instead - #7
 
 ### Removed
-
-### Security  
 
 ## [1.0.3] - 2022-04-13
 ### Changed 

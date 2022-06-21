@@ -24,39 +24,62 @@ protected:
 
     virtual void SetUp() override
     {
-        file = GtH5File(TestHelper::instance()->newFilePath(),
-                        GtH5File::CreateOverwrite);
+        file = GtH5::File(h5TestHelper->newFilePath(),
+                          GtH5::CreateOnly);
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
         ASSERT_TRUE(group.isValid());
 
         dataset = group.createDataset(QByteArrayLiteral("dataset"),
-                                      GtH5Data<int>().dataType(),
-                                      GtH5DataSpace{0});
+                                      GtH5::dataType<int>(),
+                                      GtH5::DataSpace::Scalar);
         ASSERT_TRUE(dataset.isValid());
 
         attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
-                                            GtH5Data<int>().dataType(),
-                                            GtH5DataSpace{0});
+                                            GtH5::dataType<int>(),
+                                            GtH5::DataSpace::Scalar);
         ASSERT_TRUE(attribute.isValid());
     }
 
-    GtH5File file;
-    GtH5Group group;
-    GtH5DataSet dataset;
-    GtH5Attribute attribute;
+    GtH5::File file;
+    GtH5::Group group;
+    GtH5::DataSet dataset;
+    GtH5::Attribute attribute;
 };
+
+TEST_F(TestH5Reference, isValid)
+{
+    // reference
+    GtH5::Reference ref;
+    EXPECT_FALSE(ref.isValid());
+    EXPECT_EQ(ref.type(), GtH5::UnkownType);
+
+    GtH5::Reference refA = group.toReference();
+    EXPECT_TRUE(refA.isValid());
+    EXPECT_EQ(refA.type(), group.type());
+
+    GtH5::Reference refB = dataset.toReference();
+    EXPECT_TRUE(refB.isValid());
+    EXPECT_EQ(refB.type(), dataset.type());
+
+    GtH5::Reference refC = attribute.toReference();
+    EXPECT_TRUE(refC.isValid());
+    EXPECT_EQ(refC.type(), attribute.type());
+
+    GtH5::DataSet dset;
+    GtH5::Reference refD = dset.toReference();
+    EXPECT_FALSE(refD.isValid());
+    EXPECT_EQ(refD.type(), GtH5::UnkownType);
+}
 
 TEST_F(TestH5Reference, referenceGroup)
 {
     // reference
-    GtH5Reference ref = group.toReference();
-    EXPECT_TRUE(ref.isValid());
-    EXPECT_EQ(ref.type(), group.type());
+    GtH5::Reference ref = group.toReference();
 
     // dereference
-    GtH5Group grp = ref.toGroup(file);
+    GtH5::Group grp = ref.toGroup(file);
     EXPECT_TRUE(grp.isValid());
 
     EXPECT_EQ(grp.path(), group.path());
@@ -70,12 +93,10 @@ TEST_F(TestH5Reference, referenceGroup)
 TEST_F(TestH5Reference, referenceDataset)
 {
     // reference
-    GtH5Reference ref = dataset.toReference();
-    EXPECT_TRUE(ref.isValid());
-    EXPECT_EQ(ref.type(), dataset.type());
+    GtH5::Reference ref = dataset.toReference();
 
     // dereference
-    GtH5DataSet dset = ref.toDataSet(file);
+    GtH5::DataSet dset = ref.toDataSet(file);
     EXPECT_TRUE(dset.isValid());
 
     EXPECT_EQ(dset.path(), dataset.path());
@@ -89,12 +110,10 @@ TEST_F(TestH5Reference, referenceDataset)
 TEST_F(TestH5Reference, referenceAttribute)
 {
     // reference
-    GtH5Reference ref = attribute.toReference();
-    EXPECT_TRUE(ref.isValid());
-    EXPECT_EQ(ref.type(), attribute.type());
+    GtH5::Reference ref = attribute.toReference();
 
     // dereference
-    GtH5Attribute attr = ref.toAttribute(file);
+    GtH5::Attribute attr = ref.toAttribute(file);
     EXPECT_TRUE(attr.isValid());
 
     EXPECT_EQ(attr.path(), attribute.path());
@@ -105,4 +124,105 @@ TEST_F(TestH5Reference, referenceAttribute)
     EXPECT_EQ(H5Iget_ref(file.id()), 2);
 }
 
+TEST_F(TestH5Reference, referenceGroupAlign)
+{
+    // reference
+    auto align =  group.toReference().alignment();
 
+    // dereference
+    GtH5::Group grp = GtH5::Reference(align).toGroup(file);
+    EXPECT_TRUE(grp.isValid());
+
+    EXPECT_EQ(grp.path(), group.path());
+    EXPECT_EQ(grp.name(), group.name());
+    EXPECT_EQ(grp.file(), group.file());
+
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+}
+
+TEST_F(TestH5Reference, referenceDatasetAlign)
+{
+    // reference
+    auto align =  dataset.toReference().alignment();
+
+    // dereference
+    GtH5::DataSet dset = GtH5::Reference(align).toDataSet(file);
+    EXPECT_TRUE(dset.isValid());
+
+    EXPECT_EQ(dset.path(), dataset.path());
+    EXPECT_EQ(dset.name(), dataset.name());
+    EXPECT_EQ(dset.file(), dataset.file());
+
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+}
+
+TEST_F(TestH5Reference, referenceAttributeAlign)
+{
+    // reference
+    auto align =  attribute.toReference().alignment();
+
+    // dereference does not work for attributes when using alignment data    
+    qDebug() << "# Expect Error: invalid reference type";
+    GtH5::Attribute attr = GtH5::Reference(align).toAttribute(file);
+    EXPECT_FALSE(attr.isValid());
+
+    EXPECT_EQ(attr.path(), QByteArray{});
+    EXPECT_EQ(attr.name(), QByteArray{});
+    EXPECT_FALSE(attr.file());
+
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+}
+
+TEST_F(TestH5Reference, referenceGroupBuffer)
+{
+    // reference
+    auto buffer =  group.toReference().buffer();
+
+    // dereference
+    GtH5::Group grp = GtH5::Reference(buffer).toGroup(file);
+    EXPECT_TRUE(grp.isValid());
+
+    EXPECT_EQ(grp.path(), group.path());
+    EXPECT_EQ(grp.name(), group.name());
+    EXPECT_EQ(grp.file(), group.file());
+
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+}
+
+TEST_F(TestH5Reference, referenceDatasetBuffer)
+{
+    // reference
+    auto buffer =  dataset.toReference().buffer();
+
+    // dereference
+    GtH5::DataSet dset = GtH5::Reference(buffer).toDataSet(file);
+    EXPECT_TRUE(dset.isValid());
+
+    EXPECT_EQ(dset.path(), dataset.path());
+    EXPECT_EQ(dset.name(), dataset.name());
+    EXPECT_EQ(dset.file(), dataset.file());
+
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+}
+
+TEST_F(TestH5Reference, referenceAttributeBuffer)
+{
+    // reference
+    auto buffer =  attribute.toReference().buffer();
+
+    // dereference
+    GtH5::Attribute attr = GtH5::Reference(buffer).toAttribute(file);
+    EXPECT_TRUE(attr.isValid());
+
+    EXPECT_EQ(attr.path(), attribute.path());
+    EXPECT_EQ(attr.name(), attribute.name());
+    EXPECT_EQ(attr.file(), attribute.file());
+
+    // local file and internal shared file ptr have access
+    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+}
