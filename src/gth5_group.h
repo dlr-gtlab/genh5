@@ -35,9 +35,7 @@ public:
      */
     Group();
     explicit Group(File const& file);
-    Group(std::shared_ptr<File> file,
-          H5::Group group,
-          String name = {});
+    Group(std::shared_ptr<File> file, H5::Group group);
 
     /**
      * @brief allows access of the base hdf5 object
@@ -70,21 +68,21 @@ public:
 
     // groups
     Group createGroup(QString const& name);
-    Group createGroup(String name);
+    Group createGroup(String const& name);
     Group openGroup(QString const& name);
-    Group openGroup(String name);
+    Group openGroup(String const& name);
 
     // datasets
     GtH5::DataSet createDataset(QString const& name,
                                 DataType const& dtype,
                                 DataSpace const& dspace,
                                 Optional<DataSetCProperties> properties = {});
-    GtH5::DataSet createDataset(String name,
+    GtH5::DataSet createDataset(String const& name,
                                 DataType const& dtype,
                                 DataSpace const& dspace,
                                 Optional<DataSetCProperties> properties = {});
     GtH5::DataSet openDataset(QString const& name);
-    GtH5::DataSet openDataset(String name);
+    GtH5::DataSet openDataset(String const& name);
 
 protected:
 

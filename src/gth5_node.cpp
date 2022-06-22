@@ -13,8 +13,8 @@
 #include "gth5_datatype.h"
 
 
-GtH5::Node::Node(std::shared_ptr<File> file, String name) :
-    Location{std::move(file), std::move(name)}
+GtH5::Node::Node(std::shared_ptr<File> file) :
+    Location{std::move(file)}
 {
 
 }
@@ -40,7 +40,7 @@ GtH5::Node::createAttribute(QString const& name,
 }
 
 GtH5::Attribute
-GtH5::Node::createAttribute(String name,
+GtH5::Node::createAttribute(String const& name,
                             DataType const& dtype,
                             DataSpace const& dspace) const
 {
@@ -68,7 +68,7 @@ GtH5::Node::createAttribute(String name,
             return {};
         }
 
-        return {parent.file(), std::move(attr), std::move(name)};
+        return {parent.file(), std::move(attr)};
     }
 
     // open existing attribute
@@ -98,7 +98,7 @@ GtH5::Node::openAttribute(QString const& name) const
 }
 
 GtH5::Attribute
-GtH5::Node::openAttribute(String name) const
+GtH5::Node::openAttribute(String const& name) const
 {
     auto const& parent = *this;
     H5::Attribute attr;
@@ -118,5 +118,5 @@ GtH5::Node::openAttribute(String name) const
         return {};
     }
 
-    return {parent.file(), std::move(attr), std::move(name)};
+    return {parent.file(), std::move(attr)};
 }

@@ -66,10 +66,10 @@ GtH5::Location::exists(Vector<String> const& path) const
     return true;
 }
 
-GtH5::String const&
+GtH5::String
 GtH5::Location::name() const
 {
-    return m_name;
+    return getObjectName(*this);
 }
 
 GtH5::Reference
@@ -83,13 +83,9 @@ GtH5::Location::toReference()
     return GtH5::Reference(*this);
 }
 
-GtH5::Location::Location(std::shared_ptr<File> file,
-                           QByteArray name) :
-    m_file(std::move(file)),
-    m_name(std::move(name))
-{
-
-}
+GtH5::Location::Location(std::shared_ptr<File> file) :
+    m_file(std::move(file))
+{ }
 
 GtH5::String
 GtH5::Location::path() const

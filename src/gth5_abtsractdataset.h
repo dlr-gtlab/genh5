@@ -10,8 +10,6 @@
 #define GTH5_ABTSRACTDATASET_H
 
 #include "gth5_exports.h"
-#include "gth5_datatype.h"
-#include "gth5_dataspace.h"
 #include "gth5_data.h"
 #include "gth5_optional.h"
 
@@ -33,12 +31,12 @@ public:
      * @brief dataType of this dataset
      * @return dataType
      */
-    DataType const& dataType() const;
+    DataType dataType() const;
     /**
      * @brief dataSpace of this dataset
      * @return dataSpace
      */
-    DataSpace const& dataSpace() const;
+    DataSpace dataSpace() const;
 
     /**
      * @brief writes data to dataset
@@ -50,7 +48,7 @@ public:
     template<typename T>
     bool write(Vector<T> const& data, Optional<DataType> dtype = {}) const;
     template<typename T>
-    bool write(AbstractData<T> const& data, Optional<DataType> dtype = {}) const;
+    bool write(AbstractData<T> const& data, Optional<DataType> dtype= {}) const;
 
     /**
      * @brief reads data from dataset
@@ -67,10 +65,11 @@ public:
 
 protected:
 
-    /// datatype of this dataset
-    DataType  m_datatype{};
-    /// dataspace of this dataset
-    DataSpace m_dataspace{};
+    /**
+     * @brief Returns the abstract hdf5 dataset
+     * @return Abstract dset
+     */
+    virtual H5::AbstractDs const& toH5AbsDataSet() const = 0;
 
     /**
      * @brief Method for wirte implementation
@@ -89,8 +88,7 @@ protected:
     /**
      * @brief AbtsractDataSet
      */
-    AbstractDataSet(DataType dtype = {},
-                    DataSpace dspace = {});
+    AbstractDataSet();
 
     AbstractDataSet(AbstractDataSet const& other) = default;
     AbstractDataSet(AbstractDataSet&& other) = default;
@@ -104,11 +102,12 @@ AbstractDataSet::write(Vector<T> const& data, Optional<DataType> dtype) const
 {
     if (data.size() < dataSpace().selectionSize())
     {
+        auto dspace = dataSpace();
         qCritical() << "HDF5: Writing data failed!" <<
                        "(Too few data elements:"
                     << data.length() << "vs."
-                    << m_dataspace.dimensions()
-                    << m_dataspace.selectionSize() << "elements)";
+                    << dspace.dimensions()
+                    << dspace.selectionSize() << "elements)";
         return false;
     }
 
@@ -117,7 +116,8 @@ AbstractDataSet::write(Vector<T> const& data, Optional<DataType> dtype) const
 
 template<typename T>
 inline bool
-AbstractDataSet::write(AbstractData<T> const& data, Optional<DataType> dtype) const
+AbstractDataSet::write(AbstractData<T> const& data,
+                       Optional<DataType> dtype) const
 {
     if (dtype.isDefault())
     {
@@ -131,7 +131,7 @@ template<typename T>
 inline bool
 AbstractDataSet::read(Vector<T>& data, Optional<DataType> dtype) const
 {
-    auto& dspace = dataSpace();
+    auto dspace = dataSpace();
     data.resize(dspace.selectionSize());
 
     return read(data.data(), std::move(dtype));
@@ -141,7 +141,7 @@ template<typename T>
 inline bool
 AbstractDataSet::read(AbstractData<T>& data, Optional<DataType> dtype) const
 {
-    auto& dspace = dataSpace();
+    auto dspace = dataSpace();
     data.resize(dspace.selectionSize());
 
     if (dtype.isDefault())

@@ -13,6 +13,32 @@
 #include <QFileInfo>
 #include <QDir>
 
+GtH5::String
+GtH5::getFileName(File const& file)
+{
+    if (!file.isValid())
+    {
+        return {};
+    }
+
+    String buffer{32, ' '};
+    size_t bufferLen = static_cast<size_t>(buffer.size());
+
+    auto acutalLen = static_cast<size_t>(H5Fget_name(file.id(),
+                                                     buffer.data(),
+                                                     bufferLen));
+
+    if (acutalLen > bufferLen)
+    {
+        bufferLen = acutalLen + 1;
+        buffer.resize(static_cast<int>(bufferLen));
+        H5Fget_name(file.id(), buffer.data(), bufferLen);
+    }
+
+    // remove of excess whitespaces and trailing '\0'
+    return buffer.trimmed().chopped(1);
+}
+
 #ifndef GTH5_NO_DEPRECATED_SYMBOLS
 uint32_t
 GtH5::File::accessMode(AccessFlag mode)
@@ -62,16 +88,15 @@ GtH5::File::File(QFile const& file, AccessFlags flags) :
 
 }
 
-GtH5::File::File(String path, AccessFlags flags) :
-    m_filePath{std::move(path)}
+GtH5::File::File(String path, AccessFlags flags)
 {
-    QFileInfo fileInfo{m_filePath};
+    QFileInfo fileInfo{path};
     QDir fileDir{fileInfo.path()};
 
     if (!fileDir.exists())
     {
         qCritical() << "HDF5: Accessing file failed! (dir does not exist) -"
-                    << m_filePath;
+                    << path;
         return;
     }
 
@@ -80,7 +105,7 @@ GtH5::File::File(String path, AccessFlags flags) :
         if ((flags & OpenOnly))
         {
             qCritical() << "HDF5: Opening file failed! (file does not exist) -"
-                        << m_filePath;
+                        << path;
             return;
         }
     }
@@ -89,24 +114,24 @@ GtH5::File::File(String path, AccessFlags flags) :
         if ((flags & CreateOnly))
         {
             qCritical() << "HDF5: Creating file failed! (file already exist) -"
-                        << m_filePath;
+                        << path;
             return;
         }
     }
 
     try
     {
-        m_file = H5::H5File{m_filePath.constData(), accessMode(flags)};
+        m_file = H5::H5File{path.constData(), accessMode(flags)};
     }
     catch (H5::FileIException& /*e*/)
     {
         qCritical() << "HDF5: Accessing file failed!"
-                    << m_filePath << flags;
+                    << path << flags;
     }
     catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5::File:GtH5File failed!"
-                    << m_filePath << flags;
+                    << path << flags;
     }
 }
 
@@ -123,16 +148,15 @@ GtH5::File::File(QString const& path, AccessFlag flag) :
 
 }
 
-GtH5::File::File(String path, AccessFlag flag) :
-    m_filePath{std::move(path)}
+GtH5::File::File(String path, AccessFlag flag)
 {
-    QFileInfo fileInfo{m_filePath};
+    QFileInfo fileInfo{path};
     QDir fileDir{fileInfo.path()};
 
     if (!fileDir.exists())
     {
         qCritical() << "HDF5: Accessing file failed! (dir does not exist) -"
-                    << m_filePath;
+                    << path;
         return;
     }
 
@@ -143,7 +167,7 @@ GtH5::File::File(String path, AccessFlag flag) :
         if (flag == OpenReadOnly || flag == OpenReadWrite)
         {
             qCritical() << "HDF5: Opening file failed! (file does not exist) -"
-                        << m_filePath;
+                        << path;
             return;
         }
 
@@ -156,23 +180,23 @@ GtH5::File::File(String path, AccessFlag flag) :
     else if (flag == CreateNotExisting)
     {
         qCritical() << "HDF5: Creating file failed! (file already exists) -"
-                    << m_filePath;
+                    << path;
         return;
     }
 
     try
     {
-        m_file = H5::H5File{m_filePath.constData(), accessMode(flag)};
+        m_file = H5::H5File{path.constData(), accessMode(flag)};
     }
     catch (H5::FileIException& /*e*/)
     {
         qCritical() << "HDF5: Accessing file failed!"
-                    << m_filePath << flag;
+                    << path << flag;
     }
     catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5::File:GtH5File failed!"
-                    << m_filePath << flag;
+                    << path << flag;
     }
 }
 #endif
@@ -216,19 +240,19 @@ GtH5::File::root() const
 GtH5::String
 GtH5::File::fileName() const
 {
-    return QFileInfo{m_filePath}.fileName().toUtf8();
+    return QFileInfo{getFileName(*this)}.fileName().toUtf8();
 }
 
 GtH5::String
 GtH5::File::fileBaseName() const
 {
-    return QFileInfo{m_filePath}.baseName().toUtf8();
+    return QFileInfo{getFileName(*this)}.baseName().toUtf8();
 }
 
-GtH5::String const&
+GtH5::String
 GtH5::File::filePath() const
 {
-    return m_filePath;
+    return getFileName(*this);
 }
 
 GtH5::String

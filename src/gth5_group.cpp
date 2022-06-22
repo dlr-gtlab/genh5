@@ -17,7 +17,7 @@
 GtH5::Group::Group() = default;
 
 GtH5::Group::Group(const File& file) :
-    Node{nullptr, QByteArrayLiteral("/")}
+    Node{nullptr}
 {
     if (!file.isValid())
     {
@@ -28,7 +28,7 @@ GtH5::Group::Group(const File& file) :
 
     try
     {
-        m_group = file.toH5().openGroup(m_name.constData());
+        m_group = file.toH5().openGroup(QByteArrayLiteral("/").constData());
     }
     catch (H5::GroupIException& /*e*/)
     {
@@ -40,17 +40,10 @@ GtH5::Group::Group(const File& file) :
     }
 }
 
-GtH5::Group::Group(std::shared_ptr<File> file,
-                   H5::Group group,
-                   String name) :
-    Node{std::move(file),  std::move(name)},
+GtH5::Group::Group(std::shared_ptr<File> file, H5::Group group) :
+    Node{std::move(file)},
     m_group{std::move(group)}
-{
-    if (m_name.isEmpty())
-    {
-        m_name = GtH5::getObjectName(*this);
-    }
-}
+{ }
 
 hid_t
 GtH5::Group::id() const
@@ -95,7 +88,7 @@ GtH5::Group::createGroup(QString const& name)
 }
 
 GtH5::Group
-GtH5::Group::createGroup(String name)
+GtH5::Group::createGroup(String const& name)
 {
     auto const& parent = *this;
 
@@ -121,7 +114,7 @@ GtH5::Group::createGroup(String name)
             qCritical() << "HDF5: [EXCEPTION] GtH5::Group::create failed!";
         }
 
-        return {parent.file(), std::move(group), std::move(name)};
+        return {parent.file(), std::move(group)};
     }
 
     // open existing group
@@ -135,7 +128,7 @@ GtH5::Group::openGroup(QString const& name)
 }
 
 GtH5::Group
-GtH5::Group::openGroup(String name)
+GtH5::Group::openGroup(String const& name)
 {
     auto const& parent = *this;
 
@@ -160,7 +153,7 @@ GtH5::Group::openGroup(String name)
         return Group();
     }
 
-    return {parent.file(), std::move(group), std::move(name)};
+    return {parent.file(), std::move(group)};
 }
 
 GtH5::DataSet
@@ -173,7 +166,7 @@ GtH5::Group::createDataset(QString const& name,
 }
 
 GtH5::DataSet
-GtH5::Group::createDataset(String name,
+GtH5::Group::createDataset(String const& name,
                            DataType const& dtype,
                            DataSpace const& dspace,
                            Optional<DataSetCProperties> properties)
@@ -216,7 +209,7 @@ GtH5::Group::createDataset(String name,
 
         DataSetCProperties props{dset.getCreatePlist()};
 
-        return {parent.file(), std::move(dset), std::move(name)};
+        return {parent.file(), std::move(dset)};
     }
 
     // open existing dataset
@@ -245,7 +238,7 @@ GtH5::Group::createDataset(String name,
         return {};
     }
 
-    return createDataset(std::move(name), dtype, dspace, std::move(properties));
+    return createDataset(name, dtype, dspace, std::move(properties));
 }
 
 GtH5::DataSet
@@ -255,7 +248,7 @@ GtH5::Group::openDataset(QString const& name)
 }
 
 GtH5::DataSet
-GtH5::Group::openDataset(String name)
+GtH5::Group::openDataset(String const& name)
 {
     auto const& parent = *this;
 
@@ -276,9 +269,10 @@ GtH5::Group::openDataset(String name)
     }
     catch (H5::Exception& /*e*/)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::open failed! -" << name;
+        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::open failed! -"
+                    << name;
         return {};
     }
 
-    return {parent.file(), std::move(dset), std::move(name)};
+    return {parent.file(), std::move(dset)};
 }
