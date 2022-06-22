@@ -18,49 +18,92 @@ mkpath($${HEADERS_DIR_PATH})
 defineTest(copyHeaders) {
 
     files = $$1
-    dir = $${HEADERS_DIR_PATH}/$${TARGET_DIR_NAME}
+    keepIncludePaths = $$2
+    privateIncludePaths = $$3
+
+    includeDir = $${HEADERS_DIR_PATH}/$${TARGET_DIR_NAME}
 
     win32 {
 
-        dir ~= s,/,\\,g
+        includeDir ~= s,/,\\,g
+    }
 
-        QMAKE_POST_LINK += if not exist $$shell_quote($$dir) $$QMAKE_MKDIR $$shell_quote($$dir) $$escape_expand(\\n\\t)
+    headerDirs =
 
-        exists(*.h) {
-            QMAKE_POST_LINK += $$QMAKE_COPY $$shell_quote(*.h) $$shell_quote($$dir) $$escape_expand(\\n\\t)
-        }
+    for(file, files) {
 
-        dirNames =
+        dirName = $$dirname(file)
 
-        for(file, files) {
+        !isEmpty(dirName) {
 
             exists($$file) {
 
-                dirName = $$dirname(file)
+                !contains(headerDirs, $$dirName) {
 
-                !isEmpty(dirName) {
+                    !contains(privateIncludePaths, $$dirName) {
 
-                    !contains(dirNames, $$dirName) {
-
-                        dirNames += $$dirName
-                        sourceDir = $${PWD}/$${dirName}/*.h
-
-                        sourceDir ~= s,/,\\,g
-
-                        exists($${sourceDir}) {
-
-                            QMAKE_POST_LINK += $$QMAKE_COPY $$shell_quote($${sourceDir}) $$shell_quote($$dir) $$escape_expand(\\n\\t)
-                        }
+                        headerDirs += $$dirName
                     }
                 }
             }
         }
+    }
 
+    win32 {
+
+        QMAKE_POST_LINK += if not exist $$shell_quote($$includeDir) $$QMAKE_MKDIR $$shell_quote($$includeDir) $$escape_expand(\\n\\t)
+
+        exists(*.h) {
+            QMAKE_POST_LINK += $$QMAKE_COPY $$shell_quote(*.h) $$shell_quote($$includeDir) $$escape_expand(\\n\\t)
+        }
     }
     unix {
 
-        QMAKE_POST_LINK += $$QMAKE_CHK_DIR_EXISTS $$shell_quote($$dir) || $$QMAKE_MKDIR $$shell_quote($$dir) $$escape_expand(\\n\\t)
-        QMAKE_POST_LINK += find . -name $$shell_quote(*.h) -exec cp $$shell_quote({}) $$shell_quote($$dir) \; $$escape_expand(\\n\\t)
+        QMAKE_POST_LINK += $$QMAKE_CHK_DIR_EXISTS $$shell_quote($$includeDir) || $$QMAKE_MKDIR $$shell_quote($$includeDir) $$escape_expand(\\n\\t)
+
+        exists(*.h) {
+            QMAKE_POST_LINK += find . -maxdepth 1 -name $$shell_quote(*.h) -exec cp $$shell_quote({}) $$shell_quote($$includeDir) \; $$escape_expand(\\n\\t)
+        }
+    }
+
+    for(dirName, headerDirs) {
+
+        copyTo = $$includeDir
+
+        win32 {
+
+            copyTo ~= s,/,\\,g
+        }
+
+        contains(keepIncludePaths, $$dirName) {
+
+            copyTo = $$copyTo/$$dirName
+
+            win32 {
+
+                copyTo ~= s,/,\\,g
+                QMAKE_POST_LINK += if not exist $$shell_quote($$copyTo) $$QMAKE_MKDIR $$shell_quote($$copyTo) $$escape_expand(\\n\\t)
+            }
+            unix {
+
+                QMAKE_POST_LINK += $$QMAKE_CHK_DIR_EXISTS $$shell_quote($${copyTo}) || $$QMAKE_MKDIR $$shell_quote($${copyTo}) $$escape_expand(\\n\\t)
+            }
+        }        
+
+        win32 {
+
+            headersPattern = $${PWD}/$${dirName}/*.h
+            headersPattern ~= s,/,\\,g
+
+            exists($${headersPattern}) {
+
+                QMAKE_POST_LINK += $$QMAKE_COPY $$shell_quote($${headersPattern}) $$shell_quote($$copyTo) $$escape_expand(\\n\\t)
+            }
+        }
+        unix {
+
+            QMAKE_POST_LINK += find ./$${dirName} -maxdepth 1 -name $$shell_quote(*.h) -exec cp $$shell_quote({}) $$shell_quote($$copyTo) \; $$escape_expand(\\n\\t)
+        }
     }
 
     export(QMAKE_POST_LINK)

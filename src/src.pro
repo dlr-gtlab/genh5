@@ -99,7 +99,13 @@ LIBS += -lhdf5 -lhdf5_cpp
 
 ######################################################################
 
-copyHeaders($$HEADERS)
+KEEP_INCLUDEPATHS += \
+    gth5_conversion \
+    gth5_data
+
+PRIVATE_INCLUDEPATHS += \
+
+copyHeaders($$HEADERS, $$KEEP_INCLUDEPATHS, $$PRIVATE_INCLUDEPATHS)
 copyToEnvironmentPath()
 
 ###################################################################### 
