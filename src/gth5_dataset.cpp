@@ -13,76 +13,12 @@
 
 #include <QDebug>
 
-namespace
-{
-    GtH5::DataType getDataType(H5::DataSet const& dset)
-    {
-        if (!GtH5::Object::isValid(dset.getId()))
-        {
-            return {};
-        }
-
-        try
-        {
-            return GtH5::DataType{dset.getDataType()};
-        }
-        catch (H5::Exception& /*e*/)
-        {
-            return {};
-        }
-    }
-
-    GtH5::DataSpace getDataSpace(H5::DataSet const& dset)
-    {
-        if (!GtH5::Object::isValid(dset.getId()))
-        {
-            return {};
-        }
-
-        try
-        {
-            return GtH5::DataSpace{dset.getSpace()};
-        }
-        catch (H5::Exception& /*e*/)
-        {
-            return {};
-        }
-    }
-
-    /// helper method for accessing dataset properties
-    GtH5::DataSetCProperties getDsetProperties(H5::DataSet const& dset)
-    {
-        if (!GtH5::Object::isValid(dset.getId()))
-        {
-            return {};
-        }
-
-        try
-        {
-            return GtH5::DataSetCProperties{dset.getCreatePlist()};
-        }
-        catch (H5::Exception& /*e*/)
-        {
-            return {};
-        }
-    }
-}
-
 GtH5::DataSet::DataSet() = default;
 
-GtH5::DataSet::DataSet(std::shared_ptr<File> file,
-                       H5::DataSet dset,
-                       String name) :
-    Node{std::move(file), std::move(name)},
-    AbstractDataSet{getDataType(dset),
-                    getDataSpace(dset)},
-    m_dataset{std::move(dset)},
-    m_properties{getDsetProperties(m_dataset)}
+GtH5::DataSet::DataSet(std::shared_ptr<File> file, H5::DataSet dset) :
+    Node{std::move(file)},
+    m_dataset{std::move(dset)}
 {
-    if (m_name.isEmpty())
-    {
-        m_name = GtH5::getObjectName(*this);
-    }
 }
 
 hid_t
@@ -97,17 +33,18 @@ GtH5::DataSet::toH5Object() const
     return &m_dataset;
 }
 
-bool
-GtH5::DataSet::isValid() const
+GtH5::DataSetCProperties
+GtH5::DataSet::cProperties() const
 {
-    return Node::isValid() && m_datatype.isValid() &&
-           m_dataspace.isValid();
-}
-
-GtH5::DataSetCProperties const&
-GtH5::DataSet::properties() const
-{
-    return m_properties;
+    try
+    {
+        return DataSetCProperties{m_dataset.getCreatePlist()};
+    }
+    catch (H5::Exception& /*e*/)
+    {
+        // ...
+    }
+    return {};
 }
 
 H5::DataSet const&
@@ -132,12 +69,12 @@ GtH5::DataSet::doWrite(void const* data, DataType const& dtype) const
     }
     catch (H5::DataSetIException& /*e*/)
     {
-        qCritical() << "HDF5: Writing dataset failed! -" << m_name;
+        qCritical() << "HDF5: Writing dataset failed! -" << name();
     }
     catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::doWrite failed! -"
-                    << m_name;
+                    << name();
     }
     return false;
 }
@@ -152,13 +89,13 @@ GtH5::DataSet::doRead(void* data, DataType const& dtype) const
     }
     catch (H5::DataSetIException& /*e*/)
     {
-        qCritical() << "HDF5: Reading dataset failed! -" << m_name;
+        qCritical() << "HDF5: Reading dataset failed! -" << name();
         return  false;
     }
     catch (H5::Exception& /*e*/)
     {
         qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::doRead failed! -"
-                    << m_name;
+                    << name();
         return  false;
     }
 }
@@ -171,7 +108,8 @@ GtH5::DataSet::write(void const* data,
 {
     static constexpr auto errMsg = "HDF5: Writing data vector failed!";
 
-    if (m_dataspace.isNull())
+    auto space = dataSpace();
+    if (space.isNull())
     {
         qCritical() << errMsg << "(Null dataspace)";
         return false;
@@ -182,9 +120,10 @@ GtH5::DataSet::write(void const* data,
         return false;
     }
 
-    if (dtype.isDefault() || dtype == m_datatype)
+    auto type = dataType();
+    if (dtype.isDefault() || dtype == type)
     {
-        dtype = m_datatype;
+        dtype = type;
     }
 
     try
@@ -212,7 +151,8 @@ GtH5::DataSet::read(void* data,
 {
     static constexpr auto errMsg = "HDF5: Reading data vector failed!";
 
-    if (m_dataspace.isNull())
+    auto space = dataSpace();
+    if (space.isNull())
     {
         qCritical() << errMsg << "(Null dataspace)";
         return false;
@@ -223,9 +163,10 @@ GtH5::DataSet::read(void* data,
         return false;
     }
 
-    if (dtype.isDefault() || dtype == m_datatype)
+    auto type = dataType();
+    if (dtype.isDefault() || dtype == type)
     {
-        dtype = m_datatype;
+        dtype = type;
     }
 
     try
@@ -245,6 +186,12 @@ GtH5::DataSet::read(void* data,
     }
 }
 
+H5::AbstractDs const&
+GtH5::DataSet::toH5AbsDataSet() const
+{
+    return m_dataset;
+}
+
 bool
 GtH5::DataSet::deleteLink()
 {
@@ -256,6 +203,7 @@ GtH5::DataSet::deleteLink()
         return false;
     }
 
+    auto m_dataspace = dataSpace();
     auto dims = m_dataspace.dimensions();
     dims.fill(0);
 
@@ -263,7 +211,7 @@ GtH5::DataSet::deleteLink()
     resize(dims);
 
     // returns error type
-    if (H5Ldelete(m_file->id(), m_name.constData(), H5P_DEFAULT))
+    if (H5Ldelete(m_file->id(), name().constData(), H5P_DEFAULT))
     {
         qCritical() << "HDF5: Dataset deletion failed!";
         return false;
@@ -277,7 +225,7 @@ bool
 GtH5::DataSet::resize(Dimensions const& dimensions)
 {    
     // dataset must be chunked
-    if (!m_properties.isChunked())
+    if (!properties().isChunked())
     {
         qCritical() << "HDF5: Resizing dataset failed! (not chunked)";
         return false;
@@ -300,8 +248,6 @@ GtH5::DataSet::resize(Dimensions const& dimensions)
     try
     {
         m_dataset.extend(dimensions.constData());
-        // update dataspace
-        m_dataspace = DataSpace{m_dataset.getSpace()};
     }
     catch (H5::DataSetIException& /*e*/)
     {

@@ -36,20 +36,19 @@ public:
     GtH5::Attribute createAttribute(QString const& name,
                                     DataType const& dtype,
                                     DataSpace const& dspace) const;
-    GtH5::Attribute createAttribute(GtH5::String name,
+    GtH5::Attribute createAttribute(const String &name,
                                     DataType const& dtype,
                                     DataSpace const& dspace) const;
 
     GtH5::Attribute openAttribute(QString const& name) const;
-    GtH5::Attribute openAttribute(String name) const;
+    GtH5::Attribute openAttribute(String const& name) const;
 
 protected:
 
     /**
      * @brief GtH5Leaf
      */
-    Node(std::shared_ptr<File> file = {},
-         String name = {});
+    Node(std::shared_ptr<File> file = {});
 
     /**
      * @brief returns the hdf5 object as a h5object

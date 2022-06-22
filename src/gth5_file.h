@@ -31,6 +31,7 @@ enum AccessFlag
 };
 Q_DECLARE_FLAGS(AccessFlags, AccessFlag)
 
+GTH5_EXPORT GtH5::String getFileName(File const& file);
 
 /**
  * @brief The File class
@@ -133,7 +134,7 @@ public:
      * @brief file path used to create this file.
      * @return filepath
      */
-    String const& filePath() const;
+    String filePath() const;
 
     /**
      * @brief explicitly closes the resource handle.
@@ -144,8 +145,6 @@ private:
 
     /// hdf5 base instance
     H5::H5File m_file{};
-    /// stores the file path used to create this object
-    String m_filePath{};
     /// cashes the associated root group
     mutable Group m_root{};
 };

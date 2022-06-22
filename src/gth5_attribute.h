@@ -27,9 +27,7 @@ public:
      * @brief Attribute
      */
     Attribute();
-    Attribute(std::shared_ptr<File> file,
-              H5::Attribute attr,
-              String name = {});
+    Attribute(std::shared_ptr<File> file, H5::Attribute attr);
 
     /**
      * @brief allows access of the base hdf5 object
@@ -63,11 +61,19 @@ public:
     ObjectType type() const override;
 
     /**
+     * @brief attribute name
+     * @return name
+     */
+    String name() const override;
+
+    /**
      * @brief explicitly closes the resource handle
      */
     void close();
 
 protected:
+
+    H5::AbstractDs const& toH5AbsDataSet() const override;
 
     bool doWrite(void const* data, DataType const&) const override;
     bool doRead(void* data, DataType const&) const override;

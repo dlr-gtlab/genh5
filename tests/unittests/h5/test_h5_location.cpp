@@ -59,12 +59,12 @@ TEST_F(TestH5Location, type)
 
 TEST_F(TestH5Location, linkName)
 {
-    EXPECT_EQ(GtH5::File().root().name(), QByteArrayLiteral("/"));
-    EXPECT_EQ(GtH5::Group().name(), QByteArray());
-    EXPECT_EQ(GtH5::DataSet().name(), QByteArray());
-    EXPECT_EQ(GtH5::Attribute().name(), QByteArray());
+    EXPECT_EQ(GtH5::File().root().name(), QByteArray{});
+    EXPECT_EQ(GtH5::Group().name(), QByteArray{});
+    EXPECT_EQ(GtH5::DataSet().name(), QByteArray{});
+    EXPECT_EQ(GtH5::Attribute().name(), QByteArray{});
 
-    EXPECT_EQ(file.root().name(), QByteArrayLiteral("/"));
+    EXPECT_EQ(file.root().name(), QByteArray{});
     EXPECT_EQ(group.name(), QByteArrayLiteral("group"));
     EXPECT_EQ(dataset.name(), QByteArrayLiteral("dataset"));
     EXPECT_EQ(attribute.name(), QByteArrayLiteral("attribute"));

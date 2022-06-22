@@ -9,18 +9,13 @@
 #include "gth5_abtsractdataset.h"
 
 
-GtH5::AbstractDataSet::AbstractDataSet(DataType dtype,
-                                       DataSpace dspace) :
-    m_datatype(std::move(dtype)),
-    m_dataspace(std::move(dspace))
-{
-
-}
+GtH5::AbstractDataSet::AbstractDataSet() = default;
 
 bool
 GtH5::AbstractDataSet::write(void const* data, Optional<DataType> dtype) const
 {
-    if (m_dataspace.isNull())
+    auto space = dataSpace();
+    if (space.isNull())
     {
         qCritical() << "HDF5: Writing data vector failed!"
                     << "(Null dataspace)";
@@ -33,9 +28,10 @@ GtH5::AbstractDataSet::write(void const* data, Optional<DataType> dtype) const
         return false;
     }
 
-    if (dtype.isDefault() || dtype == m_datatype)
+    auto type = dataType();
+    if (dtype.isDefault() || dtype == type)
     {
-        dtype = m_datatype;
+        dtype = type;
     }
 
     return doWrite(data, dtype);
@@ -44,7 +40,9 @@ GtH5::AbstractDataSet::write(void const* data, Optional<DataType> dtype) const
 bool
 GtH5::AbstractDataSet::read(void* data, Optional<DataType> dtype) const
 {
-    if (m_dataspace.isNull())
+
+    auto space = dataSpace();
+    if (space.isNull())
     {
         qCritical() << "HDF5: Reading data vector failed!"
                     << "(Null dataspace)";
@@ -57,22 +55,39 @@ GtH5::AbstractDataSet::read(void* data, Optional<DataType> dtype) const
         return false;
     }
 
-    if (dtype.isDefault() || dtype == m_datatype)
+    auto type = dataType();
+    if (dtype.isDefault() || dtype == type)
     {
-        dtype = m_datatype;
+        dtype = type;
     }
 
     return doRead(data, dtype);
 }
 
-GtH5::DataType const&
+GtH5::DataType
 GtH5::AbstractDataSet::dataType() const
 {
-    return m_datatype;
+    try
+    {
+        return DataType{toH5AbsDataSet().getDataType()};
+    }
+    catch (H5::Exception& /*e*/)
+    {
+        // ...
+    }
+    return {};
 }
 
-GtH5::DataSpace const&
+GtH5::DataSpace
 GtH5::AbstractDataSet::dataSpace() const
 {
-    return m_dataspace;
+    try
+    {
+        return DataSpace{toH5AbsDataSet().getSpace()};
+    }
+    catch (H5::Exception& /*e*/)
+    {
+        // ...
+    }
+    return {};
 }

@@ -61,15 +61,15 @@ public:
 
     /**
      * @brief exists
-     * @param path
-     * @return
+     * @param path Path to check
+     * @return exists
      */
     bool exists(String const& path) const;
 
     /**
      * @brief exists
-     * @param path
-     * @return
+     * @param path Path elements to check
+     * @return exists
      */
     bool exists(Vector<String> const& path) const;
 
@@ -80,10 +80,10 @@ public:
     String path() const;
 
     /**
-     * @brief internal name
+     * @brief object name
      * @return name
      */
-    String const& name() const;
+    virtual String name() const;
 
     /**
      * @brief returns a reference to this object.
@@ -102,13 +102,10 @@ protected:
     /**
      * @brief Location
      */
-    Location(std::shared_ptr<File> file = {},
-             String name = {});
+    Location(std::shared_ptr<File> file = {});
 
     // shared file instance
     std::shared_ptr<File> m_file{};
-    /// name of this location
-    String m_name{};
 
     /**
      * @brief returns the hdf5 object as a h5location.
@@ -119,7 +116,7 @@ protected:
 
 /**
  * @brief helper function to retrieve the name of the location
- * @param location
+ * @param location object
  * @return name
  */
 GTH5_EXPORT String getObjectName(Location const& location);

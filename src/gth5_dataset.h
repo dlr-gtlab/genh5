@@ -11,9 +11,7 @@
 
 #include "gth5_node.h"
 #include "gth5_abtsractdataset.h"
-#include "gth5_reference.h"
 #include "gth5_datasetcproperties.h"
-
 
 namespace GtH5
 {
@@ -34,9 +32,7 @@ public:
      * @brief DataSet
      */
     DataSet();
-    DataSet(std::shared_ptr<File> file,
-            H5::DataSet dset,
-            String name = {});
+    DataSet(std::shared_ptr<File> file, H5::DataSet dset);
 
     /**
      * @brief allows access of the base hdf5 object
@@ -49,13 +45,6 @@ public:
      * @return id
      */
     hid_t id() const override;
-
-    /**
-     * @brief returns whether the object id is valid and can be used for further
-     * actions. Call this after instantion to verify the resource allocation.
-     * @return whether object id is valid
-     */
-    bool isValid() const override;
 
     /**
      * @brief deletes the object.
@@ -73,7 +62,13 @@ public:
      * @brief properties used to create this object.
      * @return create properties
      */
-    DataSetCProperties const& properties() const;
+    DataSetCProperties properties() const { return cProperties(); }
+
+    /**
+     * @brief properties used to create this object.
+     * @return create properties
+     */
+    DataSetCProperties cProperties() const;
 
     /**
      * @brief resizes this dataset.
@@ -138,6 +133,8 @@ public:
 
 protected:
 
+    H5::AbstractDs const& toH5AbsDataSet() const override;
+
     bool doWrite(void const* data, DataType const& dtype) const override;
     bool doRead(void* data, DataType const& dtype) const override;
 
@@ -151,8 +148,6 @@ private:
 
     /// hdf5 base instance
     H5::DataSet m_dataset{};
-    /// dataset create properties associated with this object
-    DataSetCProperties m_properties{};
 
     friend class Reference;
 };
