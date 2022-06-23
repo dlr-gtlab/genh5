@@ -1,6 +1,12 @@
 #################################################################
-############### GTlab Standard Pipeline Version 2.0.0 ###########
+############### GTlab Standard Pipeline Version 2.1.0 ###########
 #################################################################
+# This is a slight changed version
+# - cppcheck uses cppCheckTemplate instead of cppCheckReportTemplate. 
+#   The reason is that cppCheckReportTemplate requires the latest 
+#   version of the pipeline-scripts submodule, but this version is 
+#   not compatible with testLinux512.
+
 # TO USE THIS PIPELINE SET THESE VAIRABLES:
 #   CATEGORY: 02_core
 #   PROFILENAME: gth5.pro
@@ -21,7 +27,7 @@
 
 # Variables that are defined globally for the pipeline
 variables:
-  PIPELINEVERSION: "2.0.0"
+  PIPELINEVERSION: "2.1.0"
   GIT_SUBMODULE_STRATEGY: none
   
   # Regulare expression pattern
@@ -34,8 +40,8 @@ variables:
   # UNSTABLE_BRANCH: unstable_master
 
 include:
-  - project: 'at-twk/gitlab-templates'
-    file: '/ci-templates/.ci-templates-2-0.yml'
+  - project: 'gtlab-bugtracking/gitlab-templates'
+    file: '/ci-templates/.ci-templates-2-1.yml'
 
 stages:
   - update
@@ -48,7 +54,27 @@ stages:
   - codequality
   - package
   - badges
-  
+
+# Tag pipeline jobs
+findCodeBaseStatus:
+  stage: .pre
+  extends: 
+    - .only-tags-parent
+    - .findCodeBaseStatusTemplate
+  tags:
+    - Win10
+
+triggerDeployment:
+  stage: deploy
+  extends: .only-tags-parent
+  trigger:
+    include: .gitlab-ci.yml
+    forward:
+      pipeline_variables: true
+    strategy: depend
+  variables:
+    STABLE_BASE: $BUILD_STABLE_BASE
+
 # DevTools update
 devtoolsUpdateWindows:
   stage: update
@@ -215,7 +241,7 @@ createJobs:
 
 triggerJobs:
   stage: deploy
-  extends: .only-tags
+  extends: .only-tags-child
   needs:
     - createJobs
   trigger:
@@ -267,4 +293,3 @@ badgesUnstable:
     - testWin512Unstable
     - testLinux512Unstable
     - codingstyle
-
