@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 #include "testhelper.h"
 
-#include "gth5_exception.h"
+#include "genh5_exception.h"
 #include "H5Cpp.h"
 
 
@@ -19,14 +19,14 @@ class TestH5Exception : public testing::Test
 protected:
 };
 
-TEST_F(TestH5Exception, catchGtH5Exception)
+TEST_F(TestH5Exception, catchGenH5Exception)
 {
     char const* msg = "my exception";
     try
     {
-        throw GtH5::Exception{msg};
+        throw GenH5::Exception{msg};
     }
-    catch (GtH5::Exception const& e)
+    catch (GenH5::Exception const& e)
     {
         EXPECT_STREQ(msg, e.what());
         return;
@@ -40,7 +40,7 @@ TEST_F(TestH5Exception, catchStdException)
     char const* msg = "my exception";
     try
     {
-        throw GtH5::Exception{msg};
+        throw GenH5::Exception{msg};
     }
     catch (std::exception const& e)
     {

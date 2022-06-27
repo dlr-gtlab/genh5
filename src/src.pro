@@ -14,9 +14,9 @@ BUILD_DEST      = ../$${LIB_BUILD_DEST}
 MOC_BUILD_DEST  = ../build
 
 CONFIG(debug, debug|release) {
-    TARGET = GTlabH5-d
+    TARGET = GenH5-d
 } else {
-    TARGET = GTlabH5
+    TARGET = GenH5
 }
 
 QT += core
@@ -28,9 +28,10 @@ CONFIG += plugin
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
 # disable deprecated symbols
 DEFINES += H5_NO_DEPRECATED_SYMBOLS
+DEFINES += GENH5_NO_DEPRECATED_SYMBOLS
 
 win32 {
-    DEFINES += GTH5_DLL
+    DEFINES += GENH5_DLL
 }
 
 CONFIG(debug, debug|release){
@@ -50,51 +51,51 @@ DESTDIR = $${BUILD_DEST}
 INCLUDEPATH += .\
 
 HEADERS += \
-    gth5.h \
-    gth5_abtsractdataset.h \
-    gth5_attribute.h \
-    gth5_conversion.h \
-    gth5_conversion/bindings.h \
-    gth5_conversion/buffer.h \
-    gth5_conversion/defaults.h \
-    gth5_conversion/generic.h \
-    gth5_conversion/type.h \
-    gth5_data.h \
-    gth5_data/base.h \
-    gth5_data/comp.h \
-    gth5_data/simple.h \
-    gth5_dataset.h \
-    gth5_datasetcproperties.h \
-    gth5_dataspace.h \
-    gth5_datatype.h \
-    gth5_exception.h \
-    gth5_file.h \
-    gth5_group.h \
-    gth5_location.h \
-    gth5_mpl.h \
-    gth5_node.h \
-    gth5_object.h \
-    gth5_exports.h \
-    gth5_optional.h \
-    gth5_reference.h \
-    gth5_typedefs.h \
-    gth5_typetraits.h \
-    gth5_utils.h \
-    gth5_version.h
+    genh5.h \
+    genh5_abtsractdataset.h \
+    genh5_attribute.h \
+    genh5_conversion.h \
+    genh5_conversion/bindings.h \
+    genh5_conversion/buffer.h \
+    genh5_conversion/defaults.h \
+    genh5_conversion/generic.h \
+    genh5_conversion/type.h \
+    genh5_data.h \
+    genh5_data/base.h \
+    genh5_data/comp.h \
+    genh5_data/simple.h \
+    genh5_dataset.h \
+    genh5_datasetcproperties.h \
+    genh5_dataspace.h \
+    genh5_datatype.h \
+    genh5_exception.h \
+    genh5_file.h \
+    genh5_group.h \
+    genh5_location.h \
+    genh5_mpl.h \
+    genh5_node.h \
+    genh5_object.h \
+    genh5_exports.h \
+    genh5_optional.h \
+    genh5_reference.h \
+    genh5_typedefs.h \
+    genh5_typetraits.h \
+    genh5_utils.h \
+    genh5_version.h
 
 SOURCES += \
-    gth5_abtsractdataset.cpp \
-    gth5_attribute.cpp \
-    gth5_dataset.cpp \
-    gth5_datasetcproperties.cpp \
-    gth5_dataspace.cpp \
-    gth5_datatype.cpp \
-    gth5_file.cpp \
-    gth5_group.cpp \
-    gth5_location.cpp \
-    gth5_node.cpp \
-    gth5_reference.cpp \
-    gth5_utils.cpp
+    genh5_abtsractdataset.cpp \
+    genh5_attribute.cpp \
+    genh5_dataset.cpp \
+    genh5_datasetcproperties.cpp \
+    genh5_dataspace.cpp \
+    genh5_datatype.cpp \
+    genh5_file.cpp \
+    genh5_group.cpp \
+    genh5_location.cpp \
+    genh5_node.cpp \
+    genh5_reference.cpp \
+    genh5_utils.cpp
 
 CONFIG(debug, debug|release) {
     win32 {
@@ -110,8 +111,8 @@ CONFIG(debug, debug|release) {
 ######################################################################
 
 KEEP_INCLUDEPATHS += \
-    gth5_conversion \
-    gth5_data
+    genh5_conversion \
+    genh5_data
 
 PRIVATE_INCLUDEPATHS += \
 

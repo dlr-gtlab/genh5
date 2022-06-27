@@ -7,9 +7,9 @@
  */
 
 #include "gtest/gtest.h"
-#include "gth5_datatype.h"
-#include "gth5_conversion.h"
-#include "gth5_exception.h"
+#include "genh5_datatype.h"
+#include "genh5_conversion.h"
+#include "genh5_exception.h"
 
 #include <QPoint>
 #include <QPointF>
@@ -24,13 +24,13 @@ protected:
     }
 
     // invalid
-    GtH5::DataType dtypeEmpty{};
+    GenH5::DataType dtypeEmpty{};
     // int
-    GtH5::DataType dtypeInt = GtH5::dataType<int>();
+    GenH5::DataType dtypeInt = GenH5::dataType<int>();
     // double
-    GtH5::DataType dtypeDouble = GtH5::dataType<double>();
+    GenH5::DataType dtypeDouble = GenH5::dataType<double>();
     // string
-    GtH5::DataType dtypeString = GtH5::dataType<QString>();
+    GenH5::DataType dtypeString = GenH5::dataType<QString>();
 };
 
 TEST_F(TestH5DataType, isValid)
@@ -61,176 +61,181 @@ TEST_F(TestH5DataType, equal)
 TEST_F(TestH5DataType, predefinedTypes)
 {
     // all predefined types should be valid
-    EXPECT_TRUE(GtH5::DataType::VarString.isValid());
-    EXPECT_TRUE(GtH5::DataType::Char.isValid());
+    EXPECT_TRUE(GenH5::DataType::VarString.isValid());
+    EXPECT_TRUE(GenH5::DataType::Version.isValid());
+    EXPECT_TRUE(GenH5::DataType::Version.isCompound());
+    EXPECT_EQ(GenH5::DataType::Version.compoundMembers().size(), 3);
 
-    EXPECT_TRUE(GtH5::DataType::Int.isValid());
-    EXPECT_TRUE(GtH5::DataType::Long.isValid());
-    EXPECT_TRUE(GtH5::DataType::LLong.isValid());
-    EXPECT_TRUE(GtH5::DataType::UInt.isValid());
-    EXPECT_TRUE(GtH5::DataType::ULong.isValid());
-    EXPECT_TRUE(GtH5::DataType::ULLong.isValid());
+    EXPECT_TRUE(GenH5::DataType::Bool.isValid());
+    EXPECT_TRUE(GenH5::DataType::Char.isValid());
 
-    EXPECT_TRUE(GtH5::DataType::Float.isValid());
-    EXPECT_TRUE(GtH5::DataType::Double.isValid());
+    EXPECT_TRUE(GenH5::DataType::Int.isValid());
+    EXPECT_TRUE(GenH5::DataType::Long.isValid());
+    EXPECT_TRUE(GenH5::DataType::LLong.isValid());
+    EXPECT_TRUE(GenH5::DataType::UInt.isValid());
+    EXPECT_TRUE(GenH5::DataType::ULong.isValid());
+    EXPECT_TRUE(GenH5::DataType::ULLong.isValid());
+
+    EXPECT_TRUE(GenH5::DataType::Float.isValid());
+    EXPECT_TRUE(GenH5::DataType::Double.isValid());
 }
 
 // declare datatype implementation for QPoint
-GTH5_DECLARE_DATATYPE_IMPL(QPoint)
+GENH5_DECLARE_DATATYPE_IMPL(QPoint)
 {
     using Tp = decltype (std::declval<QPoint>().x());
-    return GtH5::dataType<Tp, Tp>({"xp", "yp"});
+    return GenH5::dataType<Tp, Tp>({"xp", "yp"});
 };
 
 TEST_F(TestH5DataType, invalid)
 {
-    GtH5::DataType dtype;
+    GenH5::DataType dtype;
     EXPECT_NO_THROW(dtype.compoundMembers());
     EXPECT_NO_THROW(dtype.arrayDimensions());
-    EXPECT_THROW(dtype.superType(), GtH5::DataTypeException);
+    EXPECT_THROW(dtype.superType(), GenH5::DataTypeException);
 }
 
 TEST_F(TestH5DataType, qpointDtype)
 {
-    auto type = GtH5::dataType<QPoint>();
+    auto type = GenH5::dataType<QPoint>();
 
     ASSERT_TRUE(type.isValid());
     EXPECT_TRUE(type.isCompound());
 
     // check if compound members are correct
-    EXPECT_EQ(GtH5::dataType<QPoint>().compoundMembers().size(), 2);
+    EXPECT_EQ(GenH5::dataType<QPoint>().compoundMembers().size(), 2);
     for (auto& m: type.compoundMembers())
     {
         EXPECT_TRUE(m.type.isValid());
         EXPECT_FALSE(m.type.isCompound());
-        EXPECT_TRUE(m.type == GtH5::dataType<int>());
+        EXPECT_TRUE(m.type == GenH5::dataType<int>());
     }
 
 
-    EXPECT_TRUE((type.size() == GtH5::dataType<int, int>().size()));
-    EXPECT_TRUE((type.type() == GtH5::dataType<int, int>().type()));
+    EXPECT_TRUE((type.size() == GenH5::dataType<int, int>().size()));
+    EXPECT_TRUE((type.type() == GenH5::dataType<int, int>().type()));
     // memory layout is equal to compound type of two ints
-    EXPECT_TRUE((GtH5::dataType<QPoint>() == GtH5::dataType<int, int>()));
+    EXPECT_TRUE((GenH5::dataType<QPoint>() == GenH5::dataType<int, int>()));
 }
 
 TEST_F(TestH5DataType, fromTemplateSimple)
 {
     // test simple types
-    EXPECT_TRUE(GtH5::dataType<int>().isValid());
-    EXPECT_TRUE(GtH5::dataType<long>().isValid());
-    EXPECT_TRUE(GtH5::dataType<float>().isValid());
-    EXPECT_TRUE(GtH5::dataType<double>().isValid());
-    EXPECT_TRUE(GtH5::dataType<char const*>().isValid());
-    EXPECT_TRUE(GtH5::dataType<char*>().isValid());
-    EXPECT_TRUE(GtH5::dataType<char>().isValid());
-    EXPECT_TRUE(GtH5::dataType<QString>().isValid());
-    EXPECT_TRUE(GtH5::dataType<QByteArray>().isValid());
+    EXPECT_TRUE(GenH5::dataType<int>().isValid());
+    EXPECT_TRUE(GenH5::dataType<long>().isValid());
+    EXPECT_TRUE(GenH5::dataType<float>().isValid());
+    EXPECT_TRUE(GenH5::dataType<double>().isValid());
+    EXPECT_TRUE(GenH5::dataType<char const*>().isValid());
+    EXPECT_TRUE(GenH5::dataType<char*>().isValid());
+    EXPECT_TRUE(GenH5::dataType<char>().isValid());
+    EXPECT_TRUE(GenH5::dataType<QString>().isValid());
+    EXPECT_TRUE(GenH5::dataType<QByteArray>().isValid());
 
-    EXPECT_TRUE(GtH5::dataType<QPoint>().isValid());
+    EXPECT_TRUE(GenH5::dataType<QPoint>().isValid());
 }
 
 TEST_F(TestH5DataType, fromTemplateCompound)
 {
     // test some compound types
-    GtH5::DataType dtype;
-    dtype = GtH5::dataType<int, QString>();
+    GenH5::DataType dtype;
+    dtype = GenH5::dataType<int, QString>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
-    dtype = GtH5::dataType<double, float>();
+    dtype = GenH5::dataType<double, float>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
-    dtype = GtH5::dataType<int, char const*>();
+    dtype = GenH5::dataType<int, char const*>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
-    dtype = GtH5::dataType<QByteArray, float>();
+    dtype = GenH5::dataType<QByteArray, float>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
-    dtype = GtH5::dataType<double, int, QString>();
+    dtype = GenH5::dataType<double, int, QString>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
-    dtype = GtH5::dataType<QString, double, float>();
+    dtype = GenH5::dataType<QString, double, float>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
-    dtype = GtH5::dataType<int, size_t, char const*>();
+    dtype = GenH5::dataType<int, size_t, char const*>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
-    dtype = GtH5::dataType<char, QPoint>();
+    dtype = GenH5::dataType<char, QPoint>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isCompound());
 
     /* WILL PROCDUCE BUILD ERRORS */
     // contains unsupported datatypes
-//    EXPECT_FALSE(GtH5::dataType<bool>().isValid());
-//    EXPECT_FALSE(GtH5::dataType<QPointF>().isValid());
-//    EXPECT_FALSE((GtH5::dataType<double, bool>().isValid()));
-//    EXPECT_FALSE((GtH5::dataType<int, QPointF, QString>().isValid()));
-//    EXPECT_FALSE((GtH5::dataType<QPointF, bool, char>().isValid()));
+//    EXPECT_FALSE(GenH5::dataType<bool>().isValid());
+//    EXPECT_FALSE(GenH5::dataType<QPointF>().isValid());
+//    EXPECT_FALSE((GenH5::dataType<double, bool>().isValid()));
+//    EXPECT_FALSE((GenH5::dataType<int, QPointF, QString>().isValid()));
+//    EXPECT_FALSE((GenH5::dataType<QPointF, bool, char>().isValid()));
 }
 
 TEST_F(TestH5DataType, fromTemplateVarLen)
 {
     // types
-    GtH5::DataType dtype;
-    dtype = GtH5::dataType<GtH5::VarLen<int>>();
+    GenH5::DataType dtype;
+    dtype = GenH5::dataType<GenH5::VarLen<int>>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isVarLen());
-    EXPECT_TRUE(dtype.superType() == GtH5::dataType<int>());
+    EXPECT_TRUE(dtype.superType() == GenH5::dataType<int>());
 
-    dtype = GtH5::dataType<GtH5::VarLen<QByteArray>>();
+    dtype = GenH5::dataType<GenH5::VarLen<QByteArray>>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isVarLen());
-    EXPECT_TRUE(dtype.superType() == GtH5::dataType<QByteArray>());
+    EXPECT_TRUE(dtype.superType() == GenH5::dataType<QByteArray>());
 
-    dtype = GtH5::dataType<GtH5::VarLen<QPoint>>();
+    dtype = GenH5::dataType<GenH5::VarLen<QPoint>>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isVarLen());
-    EXPECT_TRUE(dtype.superType() == GtH5::dataType<QPoint>());
+    EXPECT_TRUE(dtype.superType() == GenH5::dataType<QPoint>());
 
     // compound types
-    dtype = GtH5::dataType<GtH5::VarLen<GtH5::Comp<double, QString>>>();
+    dtype = GenH5::dataType<GenH5::VarLen<GenH5::Comp<double, QString>>>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isVarLen());
     EXPECT_TRUE((dtype.superType() ==
-                 GtH5::dataType<GtH5::Comp<double, QString>>()));
+                 GenH5::dataType<GenH5::Comp<double, QString>>()));
 
-    dtype = GtH5::dataType<GtH5::VarLen<GtH5::Comp<double, int, QPoint>>>();
+    dtype = GenH5::dataType<GenH5::VarLen<GenH5::Comp<double, int, QPoint>>>();
     EXPECT_TRUE(dtype.isValid());
     EXPECT_TRUE(dtype.isVarLen());
     EXPECT_TRUE((dtype.superType() ==
-                 GtH5::dataType<GtH5::Comp<double, int, QPoint>>()));
+                 GenH5::dataType<GenH5::Comp<double, int, QPoint>>()));
 }
 
 TEST_F(TestH5DataType, fromTemplateComplex)
 {
-    using CompT = GtH5::Comp<QPoint, QString>;
-    using VarLenT = GtH5::VarLen<CompT>;
-    using ArrayT = GtH5::Array<VarLenT, 42>;
+    using CompT = GenH5::Comp<QPoint, QString>;
+    using VarLenT = GenH5::VarLen<CompT>;
+    using ArrayT = GenH5::Array<VarLenT, 42>;
 
     // create a complex type and check each member
-    auto arrayType = GtH5::dataType<ArrayT>();
+    auto arrayType = GenH5::dataType<ArrayT>();
     EXPECT_TRUE(arrayType.isValid());
     EXPECT_TRUE(arrayType.isArray());
-    EXPECT_TRUE(arrayType.arrayDimensions() == GtH5::Dimensions{42});
+    EXPECT_TRUE(arrayType.arrayDimensions() == GenH5::Dimensions{42});
 
-    auto varlenType =  GtH5::dataType<VarLenT>();
+    auto varlenType =  GenH5::dataType<VarLenT>();
     EXPECT_TRUE(varlenType.isValid());
     EXPECT_TRUE(varlenType.isVarLen());
 
-    auto compType =  GtH5::dataType<CompT>();
+    auto compType =  GenH5::dataType<CompT>();
     EXPECT_TRUE(compType.isValid());
     EXPECT_TRUE(compType.isCompound());
 
     auto members = compType.compoundMembers();
     EXPECT_EQ(members.size(), 2);
-    EXPECT_TRUE(members.at(0).type == GtH5::dataType<QPoint>());
-    EXPECT_TRUE(members.at(1).type == GtH5::dataType<QString>());
+    EXPECT_TRUE(members.at(0).type == GenH5::dataType<QPoint>());
+    EXPECT_TRUE(members.at(1).type == GenH5::dataType<QString>());
 
     EXPECT_TRUE(varlenType.superType() == compType);
 
@@ -239,8 +244,8 @@ TEST_F(TestH5DataType, fromTemplateComplex)
 
 TEST_F(TestH5DataType, array)
 {
-    GtH5::Dimensions dims{10, 2};
-    auto arrayType = GtH5::DataType::array(GtH5::DataType::Char, dims);
+    GenH5::Dimensions dims{10, 2};
+    auto arrayType = GenH5::DataType::array(GenH5::DataType::Char, dims);
     EXPECT_TRUE(arrayType.isValid());
 
     EXPECT_TRUE(arrayType.isArray());
@@ -249,13 +254,13 @@ TEST_F(TestH5DataType, array)
 
 TEST_F(TestH5DataType, arrayInvalid)
 {
-    GtH5::Dimensions dims{10, 2};
-    EXPECT_THROW(GtH5::DataType::array(GtH5::DataType{}, dims),
+    GenH5::Dimensions dims{10, 2};
+    EXPECT_THROW(GenH5::DataType::array(GenH5::DataType{}, dims),
                  H5::DataTypeIException);
 
 //    EXPECT_FALSE(arrayType.isValid());
 //    EXPECT_FALSE(arrayType.isArray());
-//    EXPECT_EQ(arrayType.arrayDimensions(), GtH5::Dimensions{});
+//    EXPECT_EQ(arrayType.arrayDimensions(), GenH5::Dimensions{});
 }
 
 struct Data
@@ -266,15 +271,15 @@ struct Data
 
 TEST_F(TestH5DataType, compound)
 {
-    GtH5::CompoundMembers members{
-        {"a", offsetof(Data, a), GtH5::dataType<int>()},
-        {"b", offsetof(Data, b), GtH5::dataType<double>()}
+    GenH5::CompoundMembers members{
+        {"a", offsetof(Data, a), GenH5::dataType<int>()},
+        {"b", offsetof(Data, b), GenH5::dataType<double>()}
     };
 
-    auto type = GtH5::DataType::compound(sizeof (Data), members);
+    auto type = GenH5::DataType::compound(sizeof (Data), members);
 
     EXPECT_TRUE(type.isValid());
-    EXPECT_TRUE(type == (GtH5::dataType<int, double>()));
+    EXPECT_TRUE(type == (GenH5::dataType<int, double>()));
 
     EXPECT_TRUE(type.isCompound());
     EXPECT_EQ(type.size(), sizeof(Data));
@@ -289,45 +294,45 @@ TEST_F(TestH5DataType, compound)
 TEST_F(TestH5DataType, compoundInvalid)
 {
     // empty member list
-    auto type1 = GtH5::DataType::compound(sizeof (Data), {});
+    auto type1 = GenH5::DataType::compound(sizeof (Data), {});
     EXPECT_TRUE(type1.isValid());
     EXPECT_TRUE(type1.isCompound());
 
     // empty data size
-    EXPECT_THROW(GtH5::DataType::compound(0, {
-        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
-        {"type 2", offsetof(Data, b), GtH5::DataType::Double}
-    }), GtH5::DataTypeException);
+    EXPECT_THROW(GenH5::DataType::compound(0, {
+        {"type 1", offsetof(Data, a), GenH5::DataType::Int},
+        {"type 2", offsetof(Data, b), GenH5::DataType::Double}
+    }), GenH5::DataTypeException);
 
-//    auto type2 = GtH5::DataType::compound(0, {
-//        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
-//        {"type 2", offsetof(Data, b), GtH5::DataType::Double}
+//    auto type2 = GenH5::DataType::compound(0, {
+//        {"type 1", offsetof(Data, a), GenH5::DataType::Int},
+//        {"type 2", offsetof(Data, b), GenH5::DataType::Double}
 //    });
 //    EXPECT_FALSE(type2.isValid());
 //    EXPECT_FALSE(type2.isCompound());
 
     // invalid member
-    EXPECT_THROW(GtH5::DataType::compound(0, {
-        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
-        {"type 2", offsetof(Data, b), GtH5::DataType{}}
-    }), GtH5::DataTypeException);
+    EXPECT_THROW(GenH5::DataType::compound(0, {
+        {"type 1", offsetof(Data, a), GenH5::DataType::Int},
+        {"type 2", offsetof(Data, b), GenH5::DataType{}}
+    }), GenH5::DataTypeException);
 
-//    auto type3 = GtH5::DataType::compound(sizeof (Data), {
-//        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
-//        {"type 2", offsetof(Data, b), GtH5::DataType{}}
+//    auto type3 = GenH5::DataType::compound(sizeof (Data), {
+//        {"type 1", offsetof(Data, a), GenH5::DataType::Int},
+//        {"type 2", offsetof(Data, b), GenH5::DataType{}}
 //    });
 //    EXPECT_FALSE(type3.isValid());
 //    EXPECT_FALSE(type3.isCompound());
 
     // invalid member name
-    EXPECT_THROW(GtH5::DataType::compound(0, {
-        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
-        {{}, offsetof(Data, b), GtH5::DataType::Double}
-    }), GtH5::DataTypeException);
+    EXPECT_THROW(GenH5::DataType::compound(0, {
+        {"type 1", offsetof(Data, a), GenH5::DataType::Int},
+        {{}, offsetof(Data, b), GenH5::DataType::Double}
+    }), GenH5::DataTypeException);
 
-//    auto type4 = GtH5::DataType::compound(sizeof (Data), {
-//        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
-//        {{},       offsetof(Data, b), GtH5::DataType::Double}
+//    auto type4 = GenH5::DataType::compound(sizeof (Data), {
+//        {"type 1", offsetof(Data, a), GenH5::DataType::Int},
+//        {{},       offsetof(Data, b), GenH5::DataType::Double}
 //    });
 //    EXPECT_FALSE(type4.isValid());
 //    EXPECT_FALSE(type4.isCompound());
@@ -335,26 +340,26 @@ TEST_F(TestH5DataType, compoundInvalid)
 
 TEST_F(TestH5DataType, varLen)
 {
-    auto doubleType = GtH5::DataType::Double;
-    auto vlenType = GtH5::DataType::varLen(doubleType);
+    auto doubleType = GenH5::DataType::Double;
+    auto vlenType = GenH5::DataType::varLen(doubleType);
     EXPECT_TRUE(vlenType.isValid());
     EXPECT_TRUE(vlenType.isVarLen());
     EXPECT_FALSE(vlenType.isVarString());
 
-    auto vStrType = GtH5::DataType::VarString;
+    auto vStrType = GenH5::DataType::VarString;
     EXPECT_TRUE(vStrType.isValid());
     EXPECT_TRUE(vStrType.isVarString());
     EXPECT_FALSE(vStrType.isVarLen());
 
-    EXPECT_THROW(GtH5::DataType::varLen(dtypeEmpty), H5::DataTypeIException);
-//    auto emptyVlenType = GtH5::DataType::varLen(dtypeEmpty);
+    EXPECT_THROW(GenH5::DataType::varLen(dtypeEmpty), H5::DataTypeIException);
+//    auto emptyVlenType = GenH5::DataType::varLen(dtypeEmpty);
 //    EXPECT_FALSE(emptyVlenType.isValid());
 //    EXPECT_FALSE(emptyVlenType.isVarLen());
 }
 
 TEST_F(TestH5DataType, equalToH5cpp)
 {
-    EXPECT_TRUE(dtypeEmpty == GtH5::DataType{H5::DataType{}});
+    EXPECT_TRUE(dtypeEmpty == GenH5::DataType{H5::DataType{}});
     EXPECT_TRUE(dtypeInt.toH5()    == H5::PredType::NATIVE_INT);
     EXPECT_TRUE(dtypeDouble.toH5() == H5::PredType::NATIVE_DOUBLE);
     EXPECT_TRUE(dtypeString.toH5() == H5::StrType(H5::PredType::C_S1,

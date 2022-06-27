@@ -8,7 +8,7 @@
 
 #include "testhelper.h"
 
-#include "gth5_file.h"
+#include "genh5_file.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -34,7 +34,7 @@ TestHelper::newFilePath() const
     }
 
     return dir.absoluteFilePath(QUuid::createUuid().toString() +
-                                GtH5::File::dotFileSuffix()).toUtf8();
+                                GenH5::File::dotFileSuffix()).toUtf8();
 }
 
 QString

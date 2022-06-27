@@ -7,15 +7,17 @@
  */
 
 #include "gtest/gtest.h"
-#include "gth5_file.h"
-#include "gth5_group.h"
-#include "gth5_dataset.h"
-#include "gth5_attribute.h"
-#include "gth5_data.h"
+#include "genh5_file.h"
+#include "genh5_group.h"
+#include "genh5_dataset.h"
+#include "genh5_attribute.h"
+#include "genh5_data.h"
 
-#include "gth5_conversion.h"
+#include "genh5_conversion.h"
 
 #include "testhelper.h"
+
+#include <QDebug>
 
 
 /// This is a test fixture that does a init for each test
@@ -25,45 +27,45 @@ protected:
 
     virtual void SetUp() override
     {
-        file = GtH5::File{h5TestHelper->newFilePath(),
-                          GtH5::Create};
+        file = GenH5::File{h5TestHelper->newFilePath(),
+                          GenH5::Create};
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
         ASSERT_TRUE(group.isValid());
 
         dataset = group.createDataset(QByteArrayLiteral("dataset"),
-                                      GtH5::dataType<int>(),
-                                      GtH5::DataSpace::Scalar);
+                                      GenH5::dataType<int>(),
+                                      GenH5::DataSpace::Scalar);
         ASSERT_TRUE(dataset.isValid());
 
         attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
-                                            GtH5::dataType<int>(),
-                                            GtH5::DataSpace::Scalar);
+                                            GenH5::dataType<int>(),
+                                            GenH5::DataSpace::Scalar);
         ASSERT_TRUE(attribute.isValid());
     }
 
-    GtH5::File file;
-    GtH5::Group group;
-    GtH5::DataSet dataset;
-    GtH5::Attribute attribute;
+    GenH5::File file;
+    GenH5::Group group;
+    GenH5::DataSet dataset;
+    GenH5::Attribute attribute;
 };
 
 //TEST_F(TestH5Location, type)
 //{
-//    EXPECT_EQ(file.root().type(), GtH5::GroupType);
-//    EXPECT_EQ(group.type(), GtH5::GroupType);
-//    EXPECT_EQ(dataset.type(), GtH5::DataSetType);
-//    EXPECT_EQ(attribute.type(), GtH5::AttributeType);
+//    EXPECT_EQ(file.root().type(), GenH5::GroupType);
+//    EXPECT_EQ(group.type(), GenH5::GroupType);
+//    EXPECT_EQ(dataset.type(), GenH5::DataSetType);
+//    EXPECT_EQ(attribute.type(), GenH5::AttributeType);
 //}
 
 TEST_F(TestH5Location, linkName)
 {
-//    EXPECT_EQ(GtH5::File().root().name(), QByteArray{});
-    EXPECT_THROW(GtH5::File().root().name(), GtH5::GroupException);
-    EXPECT_EQ(GtH5::Group().name(), QByteArray{});
-    EXPECT_EQ(GtH5::DataSet().name(), QByteArray{});
-    EXPECT_EQ(GtH5::Attribute().name(), QByteArray{});
+//    EXPECT_EQ(GenH5::File().root().name(), QByteArray{});
+    EXPECT_THROW(GenH5::File().root().name(), GenH5::GroupException);
+    EXPECT_EQ(GenH5::Group().name(), QByteArray{});
+    EXPECT_EQ(GenH5::DataSet().name(), QByteArray{});
+    EXPECT_EQ(GenH5::Attribute().name(), QByteArray{});
 
     EXPECT_EQ(file.root().name(), QByteArray{});
     EXPECT_EQ(group.name(), QByteArrayLiteral("group"));
@@ -73,11 +75,11 @@ TEST_F(TestH5Location, linkName)
 
 TEST_F(TestH5Location, linkPath)
 {
-    EXPECT_THROW(GtH5::File().root().path(), GtH5::GroupException);
-//    EXPECT_EQ(GtH5::File().root().path(), QByteArray());
-    EXPECT_EQ(GtH5::Group().path(), QByteArray{});
-    EXPECT_EQ(GtH5::DataSet().path(), QByteArray{});
-    EXPECT_EQ(GtH5::Attribute().path(), QByteArray{});
+    EXPECT_THROW(GenH5::File().root().path(), GenH5::GroupException);
+//    EXPECT_EQ(GenH5::File().root().path(), QByteArray());
+    EXPECT_EQ(GenH5::Group().path(), QByteArray{});
+    EXPECT_EQ(GenH5::DataSet().path(), QByteArray{});
+    EXPECT_EQ(GenH5::Attribute().path(), QByteArray{});
 
     EXPECT_EQ(file.root().path(), QByteArrayLiteral("/"));
     EXPECT_EQ(group.path(), QByteArrayLiteral("/group"));
@@ -88,11 +90,11 @@ TEST_F(TestH5Location, linkPath)
 
 TEST_F(TestH5Location, file)
 {
-    EXPECT_THROW(GtH5::File().root().file().get(), GtH5::GroupException);
-//    EXPECT_EQ(GtH5::File().root().file().get(), nullptr);
-    EXPECT_EQ(GtH5::Group().file().get(), nullptr);
-    EXPECT_EQ(GtH5::DataSet().file().get(), nullptr);
-    EXPECT_EQ(GtH5::Attribute().file().get(), nullptr);
+    EXPECT_THROW(GenH5::File().root().file().get(), GenH5::GroupException);
+//    EXPECT_EQ(GenH5::File().root().file().get(), nullptr);
+    EXPECT_EQ(GenH5::Group().file().get(), nullptr);
+    EXPECT_EQ(GenH5::DataSet().file().get(), nullptr);
+    EXPECT_EQ(GenH5::Attribute().file().get(), nullptr);
 
     // root group creates a file on the heap
     void* filePtr = file.root().file().get();
@@ -110,14 +112,14 @@ TEST_F(TestH5Location, fileRefCount)
     hid_t id = 0;
 
     {
-        GtH5::Group _root;
+        GenH5::Group _root;
 
         // file should be null
         ASSERT_EQ(_root.file().get(), nullptr);
 
         {
-            auto _file = GtH5::File(h5TestHelper->newFilePath(),
-                                    GtH5::Create);
+            auto _file = GenH5::File(h5TestHelper->newFilePath(),
+                                    GenH5::Create);
 
             id = _file.id();
 
