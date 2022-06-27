@@ -12,6 +12,7 @@
 #include "gth5_mpl.h"
 #include "gth5_typetraits.h"
 #include "gth5_exports.h"
+#include "gth5_exception.h"
 
 namespace GtH5
 {
@@ -35,7 +36,10 @@ prod(Container const& c)
 
 template<typename Tout, typename Container>
 inline auto
-prod(Container const& container) { return prod<Container, Tout>(container); }
+prod(Container const& container)
+{
+    return prod<Container, Tout>(container);
+}
 
 namespace details
 {
@@ -99,12 +103,11 @@ makeComp(Containers&&... containersIn) noexcept(false)
         auto* container = std::get<idx>(containers);
         if (size != container->size())
         {
-            throw std::range_error("HDF5: Creating compund data failed! "
-                                   "Arguments must have the same number of "
-                                   "elements!");
+            throw InvalidArgumentError{"Containers have different number "
+                                       "of elements!"};
         }
 
-        auto i = 0;
+        size_t i = 0;
         for (auto const& value : *container)
         {
             std::get<idx>(tuples[i++]) = value;
@@ -182,8 +185,5 @@ unpackNested(Nested&& nested, Containers&... containersIn)
 }
 
 } // namespace GtH5
-
-GTH5_EXPORT std::ostream& operator<<(std::ostream& s, GtH5::Dimensions const& d);
-GTH5_EXPORT QDebug operator<<(QDebug s, GtH5::Dimensions const& d);
 
 #endif // GTH5_UTILS_H

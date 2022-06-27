@@ -15,65 +15,63 @@ GtH5::DataSpace::Null{H5::DataSpace{H5S_NULL}};
 GtH5::DataSpace
 GtH5::DataSpace::Scalar{H5::DataSpace{H5S_SCALAR}};
 
-GtH5::DataSpace::DataSpace()
+GtH5::DataSpace::DataSpace() noexcept
     : m_dataspace{H5::DataSpace{H5S_NULL}}
 {};
 
-GtH5::DataSpace::DataSpace(Dimensions const& dimensions)
+GtH5::DataSpace::DataSpace(Dimensions const& dimensions) noexcept(false)
 {
     try
     {
-        m_dataspace = H5::DataSpace(dimensions.length(),
+        m_dataspace = H5::DataSpace(dimensions.size(),
                                     dimensions.constData());
     }
-    catch (H5::DataSpaceIException& /*e*/)
+    catch (H5::DataSpaceIException const& e)
     {
-        qCritical() << "HDF5: Creating dataspace failed!";
+        throw DataSpaceException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSpace:GtH5DataSpace failed!";
+        qCritical() << "HDF5: [EXCEPTION] DataSpace::DataSpace";
+        throw DataSpaceException{e.getCDetailMsg()};
     }
 }
 
-GtH5::DataSpace::DataSpace(std::initializer_list<hsize_t> initlist) :
+GtH5::DataSpace::DataSpace(std::initializer_list<hsize_t> initlist
+                           ) noexcept(false) :
     DataSpace{Dimensions{initlist}}
-{
+{ }
 
-}
-
-GtH5::DataSpace::DataSpace(H5::DataSpace dataspace) :
+GtH5::DataSpace::DataSpace(H5::DataSpace dataspace):
     m_dataspace{std::move(dataspace)}
-{
-
-}
+{ }
 
 hid_t
-GtH5::DataSpace::id() const
+GtH5::DataSpace::id() const noexcept
 {
     return m_dataspace.getId();
 }
 
 int
-GtH5::DataSpace::nDims() const
+GtH5::DataSpace::nDims() const noexcept
 {
     return H5Sget_simple_extent_ndims(id());
 }
 
 bool
-GtH5::DataSpace::isScalar() const
+GtH5::DataSpace::isScalar() const noexcept
 {
     return H5Sget_simple_extent_ndims(id()) == 0 && selectionSize() == 1;
 }
 
 bool
-GtH5::DataSpace::isNull() const
+GtH5::DataSpace::isNull() const noexcept
 {
     return H5Sget_simple_extent_ndims(id()) == 0 && selectionSize() == 0;
 }
 
 GtH5::Dimensions
-GtH5::DataSpace::dimensions() const
+GtH5::DataSpace::dimensions() const noexcept
 {
     auto size = H5Sget_simple_extent_ndims(id());
     if (size < 0)
@@ -88,13 +86,13 @@ GtH5::DataSpace::dimensions() const
 }
 
 hssize_t
-GtH5::DataSpace::selectionSize() const
+GtH5::DataSpace::selectionSize() const noexcept
 {
-    return m_dataspace.getSelectNpoints();
+    return H5Sget_select_npoints(id());
 }
 
 H5::DataSpace const&
-GtH5::DataSpace::toH5() const
+GtH5::DataSpace::toH5() const noexcept
 {
     return m_dataspace;
 }
@@ -111,6 +109,7 @@ operator!=(GtH5::DataSpace const& first, GtH5::DataSpace const& other)
     return !(first == other);
 }
 
+#if 0
 template <typename Stream>
 Stream
 printDataSpace(Stream stream, GtH5::DataSpace const& space)
@@ -138,82 +137,61 @@ printDataSpace(Stream stream, GtH5::DataSpace const& space)
 
     return stream << " }";
 }
+#endif
 
-std::ostream&
-operator<<(std::ostream& s, GtH5::DataSpace const& d)
-{
-    return printDataSpace<std::ostream&>(s, d);
-}
-
-QDebug
-operator<<(QDebug s, GtH5::DataSpace const& d)
-{
-    QDebugStateSaver save{s};
-    return printDataSpace<QDebug>(s.nospace(), d);
-}
-
-bool
-GtH5::DataSpaceSelection::commit()
+void
+GtH5::DataSpaceSelection::commit() noexcept(false)
 {
     auto dims = m_space.dimensions();
     if (!m_space.isValid() || dims.empty())
     {
-        qCritical() << "HDF5: Selecting hyperslap failed! (Invalid dataspace)";
-        return false;
+        throw DataSpaceException{"Selecting hyperslap failed "
+                                 "(Invalid dataspace)"};
     }
     if (m_count.empty())
     {
         m_count = dims;
-        return true;
     }
-    bool success = true;
-    success &= testSelection(m_count, dims, 1);
-    success &= testSelection(m_offset, dims, 0);
-    success &= testSelection(m_stride, dims, 1);
-    success &= testSelection(m_block, dims, 1);
-    if (!success)
-    {
-        qCritical() << "HDF5: Selecting hyperslap failed! "
-                       "(Dimensions out of range)";
-        return false;
-    }
+    testSelection(m_count, dims, 1);
+    testSelection(m_offset, dims, 0);
+    testSelection(m_stride, dims, 1);
+    testSelection(m_block, dims, 1);
 
     auto const& hspace = m_space.toH5();
-
     try
     {
-        hspace.selectHyperslab(m_op,
-                               m_count.constData(),
-                               m_offset.constData(),
-                               m_stride.constData(),
-                               m_block.constData());
-        return true;
+        hspace.selectHyperslab(m_op, m_count.constData(), m_offset.constData(),
+                               m_stride.constData(), m_block.constData());
     }
-    catch (H5::DataSpaceIException& /*e*/)
+    catch (H5::DataSpaceIException const& e)
     {
-        qCritical() << "HDF5: Selecting hyperslap failed!";
+        throw DataSpaceException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::makeHyperSlap failed!";
+        qCritical() << "HDF5: [EXCEPTION] DataSpaceSelection::commit";
+        throw DataSpaceException{e.getCDetailMsg()};
     }
-    return false;
 }
 
-bool
-GtH5::DataSpaceSelection::testSelection(Dimensions& dims,
-                                        Dimensions const& sDims,
-                                        hsize_t fillValue)
+void
+GtH5::DataSpaceSelection::testSelection(Dimensions& dim,
+                                        Dimensions const& sDim,
+                                        hsize_t fillValue) noexcept(false)
 {
-    auto ndims = sDims.size();
-    auto size  = dims.size();
+    auto ndims = sDim.size();
+    auto size  = dim.size();
     // too few elements, fill with default value
     if (size < ndims)
     {
-        dims.resize(ndims);
-        std::fill(std::begin(dims) + size, std::end(dims), fillValue);
-        return true;
+        dim.resize(ndims);
+        std::fill(std::begin(dim) + size, std::end(dim), fillValue);
+        size = dim.size();
     }
     // succeess if size == ndims
-    return size == ndims;
+    if (size != ndims)
+    {
+        throw DataSpaceException{"Selecting hyperslap failed "
+                                 "(Dimensions out of range)"};
+    }
 }

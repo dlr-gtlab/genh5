@@ -33,27 +33,23 @@ public:
     using BufferType = decltype (*H5R_ref_t::u.__data);
 
     Reference();
-    explicit Reference(Alignment data,
-                       ObjectType type = ObjectType::UnkownType);
-    explicit Reference(QByteArray buffer,
-                       ObjectType type = ObjectType::UnkownType);
-    explicit Reference(H5R_ref_t ref,
-                       ObjectType type = ObjectType::UnkownType);
-    explicit Reference(Location const& location);
+    explicit Reference(H5R_ref_t ref)  noexcept;
+    explicit Reference(Alignment data)  noexcept;
+    explicit Reference(QByteArray buffer) noexcept(false);
+    explicit Reference(Location const& location) noexcept(false);
 
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5R_ref_t const& toH5() const;
+    H5R_ref_t const& toH5() const noexcept;
 
     /**
      * @brief returns whether the reference is valid and can be used for further
      * actions. Call this after instantion to verify the resource allocation.
      * @return whether reference is valid
      */
-    bool isValid() const;
-
+    bool isValid() const noexcept;
 
 #ifndef GTH5_NO_DEPRECATED_SYMBOLS
     /**
@@ -61,7 +57,7 @@ public:
      * a reference. Only works for datasets and groups. Prefer buffer() instead.
      * @return alignment of reference
      */
-    Alignment data() const { return alignment(); }
+    Alignment data() const noexcept { return alignment(); }
 #endif
 
     /**
@@ -69,55 +65,44 @@ public:
      * a reference. Only works for datasets and groups. Prefer buffer() instead.
      * @return alignment of reference
      */
-    Alignment alignment() const;
+    Alignment alignment() const noexcept
+    {
+        return m_ref.u.align;
+    }
 
     /**
      * @brief returns the reference data buffer as a QByteArray. Can be used to
      * serialize and deserialize a reference.Prefer iver data().
      * @return data array
      */
-    QByteArray buffer() const;
-
-    /**
-     * @brief type of the referenced object (may be Unkown)
-     * @return type
-     */
-    ObjectType type() const;
+    QByteArray buffer() const noexcept;
 
     /**
      * @brief try dereferencing the object to a group.
      * @param file in which the object is located
      * @return group
      */
-    Group toGroup(File const& file) const;
+    Group toGroup(File const& file) const noexcept(false);
 
     /**
      * @brief try dereferencing the object to a dataset.
      * @param file in which the object is located
      * @return dataset
      */
-    DataSet toDataSet(File const& file) const;
+    DataSet toDataSet(File const& file) const noexcept(false);
 
     /**
      * @brief try dereferencing the object to a attribute.
      * @param file in which the object is located
      * @return attribute
      */
-    Attribute toAttribute(File const& file) const;
+    Attribute toAttribute(File const& file) const noexcept(false);
 
 private:
 
     /// hdf5 base instance
     H5R_ref_t m_ref{};
-    /// type of the referenced object
-    ObjectType m_type{ObjectType::UnkownType};
 };
-
-inline Reference::Alignment
-Reference::alignment() const
-{
-    return m_ref.u.align;
-}
 
 } // namespace GtH5
 

@@ -15,7 +15,7 @@
 #include <QDebug>
 
 GtH5::String
-GtH5::getObjectName(Location const& location)
+GtH5::getObjectName(Location const& location) noexcept
 {
     auto path = location.path().split('/');
 
@@ -23,32 +23,30 @@ GtH5::getObjectName(Location const& location)
     if (path.isEmpty())
     {
         qWarning() << "HDF5: Failed to retrieve the location name!";
-        return QByteArrayLiteral("<-unkown->");
+        return {};
     }
 
     return path.last();
 }
 
+GtH5::Location::Location(std::shared_ptr<File> file) noexcept :
+    m_file(std::move(file))
+{ }
+
 bool
-GtH5::Location::isValid() const
+GtH5::Location::isValid() const noexcept
 {
     return Object::isValid() && m_file && m_file->isValid();
 }
 
-GtH5::ObjectType
-GtH5::Location::type() const
-{
-    return UnkownType;
-}
-
 bool
-GtH5::Location::exists(String const& path) const
+GtH5::Location::exists(String const& path) const noexcept
 {
     return exists(path.split('/').toVector());
 }
 
 bool
-GtH5::Location::exists(Vector<String> const& path) const
+GtH5::Location::exists(Vector<String> const& path) const noexcept
 {
     String subPath{};
 
@@ -57,6 +55,7 @@ GtH5::Location::exists(Vector<String> const& path) const
         subPath.push_back(entry);
         subPath.push_back('/');
 
+//        if (H5Lexists(id(), subPath.constData(), H5P_DEFAULT))
         if (!toH5Location()->nameExists(subPath))
         {
             return false;
@@ -67,13 +66,19 @@ GtH5::Location::exists(Vector<String> const& path) const
 }
 
 GtH5::String
-GtH5::Location::name() const
+GtH5::Location::name() const noexcept
 {
     return getObjectName(*this);
 }
 
+GtH5::ObjectType
+GtH5::Location::type() const noexcept
+{
+    return H5Iget_type(id());
+}
+
 GtH5::Reference
-GtH5::Location::toReference()
+GtH5::Location::toReference() noexcept(false)
 {
     if (!isValid())
     {
@@ -83,12 +88,8 @@ GtH5::Location::toReference()
     return GtH5::Reference(*this);
 }
 
-GtH5::Location::Location(std::shared_ptr<File> file) :
-    m_file(std::move(file))
-{ }
-
 GtH5::String
-GtH5::Location::path() const
+GtH5::Location::path() const noexcept
 {
     if (!isValid())
     {

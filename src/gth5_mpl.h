@@ -30,7 +30,8 @@ template<typename T>
 using reversed_comp_empty_t = typename reversed_comp_empty<T>::type;
 
 template<typename Lambda, std::size_t ... Is>
-constexpr void static_for_impl(Lambda&& f, std::index_sequence<Is...>)
+constexpr void
+static_for_impl(Lambda&& f, std::index_sequence<Is...>)
 {
     struct Idx {};
     // unpack into init list for "looping" in correct order wo recursion
@@ -40,7 +41,8 @@ constexpr void static_for_impl(Lambda&& f, std::index_sequence<Is...>)
 }
 
 template<size_t N, typename Lambda, std::size_t ... Is>
-constexpr void static_rfor_impl(Lambda&& f, std::index_sequence<Is...>)
+constexpr void
+static_rfor_impl(Lambda&& f, std::index_sequence<Is...>)
 {
     struct Idx {};
     // unpack into init list for "looping" in correct order wo recursion
@@ -88,7 +90,8 @@ using reversed_comp_t = typename reversed_comp<T>::type;
  * representing the current index
  */
 template<unsigned N, typename Lambda>
-constexpr void static_for(Lambda&& f)
+constexpr void
+static_for(Lambda&& f)
 {
     details::static_for_impl(std::forward<Lambda>(f),
                              std::make_index_sequence<N>());
@@ -103,7 +106,8 @@ constexpr void static_for(Lambda&& f)
  * reversed index (i.e. N - n - 1)
  */
 template<unsigned N, typename Lambda>
-constexpr void static_rfor(Lambda&& f)
+constexpr void
+static_rfor(Lambda&& f)
 {
     details::static_rfor_impl<N>(std::forward<Lambda>(f),
                                  std::make_index_sequence<N>());

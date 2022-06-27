@@ -124,6 +124,17 @@ TEST_F(TestH5Utils, makeAndUnpackComp)
                            std::cbegin(strings)));
 }
 
+TEST_F(TestH5Utils, makeAndUnpackCompInvalid)
+{
+    int size = 10;
+    auto doubles = h5TestHelper->linearDataVector<double>(size);
+    auto ints = h5TestHelper->linearDataVector<int>(size);
+    auto strings = h5TestHelper->randomStringList(size * 2);
+
+    EXPECT_THROW(GtH5::makeComp(doubles, ints, strings),
+                 GtH5::InvalidArgumentError);
+}
+
 TEST_F(TestH5Utils, makeAndUnpackNested)
 {
     int size = 10;

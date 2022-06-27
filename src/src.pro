@@ -67,6 +67,7 @@ HEADERS += \
     gth5_datasetcproperties.h \
     gth5_dataspace.h \
     gth5_datatype.h \
+    gth5_exception.h \
     gth5_file.h \
     gth5_group.h \
     gth5_location.h \
@@ -95,7 +96,16 @@ SOURCES += \
     gth5_reference.cpp \
     gth5_utils.cpp
 
-LIBS += -lhdf5 -lhdf5_cpp
+CONFIG(debug, debug|release) {
+    win32 {
+        LIBS += -lhdf5_D -lhdf5_cpp_D
+    }
+    unix {
+        LIBS += -lhdf5 -lhdf5_cpp
+    }
+} else {
+    LIBS += -lhdf5 -lhdf5_cpp
+}
 
 ######################################################################
 

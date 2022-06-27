@@ -17,11 +17,14 @@ include(deployment.pri)
 
 #### THIRD PARTY LIBRARIES
 #### HDF5
-INCLUDEPATH += $${HDF5_PATH}/include
 CONFIG(debug, debug|release) {
+    message(DEBUG)
+    INCLUDEPATH += $${HDF5_PATH}/include
     LIBS        += -L$${HDF5_PATH}/libDebug
     DEPENDPATH  += $${HDF5_PATH}/libDebug
 } else {
+    message(RELEASE)
+    INCLUDEPATH += $${HDF5_PATH}/include
     LIBS        += -L$${HDF5_PATH}/lib
     DEPENDPATH  += $${HDF5_PATH}/lib
 }

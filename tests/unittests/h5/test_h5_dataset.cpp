@@ -25,7 +25,7 @@ protected:
         intData    = GtH5::Vector<int>{1, 2, 3, 4, 5};
         stringData = QStringList{"1", "2", "3", "4", "5", "6"};
 
-        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::CreateOnly);
+        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::Create);
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
@@ -58,6 +58,12 @@ TEST_F(TestH5DataSet, isValid)
     EXPECT_TRUE(dset.isValid());
 }
 
+TEST_F(TestH5DataSet, propertiesInvalid)
+{
+    GtH5::DataSet dset;
+    EXPECT_THROW(dset.cProperties(), GtH5::DataSetException);
+}
+
 TEST_F(TestH5DataSet, deleteLink)
 {
     GtH5::DataSet dset;
@@ -69,10 +75,12 @@ TEST_F(TestH5DataSet, deleteLink)
                                      intData.dataType(),
                                      intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
+    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("test")));
 
     // delete dataset
     dset.deleteLink();
     EXPECT_FALSE(dset.isValid());
+    EXPECT_FALSE(file.root().exists(QByteArrayLiteral("test")));
 }
 
 TEST_F(TestH5DataSet, resize)

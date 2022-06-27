@@ -23,12 +23,12 @@ namespace GtH5
 namespace details
 {
 
-    // For mapping types and buffered types
-    template<typename Tsrc, typename Tbuffer = Tsrc>
-    struct buffer_element_impl
-    {
-        using type = Tbuffer;
-    };
+// For mapping types and buffered types
+template<typename Tsrc, typename Tbuffer = Tsrc>
+struct buffer_element_impl
+{
+    using type = Tbuffer;
+};
 
 } // namespace details
 
@@ -49,26 +49,26 @@ struct buffer_element<T> :
 namespace details
 {
 
-    // actual buffer to use (by default vector of elements)
-    template <typename T>
-    struct buffer_impl
-    {
-        using type = Vector<buffer_element_t<T>>;
-    };
+// actual buffer to use (by default vector of elements)
+template <typename T>
+struct buffer_impl
+{
+    using type = Vector<buffer_element_t<T>>;
+};
 
-    // actual buffer for compound types
-    template <typename... Ts>
-    struct buffer_impl<Comp<Ts...>>
-    {
-        using type = buffer_element_t<Comp<Ts...>>;
-    };
+// actual buffer for compound types
+template <typename... Ts>
+struct buffer_impl<Comp<Ts...>>
+{
+    using type = buffer_element_t<Comp<Ts...>>;
+};
 
-    // delegate buffer for array types
-    template <typename T, size_t N>
-    struct buffer_impl<Array<T, N>>
-    {
-        using type = typename buffer_impl<T>::type;
-    };
+// delegate buffer for array types
+template <typename T, size_t N>
+struct buffer_impl<Array<T, N>>
+{
+    using type = typename buffer_impl<T>::type;
+};
 
 
 } // namespace details
@@ -78,14 +78,15 @@ using buffer_t = typename details::buffer_impl<T>::type;
 
 namespace details
 {
-    template <typename T>
-    struct hvl_buffer
-    {
-        /// hvl_t::p points to this
-        Vector<conversion_t<T>> data;
-        /// buffer for conversion
-        buffer_t<T> buffer;
-    };
+
+template <typename T>
+struct hvl_buffer
+{
+    /// hvl_t::p points to this
+    Vector<conversion_t<T>> data;
+    /// buffer for conversion
+    buffer_t<T> buffer;
+};
 
 } // namespace details
 

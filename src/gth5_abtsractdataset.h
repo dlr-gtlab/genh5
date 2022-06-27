@@ -13,8 +13,6 @@
 #include "gth5_data.h"
 #include "gth5_optional.h"
 
-#include <QDebug>
-
 namespace GtH5
 {
 
@@ -31,37 +29,43 @@ public:
      * @brief dataType of this dataset
      * @return dataType
      */
-    DataType dataType() const;
+    DataType dataType() const noexcept(false);
     /**
      * @brief dataSpace of this dataset
      * @return dataSpace
      */
-    DataSpace dataSpace() const;
+    DataSpace dataSpace() const noexcept(false);
 
     /**
      * @brief writes data to dataset
      * @param data buffer to write
      * @return sucess
      */
-    bool write(void const* data, Optional<DataType> dtype = {}) const;
+    bool write(void const* data,
+               Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool write(Vector<T> const& data, Optional<DataType> dtype = {}) const;
+    bool write(Vector<T> const& data,
+               Optional<DataType> dtype = {}) const noexcept(false);
     template<typename T>
-    bool write(AbstractData<T> const& data, Optional<DataType> dtype= {}) const;
+    bool write(AbstractData<T> const& data,
+               Optional<DataType> dtype = {}) const noexcept(false);
 
     /**
      * @brief reads data from dataset
      * @param data buffer to write
      * @return sucess
      */
-    bool read(void* data, Optional<DataType> dtype = {}) const;
+    bool read(void* data,
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool read(Vector<T>& data, Optional<DataType> dtype = {}) const;
+    bool read(Vector<T>& data,
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool read(AbstractData<T>& data, Optional<DataType> dtype = {}) const;
+    bool read(AbstractData<T>& data,
+              Optional<DataType> dtype = {}) const noexcept(false);
 
 protected:
 
@@ -69,7 +73,7 @@ protected:
      * @brief Returns the abstract hdf5 dataset
      * @return Abstract dset
      */
-    virtual H5::AbstractDs const& toH5AbsDataSet() const = 0;
+    virtual H5::AbstractDs const& toH5AbsDataSet() const noexcept = 0;
 
     /**
      * @brief Method for wirte implementation
@@ -85,6 +89,8 @@ protected:
      */
     virtual bool doRead(void* data, DataType const& dtype) const = 0;
 
+    void debugWriteError(size_t length) const;
+
     /**
      * @brief AbtsractDataSet
      */
@@ -98,16 +104,12 @@ protected:
 
 template<typename T>
 inline bool
-AbstractDataSet::write(Vector<T> const& data, Optional<DataType> dtype) const
+AbstractDataSet::write(Vector<T> const& data,
+                       Optional<DataType> dtype) const noexcept(false)
 {
     if (data.size() < dataSpace().selectionSize())
     {
-        auto dspace = dataSpace();
-        qCritical() << "HDF5: Writing data failed!" <<
-                       "(Too few data elements:"
-                    << data.length() << "vs."
-                    << dspace.dimensions()
-                    << dspace.selectionSize() << "elements)";
+        debugWriteError(data.size());
         return false;
     }
 
@@ -117,7 +119,7 @@ AbstractDataSet::write(Vector<T> const& data, Optional<DataType> dtype) const
 template<typename T>
 inline bool
 AbstractDataSet::write(AbstractData<T> const& data,
-                       Optional<DataType> dtype) const
+                       Optional<DataType> dtype) const noexcept(false)
 {
     if (dtype.isDefault())
     {
@@ -129,7 +131,8 @@ AbstractDataSet::write(AbstractData<T> const& data,
 
 template<typename T>
 inline bool
-AbstractDataSet::read(Vector<T>& data, Optional<DataType> dtype) const
+AbstractDataSet::read(Vector<T>& data,
+                      Optional<DataType> dtype) const noexcept(false)
 {
     auto dspace = dataSpace();
     data.resize(dspace.selectionSize());
@@ -139,7 +142,8 @@ AbstractDataSet::read(Vector<T>& data, Optional<DataType> dtype) const
 
 template<typename T>
 inline bool
-AbstractDataSet::read(AbstractData<T>& data, Optional<DataType> dtype) const
+AbstractDataSet::read(AbstractData<T>& data,
+                      Optional<DataType> dtype) const noexcept(false)
 {
     auto dspace = dataSpace();
     data.resize(dspace.selectionSize());

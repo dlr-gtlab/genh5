@@ -52,14 +52,13 @@ TEST_F(Tests, compound)
 
     auto data = GtH5::makeData(vector);
 
-    GtH5::File file(h5TestHelper->newFilePath(), GtH5::CreateOnly);
+    GtH5::File file(h5TestHelper->newFilePath(), GtH5::Create);
 
     auto dset = file.root().createDataset(QByteArray{"comp_data.h5"},
                                           data.dataType(),
                                           data.dataSpace());
 
     qDebug() << file.filePath();
-
     ASSERT_TRUE(dset.isValid());
 
     ASSERT_TRUE(dset.write(data));

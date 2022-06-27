@@ -14,17 +14,13 @@
 static constexpr auto s_cmax = 9;
 static constexpr auto s_cmin = 0;
 
-GtH5::DataSetCProperties::DataSetCProperties() :
+GtH5::DataSetCProperties::DataSetCProperties() noexcept:
     m_properties(H5::DSetCreatPropList::DEFAULT)
-{
-
-}
+{ }
 
 GtH5::DataSetCProperties::DataSetCProperties(H5::DSetCreatPropList properties) :
     m_properties{std::move(properties)}
-{
-
-}
+{ }
 
 GtH5::DataSetCProperties::DataSetCProperties(Dimensions const& dimensions,
                                              int compression)
@@ -34,7 +30,7 @@ GtH5::DataSetCProperties::DataSetCProperties(Dimensions const& dimensions,
 }
 
 GtH5::Dimensions
-GtH5::DataSetCProperties::autoChunk(DataSpace const& dataspace)
+GtH5::DataSetCProperties::autoChunk(DataSpace const& dataspace) noexcept
 {
     Dimensions dimensions = dataspace.dimensions();
 
@@ -49,24 +45,38 @@ GtH5::DataSetCProperties::autoChunk(DataSpace const& dataspace)
 }
 
 hid_t
-GtH5::DataSetCProperties::id() const
+GtH5::DataSetCProperties::id() const noexcept
 {
     return m_properties.getId();
 }
 
 void
-GtH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions)
+GtH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions
+                                             ) noexcept(false)
 {
     if (dimensions.isEmpty())
     {
-        qCritical() << "HDF5: Chunk dimensions are invalid";
-        return;
+        throw DataSetException{"Chunking failed (Invalid dimensions)"};
     }
-    m_properties.setChunk(dimensions.length(), dimensions.data());
+
+    try
+    {
+        m_properties.setChunk(dimensions.length(), dimensions.data());
+    }
+    catch (H5::DataSetIException const& e)
+    {
+        throw DataSetException{e.getCDetailMsg()};
+    }
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] DataSetCProperties::"
+                       "setChunkDimensions";
+        throw DataSetException{e.getCDetailMsg()};
+    }
 }
 
 void
-GtH5::DataSetCProperties::setCompression(int level)
+GtH5::DataSetCProperties::setCompression(int level) noexcept(false)
 {
     if (level > s_cmax)
     {
@@ -82,15 +92,27 @@ GtH5::DataSetCProperties::setCompression(int level)
     }
     if (!isChunked() && level > s_cmin)
     {
-        qCritical() << "HDF5: the dataset must be chunked first!";
-        return;
+        throw DataSetException{"Setting compression failed (Dataset must be "
+                               "chunked first)"};
     }
 
-    m_properties.setDeflate(level);
+    try
+    {
+        m_properties.setDeflate(level);
+    }
+    catch (H5::DataSetIException const& e)
+    {
+        throw DataSetException{e.getCDetailMsg()};
+    }
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] DataSetCProperties::setCompression";
+        throw DataSetException{e.getCDetailMsg()};
+    }
 }
 
 bool
-GtH5::DataSetCProperties::isChunked() const
+GtH5::DataSetCProperties::isChunked() const noexcept
 {
     return H5Pget_layout(id()) == H5D_layout_t::H5D_CHUNKED;
 }
@@ -110,24 +132,25 @@ GtH5::DataSetCProperties::isChunked() const
 //}
 
 GtH5::Dimensions
-GtH5::DataSetCProperties::chunkDimensions() const
+GtH5::DataSetCProperties::chunkDimensions() const noexcept
 {
     if (!isChunked())
     {
         return {};
     }
 
-    Dimensions dims(m_properties.getChunk(0, nullptr));
-    m_properties.getChunk(dims.length(), dims.data());
+    Dimensions dims(H5Pget_chunk(id(), 0, nullptr));
+    H5Pget_chunk(id(), dims.size(), dims.data());
     return dims;
 }
 
 H5::DSetCreatPropList const&
-GtH5::DataSetCProperties::toH5() const
+GtH5::DataSetCProperties::toH5() const noexcept
 {
     return m_properties;
 }
 
+#if 0
 template <typename Stream>
 Stream
 printDsetProps(Stream stream, GtH5::DataSetCProperties const& props)
@@ -136,16 +159,4 @@ printDsetProps(Stream stream, GtH5::DataSetCProperties const& props)
     stream << props.chunkDimensions();
     return stream << " }";
 }
-
-std::ostream&
-operator<<(std::ostream& s, GtH5::DataSetCProperties const& d)
-{
-    return printDsetProps<std::ostream&>(s, d);
-}
-
-QDebug
-operator<<(QDebug s, GtH5::DataSetCProperties const& d)
-{
-    QDebugStateSaver save{s};
-    return printDsetProps<QDebug>(s.nospace(), d);
-}
+#endif

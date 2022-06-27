@@ -25,7 +25,7 @@ protected:
     virtual void SetUp() override
     {
         file = GtH5::File(h5TestHelper->newFilePath(),
-                          GtH5::CreateOnly);
+                          GtH5::Create);
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
@@ -53,24 +53,28 @@ TEST_F(TestH5Reference, isValid)
     // reference
     GtH5::Reference ref;
     EXPECT_FALSE(ref.isValid());
-    EXPECT_EQ(ref.type(), GtH5::UnkownType);
 
     GtH5::Reference refA = group.toReference();
     EXPECT_TRUE(refA.isValid());
-    EXPECT_EQ(refA.type(), group.type());
 
     GtH5::Reference refB = dataset.toReference();
     EXPECT_TRUE(refB.isValid());
-    EXPECT_EQ(refB.type(), dataset.type());
 
     GtH5::Reference refC = attribute.toReference();
     EXPECT_TRUE(refC.isValid());
-    EXPECT_EQ(refC.type(), attribute.type());
 
     GtH5::DataSet dset;
     GtH5::Reference refD = dset.toReference();
     EXPECT_FALSE(refD.isValid());
-    EXPECT_EQ(refD.type(), GtH5::UnkownType);
+}
+
+TEST_F(TestH5Reference, invalid)
+{
+    GtH5::Reference ref;
+
+    EXPECT_THROW(ref.toGroup(file), GtH5::ReferenceException);
+    EXPECT_THROW(ref.toDataSet(file), GtH5::ReferenceException);
+    EXPECT_THROW(ref.toAttribute(file), GtH5::ReferenceException);
 }
 
 TEST_F(TestH5Reference, referenceGroup)
@@ -163,14 +167,17 @@ TEST_F(TestH5Reference, referenceAttributeAlign)
     // reference
     auto align =  attribute.toReference().alignment();
 
-    // dereference does not work for attributes when using alignment data    
-    qDebug() << "# Expect Error: invalid reference type";
-    GtH5::Attribute attr = GtH5::Reference(align).toAttribute(file);
-    EXPECT_FALSE(attr.isValid());
+    // dereference does not work for attributes when using alignment data
+    EXPECT_THROW(GtH5::Reference(align).toAttribute(file),
+                 GtH5::ReferenceException);
 
-    EXPECT_EQ(attr.path(), QByteArray{});
-    EXPECT_EQ(attr.name(), QByteArray{});
-    EXPECT_FALSE(attr.file());
+    //    qDebug() << "# Expect Error: invalid reference type";
+//    GtH5::Attribute attr = GtH5::Reference(align).toAttribute(file);
+//    EXPECT_FALSE(attr.isValid());
+
+//    EXPECT_EQ(attr.path(), QByteArray{});
+//    EXPECT_EQ(attr.name(), QByteArray{});
+//    EXPECT_FALSE(attr.file());
 
     // local file and internal shared file ptr have access
     EXPECT_EQ(H5Iget_ref(file.id()), 2);

@@ -11,6 +11,7 @@
 
 #include "gth5_data/base.h"
 #include "gth5_mpl.h"
+#include "gth5_exception.h"
 
 namespace GtH5
 {
@@ -56,12 +57,11 @@ public:
             auto* container = std::get<idx>(containers);
             if (size != container->size())
             {
-                throw std::range_error("HDF5: Creating compund data failed! "
-                                       "Arguments must have the same number of "
-                                       "elements!");
+                throw InvalidArgumentError{"Containers have different number "
+                                           "of elements!"};
             }
 
-            typename base_class::size_type i = 0;
+            size_t i = 0;
             for (auto const& value : *container)
             {
                 auto& data = std::get<ridx>(base_class::m_data[i++]);

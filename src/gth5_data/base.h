@@ -11,7 +11,6 @@
 
 #include "gth5_conversion.h"
 #include "gth5_dataspace.h"
-#include <QDebug>
 
 namespace GtH5
 {
@@ -54,17 +53,20 @@ public:
     using const_reference       = value_type const&;
     using size_type             = typename container_type::size_type;
 
-    static DataType dataType(compound_names names)
+    static DataType dataType(compound_names names) noexcept(false)
     {
         using GtH5::dataType;
         return dataType<T>(names);
     }
-    DataType dataType() const
+    DataType dataType() const noexcept(false)
     {
         using GtH5::dataType;
         return dataType<T>(m_typeNames);
     }
-    DataSpace dataSpace() const { return DataSpace::linear(size()); }
+    DataSpace dataSpace() const noexcept(false)
+    {
+        return DataSpace::linear(size());
+    }
 
     // constructors
     explicit AbstractData(compound_names names)
@@ -328,7 +330,7 @@ template <typename T>
 inline void
 reserveBuffer(buffer_t<T>& buffer, size_t size)
 {
-#ifndef GTH5_NO_BUFFER_RESERVING
+#ifndef GTH5_NO_BUFFER_PRE_RESERVING
     details::reserve_buffer_impl<traits::conv_base_t<conversion_t<T>>,
                                  buffer_t<T>>::reserve(buffer, size);
 #endif
@@ -337,22 +339,5 @@ reserveBuffer(buffer_t<T>& buffer, size_t size)
 } // namespace details
 
 } // namespace GtH5
-
-template<typename T>
-inline std::ostream&
-operator<<(std::ostream& output, GtH5::AbstractData<T> const& data)
-{
-    output << "Data{ " << data.c() << " }";
-    return output;
-}
-
-template<typename T>
-inline QDebug
-operator<<(QDebug output, GtH5::AbstractData<T> const& data)
-{
-    QDebugStateSaver save{output};
-    output.nospace() << "Data{ " << data.c() << " }";
-    return output;
-}
 
 #endif // GTH5_DATA_BASE_H

@@ -21,51 +21,54 @@ class GTH5_EXPORT DataSetCProperties : public Object
 {
 public:
 
-    static Dimensions autoChunk(DataSpace const& dataspace);
+    static Dimensions autoChunk(DataSpace const& dataspace) noexcept;
     static DataSetCProperties autoChunked(DataSpace const& dataspace,
-                                          int compression = 0);
+                                          int compression = 0) noexcept(false)
+    {
+        return DataSetCProperties{autoChunk(dataspace), compression};
+    }
 
-    DataSetCProperties();
+    DataSetCProperties() noexcept;
     explicit DataSetCProperties(H5::DSetCreatPropList properties);
     explicit DataSetCProperties(Dimensions const& chunkDimensions,
-                                int compression = 0);
+                                int compression = 0) noexcept(false);
 
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::DSetCreatPropList const& toH5() const;
+    H5::DSetCreatPropList const& toH5() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    hid_t id() const override;
+    hid_t id() const noexcept override;
 
     /**
      * @brief setChunkDimensions
      * @param dimensions chunk dimensions
      */
-    void setChunkDimensions(Dimensions const& dimensions);
+    void setChunkDimensions(Dimensions const& dimensions) noexcept(false);
 
     /**
      * @brief sets the compressions. Must be within 0-9. Can only be used once
      * chunk dimensions are set.
      * @param level compression level between 0 (none) and 9 (max)
      */
-    void setCompression(int level);
+    void setCompression(int level) noexcept(false);
 
     /**
      * @brief isChunked
      * @return whether chunking is set
      */
-    bool isChunked() const;
+    bool isChunked() const noexcept;
 
     /**
      * @brief chunkDimensions
      * @return chunk dimensions
      */
-    Dimensions chunkDimensions() const;
+    Dimensions chunkDimensions() const noexcept;
 
 private:
 
@@ -73,22 +76,10 @@ private:
     H5::DSetCreatPropList m_properties{};
 };
 
-inline DataSetCProperties
-DataSetCProperties::autoChunked(DataSpace const& dataspace,
-                                int compression)
-{
-    return DataSetCProperties{DataSetCProperties::autoChunk(dataspace),
-                              compression};
-}
-
 } // namespace GtH5
 
 #ifndef GTH5_NO_DEPRECATED_SYMBOLS
 using GtH5DataSetProperties = GtH5::DataSetCProperties;
 #endif
-
-GTH5_EXPORT std::ostream& operator<<(std::ostream& s,
-                                     GtH5::DataSetCProperties const& d);
-GTH5_EXPORT QDebug operator<<(QDebug s, GtH5::DataSetCProperties const& d);
 
 #endif // GTH5_DATASETCPROPERTIES_H

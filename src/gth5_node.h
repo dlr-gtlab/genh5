@@ -31,36 +31,38 @@ public:
      * @param name of the attribute
      * @return whether attibuet exists
      */
-    bool hasAttribute(String const& name) const;
+    bool hasAttribute(String const& name) const noexcept(false);
 
     GtH5::Attribute createAttribute(QString const& name,
                                     DataType const& dtype,
-                                    DataSpace const& dspace) const;
+                                    DataSpace const& dspace
+                                    ) const noexcept(false);
     GtH5::Attribute createAttribute(const String &name,
                                     DataType const& dtype,
-                                    DataSpace const& dspace) const;
+                                    DataSpace const& dspace
+                                    ) const noexcept(false);
 
-    GtH5::Attribute openAttribute(QString const& name) const;
-    GtH5::Attribute openAttribute(String const& name) const;
+    GtH5::Attribute openAttribute(QString const& name) const noexcept(false);
+    GtH5::Attribute openAttribute(String const& name) const noexcept(false);
 
 protected:
 
     /**
      * @brief GtH5Leaf
      */
-    Node(std::shared_ptr<File> file = {});
+    Node(std::shared_ptr<File> file = {}) noexcept;
 
     /**
      * @brief returns the hdf5 object as a h5object
      * @return h5object
      */
-    virtual H5::H5Object const* toH5Object() const = 0;
+    virtual H5::H5Object const* toH5Object() const noexcept = 0;
 
     /**
      * @brief returns the hdf5 object as a h5location.
      * @return h5location
      */
-    H5::H5Location const* toH5Location() const override;
+    H5::H5Location const* toH5Location() const noexcept override;
 };
 
 } // namespace GtH5

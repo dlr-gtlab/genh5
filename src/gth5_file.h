@@ -23,15 +23,13 @@ namespace GtH5
  */
 enum AccessFlag
 {
-    CreateOnly = 1,
-    OpenOnly = 2,
+    Create = 1,
+    Open = 2,
     Overwrite = 4,
     ReadOnly = 8,
     ReadWrite = 16
 };
 Q_DECLARE_FLAGS(AccessFlags, AccessFlag)
-
-GTH5_EXPORT GtH5::String getFileName(File const& file);
 
 /**
  * @brief The File class
@@ -50,7 +48,7 @@ public:
         CreateOverwrite = 16
     };
 
-    static uint32_t accessMode(AccessFlag mode);
+    static uint32_t accessMode(AccessFlag mode) noexcept;
 #endif
     /**
      * @brief translates the access flags to hdf5 compatible access flags
@@ -58,14 +56,14 @@ public:
      * @param flags access mode
      * @return hdf5 access mode
      */
-    static uint32_t accessMode(AccessFlags flags);
+    static uint32_t accessMode(AccessFlags flags) noexcept;
 
     /**
      * @brief returns whether the file exists
      * @param path file path
      * @return whether the file exists
      */
-    static bool fileExists(QString const& path);
+    static bool fileExists(QString const& path) noexcept;
 
     /**
      * @brief returns whether the file is a valid hdf5 file. Does not check if
@@ -73,19 +71,19 @@ public:
      * @param filePath file path
      * @return whether the file is a valid hdf5 file
      */
-    static bool isValidH5File(QString const& filePath);
-    static bool isValidH5File(String const& filePath);
+    static bool isValidH5File(QString const& filePath) noexcept(false);
+    static bool isValidH5File(String const& filePath) noexcept(false);
 
     /**
      * @brief hdf5 file suffix not including dot
      * @return file suffix
      */
-    static String fileSuffix();
+    static String fileSuffix() noexcept;
     /**
      * @brief hdf5 file suffix including dot
      * @return file suffix
      */
-    static String dotFileSuffix();
+    static String dotFileSuffix() noexcept;
 
     /**
      * @brief File
@@ -96,45 +94,45 @@ public:
     File(QString const& path, AccessFlag flag);
     File(String path, AccessFlag flag);
 #endif
-    explicit File(QFile const& h5File, AccessFlags flags = ReadWrite);
-    explicit File(String path, AccessFlags flags = ReadWrite);
+    explicit File(QFile const& h5File, AccessFlags flags = ReadWrite) noexcept(false);
+    explicit File(String path, AccessFlags flags = ReadWrite) noexcept(false);
 
     /**
      * @brief allows access of the base hdf5 object.
      * @return base hdf5 object
      */
-    H5::H5File const& toH5() const;
+    H5::H5File const& toH5() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource.
      * @return id
      */
-    hid_t id() const override;
+    hid_t id() const noexcept override;
 
     /**
      * @brief returns the root group of the file. The resulting object should
      * be valid as long as this object is valid.
      * @return root group of the file
      */
-    Group root() const;
+    Group root() const noexcept(false);
 
     /**
      * @brief fileName including file suffix.
      * @return filename
      */
-    String fileName() const;
+    String fileName() const noexcept;
 
     /**
      * @brief file base name not including suffix.
      * @return filename
      */
-    String fileBaseName() const;
+    String fileBaseName() const noexcept;
 
     /**
      * @brief file path used to create this file.
      * @return filepath
      */
-    String filePath() const;
+    String filePath() const noexcept;
 
     /**
      * @brief explicitly closes the resource handle.
@@ -148,6 +146,8 @@ private:
     /// cashes the associated root group
     mutable Group m_root{};
 };
+
+GTH5_EXPORT GtH5::String getFileName(File const& file) noexcept;
 
 } // namespace GtH5
 

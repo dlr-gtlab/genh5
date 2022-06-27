@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 #include "gth5_datatype.h"
 #include "gth5_conversion.h"
+#include "gth5_exception.h"
 
 #include <QPoint>
 #include <QPointF>
@@ -80,6 +81,14 @@ GTH5_DECLARE_DATATYPE_IMPL(QPoint)
     using Tp = decltype (std::declval<QPoint>().x());
     return GtH5::dataType<Tp, Tp>({"xp", "yp"});
 };
+
+TEST_F(TestH5DataType, invalid)
+{
+    GtH5::DataType dtype;
+    EXPECT_NO_THROW(dtype.compoundMembers());
+    EXPECT_NO_THROW(dtype.arrayDimensions());
+    EXPECT_THROW(dtype.superType(), GtH5::DataTypeException);
+}
 
 TEST_F(TestH5DataType, qpointDtype)
 {
@@ -198,8 +207,6 @@ TEST_F(TestH5DataType, fromTemplateVarLen)
                  GtH5::dataType<GtH5::Comp<double, int, QPoint>>()));
 }
 
-#include "gth5_data.h"
-
 TEST_F(TestH5DataType, fromTemplateComplex)
 {
     using CompT = GtH5::Comp<QPoint, QString>;
@@ -243,11 +250,12 @@ TEST_F(TestH5DataType, array)
 TEST_F(TestH5DataType, arrayInvalid)
 {
     GtH5::Dimensions dims{10, 2};
-    auto arrayType = GtH5::DataType::array(GtH5::DataType{}, dims);
-    EXPECT_FALSE(arrayType.isValid());
+    EXPECT_THROW(GtH5::DataType::array(GtH5::DataType{}, dims),
+                 H5::DataTypeIException);
 
-    EXPECT_FALSE(arrayType.isArray());
-    EXPECT_EQ(arrayType.arrayDimensions(), GtH5::Dimensions{});
+//    EXPECT_FALSE(arrayType.isValid());
+//    EXPECT_FALSE(arrayType.isArray());
+//    EXPECT_EQ(arrayType.arrayDimensions(), GtH5::Dimensions{});
 }
 
 struct Data
@@ -282,32 +290,47 @@ TEST_F(TestH5DataType, compoundInvalid)
 {
     // empty member list
     auto type1 = GtH5::DataType::compound(sizeof (Data), {});
-    EXPECT_FALSE(type1.isValid());
-    EXPECT_FALSE(type1.isCompound());
+    EXPECT_TRUE(type1.isValid());
+    EXPECT_TRUE(type1.isCompound());
 
     // empty data size
-    auto type2 = GtH5::DataType::compound(0, {
+    EXPECT_THROW(GtH5::DataType::compound(0, {
         {"type 1", offsetof(Data, a), GtH5::DataType::Int},
         {"type 2", offsetof(Data, b), GtH5::DataType::Double}
-    });
-    EXPECT_FALSE(type2.isValid());
-    EXPECT_FALSE(type2.isCompound());
+    }), GtH5::DataTypeException);
+
+//    auto type2 = GtH5::DataType::compound(0, {
+//        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
+//        {"type 2", offsetof(Data, b), GtH5::DataType::Double}
+//    });
+//    EXPECT_FALSE(type2.isValid());
+//    EXPECT_FALSE(type2.isCompound());
 
     // invalid member
-    auto type3 = GtH5::DataType::compound(sizeof (Data), {
+    EXPECT_THROW(GtH5::DataType::compound(0, {
         {"type 1", offsetof(Data, a), GtH5::DataType::Int},
         {"type 2", offsetof(Data, b), GtH5::DataType{}}
-    });
-    EXPECT_FALSE(type3.isValid());
-    EXPECT_FALSE(type3.isCompound());
+    }), GtH5::DataTypeException);
+
+//    auto type3 = GtH5::DataType::compound(sizeof (Data), {
+//        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
+//        {"type 2", offsetof(Data, b), GtH5::DataType{}}
+//    });
+//    EXPECT_FALSE(type3.isValid());
+//    EXPECT_FALSE(type3.isCompound());
 
     // invalid member name
-    auto type4 = GtH5::DataType::compound(sizeof (Data), {
+    EXPECT_THROW(GtH5::DataType::compound(0, {
         {"type 1", offsetof(Data, a), GtH5::DataType::Int},
-        {{},       offsetof(Data, b), GtH5::DataType::Double}
-    });
-    EXPECT_FALSE(type4.isValid());
-    EXPECT_FALSE(type4.isCompound());
+        {{}, offsetof(Data, b), GtH5::DataType::Double}
+    }), GtH5::DataTypeException);
+
+//    auto type4 = GtH5::DataType::compound(sizeof (Data), {
+//        {"type 1", offsetof(Data, a), GtH5::DataType::Int},
+//        {{},       offsetof(Data, b), GtH5::DataType::Double}
+//    });
+//    EXPECT_FALSE(type4.isValid());
+//    EXPECT_FALSE(type4.isCompound());
 }
 
 TEST_F(TestH5DataType, varLen)
@@ -323,9 +346,10 @@ TEST_F(TestH5DataType, varLen)
     EXPECT_TRUE(vStrType.isVarString());
     EXPECT_FALSE(vStrType.isVarLen());
 
-    auto emptyVlenType = GtH5::DataType::varLen(dtypeEmpty);
-    EXPECT_FALSE(emptyVlenType.isValid());
-    EXPECT_FALSE(emptyVlenType.isVarLen());
+    EXPECT_THROW(GtH5::DataType::varLen(dtypeEmpty), H5::DataTypeIException);
+//    auto emptyVlenType = GtH5::DataType::varLen(dtypeEmpty);
+//    EXPECT_FALSE(emptyVlenType.isValid());
+//    EXPECT_FALSE(emptyVlenType.isVarLen());
 }
 
 TEST_F(TestH5DataType, equalToH5cpp)

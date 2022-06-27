@@ -64,30 +64,65 @@ GtH5::AbstractDataSet::read(void* data, Optional<DataType> dtype) const
     return doRead(data, dtype);
 }
 
+void
+GtH5::AbstractDataSet::debugWriteError(size_t length) const
+{
+    auto dspace = dataSpace();
+    qCritical() << "HDF5: Writing data failed!" <<
+                   "(Too few data elements:"
+                << length << "vs."
+                << dspace.dimensions()
+                << dspace.selectionSize() << "elements)";
+}
+
 GtH5::DataType
-GtH5::AbstractDataSet::dataType() const
+GtH5::AbstractDataSet::dataType() const noexcept(false)
 {
     try
     {
         return DataType{toH5AbsDataSet().getDataType()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::DataTypeIException const& e)
     {
-        // ...
+        throw DataTypeException{e.getCDetailMsg()};
     }
-    return {};
+    catch (H5::AttributeIException const& e)
+    {
+        throw DataTypeException{e.getCDetailMsg()};
+    }
+    catch (H5::DataSetIException const& e)
+    {
+        throw DataTypeException{e.getCDetailMsg()};
+    }
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] AbstractDataSet::dataType";
+        throw DataTypeException{e.getCDetailMsg()};
+    }
 }
 
 GtH5::DataSpace
-GtH5::AbstractDataSet::dataSpace() const
+GtH5::AbstractDataSet::dataSpace() const noexcept(false)
 {
     try
     {
         return DataSpace{toH5AbsDataSet().getSpace()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::DataSpaceIException const& e)
     {
-        // ...
+        throw DataSpaceException{e.getCDetailMsg()};
     }
-    return {};
+    catch (H5::AttributeIException const& e)
+    {
+        throw DataSpaceException{e.getCDetailMsg()};
+    }
+    catch (H5::DataSetIException const& e)
+    {
+        throw DataSpaceException{e.getCDetailMsg()};
+    }
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] AbstractDataSet::dataSpace";
+        throw DataSpaceException{e.getCDetailMsg()};
+    }
 }

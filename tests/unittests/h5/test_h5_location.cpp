@@ -26,7 +26,7 @@ protected:
     virtual void SetUp() override
     {
         file = GtH5::File{h5TestHelper->newFilePath(),
-                          GtH5::CreateOnly};
+                          GtH5::Create};
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
@@ -49,17 +49,18 @@ protected:
     GtH5::Attribute attribute;
 };
 
-TEST_F(TestH5Location, type)
-{
-    EXPECT_EQ(file.root().type(), GtH5::GroupType);
-    EXPECT_EQ(group.type(), GtH5::GroupType);
-    EXPECT_EQ(dataset.type(), GtH5::DataSetType);
-    EXPECT_EQ(attribute.type(), GtH5::AttributeType);
-}
+//TEST_F(TestH5Location, type)
+//{
+//    EXPECT_EQ(file.root().type(), GtH5::GroupType);
+//    EXPECT_EQ(group.type(), GtH5::GroupType);
+//    EXPECT_EQ(dataset.type(), GtH5::DataSetType);
+//    EXPECT_EQ(attribute.type(), GtH5::AttributeType);
+//}
 
 TEST_F(TestH5Location, linkName)
 {
-    EXPECT_EQ(GtH5::File().root().name(), QByteArray{});
+//    EXPECT_EQ(GtH5::File().root().name(), QByteArray{});
+    EXPECT_THROW(GtH5::File().root().name(), GtH5::GroupException);
     EXPECT_EQ(GtH5::Group().name(), QByteArray{});
     EXPECT_EQ(GtH5::DataSet().name(), QByteArray{});
     EXPECT_EQ(GtH5::Attribute().name(), QByteArray{});
@@ -72,10 +73,11 @@ TEST_F(TestH5Location, linkName)
 
 TEST_F(TestH5Location, linkPath)
 {
-    EXPECT_EQ(GtH5::File().root().path(), QByteArray());
-    EXPECT_EQ(GtH5::Group().path(), QByteArray());
-    EXPECT_EQ(GtH5::DataSet().path(), QByteArray());
-    EXPECT_EQ(GtH5::Attribute().path(), QByteArray());
+    EXPECT_THROW(GtH5::File().root().path(), GtH5::GroupException);
+//    EXPECT_EQ(GtH5::File().root().path(), QByteArray());
+    EXPECT_EQ(GtH5::Group().path(), QByteArray{});
+    EXPECT_EQ(GtH5::DataSet().path(), QByteArray{});
+    EXPECT_EQ(GtH5::Attribute().path(), QByteArray{});
 
     EXPECT_EQ(file.root().path(), QByteArrayLiteral("/"));
     EXPECT_EQ(group.path(), QByteArrayLiteral("/group"));
@@ -86,7 +88,8 @@ TEST_F(TestH5Location, linkPath)
 
 TEST_F(TestH5Location, file)
 {
-    EXPECT_EQ(GtH5::File().root().file().get(), nullptr);
+    EXPECT_THROW(GtH5::File().root().file().get(), GtH5::GroupException);
+//    EXPECT_EQ(GtH5::File().root().file().get(), nullptr);
     EXPECT_EQ(GtH5::Group().file().get(), nullptr);
     EXPECT_EQ(GtH5::DataSet().file().get(), nullptr);
     EXPECT_EQ(GtH5::Attribute().file().get(), nullptr);
@@ -114,7 +117,7 @@ TEST_F(TestH5Location, fileRefCount)
 
         {
             auto _file = GtH5::File(h5TestHelper->newFilePath(),
-                                    GtH5::CreateOnly);
+                                    GtH5::Create);
 
             id = _file.id();
 
@@ -159,4 +162,6 @@ TEST_F(TestH5Location, exists)
     EXPECT_FALSE(file.root().exists(QByteArrayLiteral("dataset")));
     // however this should
     EXPECT_TRUE(group.exists(QByteArrayLiteral("dataset")));
+
+    EXPECT_TRUE(H5Lexists(file.root().id(), "group", H5P_DEFAULT));
 }

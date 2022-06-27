@@ -26,7 +26,7 @@ protected:
         intData    = GtH5::Vector<int>{1, 2, 3, 4, 5};
         stringData = QStringList{"1", "2", "3", "4", "5", "6"};
 
-        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::CreateOnly);
+        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::Create);
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
@@ -106,8 +106,10 @@ TEST_F(TestH5Attribute, deleteLink)
                                    intData.dataType(),
                                    intData.dataSpace());
     EXPECT_TRUE(attr.isValid());
+    EXPECT_TRUE(dataset.hasAttribute(QByteArrayLiteral("test")));
 
     // delete dataset
     attr.deleteLink();
     EXPECT_FALSE(attr.isValid());
+    EXPECT_FALSE(dataset.hasAttribute(QByteArrayLiteral("test")));
 }
