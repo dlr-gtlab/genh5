@@ -7,11 +7,11 @@
  */
 
 #include "gtest/gtest.h"
-#include "gth5_node.h"
-#include "gth5_file.h"
-#include "gth5_group.h"
-#include "gth5_dataset.h"
-#include "gth5_attribute.h"
+#include "genh5_node.h"
+#include "genh5_file.h"
+#include "genh5_group.h"
+#include "genh5_dataset.h"
+#include "genh5_attribute.h"
 
 #include "testhelper.h"
 
@@ -23,29 +23,29 @@ protected:
 
     virtual void SetUp() override
     {
-        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::Create);
+        file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
         ASSERT_TRUE(file.isValid());
     }
 
-    GtH5::File file;
+    GenH5::File file;
 };
 
 TEST_F(TestH5Group, isValid)
 {
-    GtH5::Group root;
+    GenH5::Group root;
     // test invalid dataset
     EXPECT_FALSE(root.isValid());
 
     // open the file as a root group
-    root = GtH5::Group(file);
+    root = GenH5::Group(file);
     EXPECT_TRUE(root.isValid());
 
     // create a first sub group
-    GtH5::Group group = root.createGroup(QByteArrayLiteral("testA"));
+    GenH5::Group group = root.createGroup(QByteArrayLiteral("testA"));
     EXPECT_TRUE(group.isValid());
 
     // create another nested sub group
-    GtH5::Group subGroup = group.createGroup(QByteArrayLiteral("testB"));
+    GenH5::Group subGroup = group.createGroup(QByteArrayLiteral("testB"));
     EXPECT_TRUE(subGroup.isValid());
 }
 
@@ -64,18 +64,18 @@ TEST_F(TestH5Group, deleteLink)
 
 TEST_F(TestH5Group, openGroupInvalid)
 {
-    GtH5::Group root;
+    GenH5::Group root;
     // test invalid dataset
     EXPECT_FALSE(root.isValid());
 
     // open the file as a root group
-    root = GtH5::Group(file);
+    root = GenH5::Group(file);
     EXPECT_TRUE(root.isValid());
 
-    EXPECT_THROW(GtH5::Group{}.openGroup(QByteArray{"my_fancy_group"}),
-                 GtH5::GroupException);
+    EXPECT_THROW(GenH5::Group{}.openGroup(QByteArray{"my_fancy_group"}),
+                 GenH5::GroupException);
     EXPECT_THROW(root.openGroup(QByteArray{"my_fancy_group"}),
-                 GtH5::GroupException);
+                 GenH5::GroupException);
 
     EXPECT_TRUE(root.createGroup(QByteArray{"my_fancy_group"}).isValid());
 
@@ -86,17 +86,17 @@ TEST_F(TestH5Group, openGroupInvalid)
 TEST_F(TestH5Group, openDataSetInvalid)
 {
     // open the file as a root group
-    GtH5::Group root = GtH5::Group(file);
+    GenH5::Group root = GenH5::Group(file);
     EXPECT_TRUE(root.isValid());
 
-    EXPECT_THROW(GtH5::Group{}.openDataset(QByteArray{"my_fancy_dset"}),
-                 GtH5::DataSetException);
+    EXPECT_THROW(GenH5::Group{}.openDataset(QByteArray{"my_fancy_dset"}),
+                 GenH5::DataSetException);
     EXPECT_THROW(root.openDataset(QByteArray{"my_fancy_dset"}),
-                 GtH5::DataSetException);
+                 GenH5::DataSetException);
 
     EXPECT_TRUE(root.createDataset(QByteArray{"my_fancy_dset"},
-                                   GtH5::DataType::Int,
-                                   GtH5::DataSpace::Scalar).isValid());
+                                   GenH5::DataType::Int,
+                                   GenH5::DataSpace::Scalar).isValid());
 
     EXPECT_NO_THROW(root.openDataset(QByteArray{"my_fancy_dset"}));
     EXPECT_TRUE(root.openDataset(QByteArray{"my_fancy_dset"}).isValid());
@@ -105,17 +105,17 @@ TEST_F(TestH5Group, openDataSetInvalid)
 TEST_F(TestH5Group, openAttributeInvalid)
 {
     // open the file as a root group
-    GtH5::Group root = GtH5::Group(file);
+    GenH5::Group root = GenH5::Group(file);
     EXPECT_TRUE(root.isValid());
 
-    EXPECT_THROW(GtH5::Group{}.openAttribute(QByteArray{"my_fancy_attr"}),
-                 GtH5::AttributeException);
+    EXPECT_THROW(GenH5::Group{}.openAttribute(QByteArray{"my_fancy_attr"}),
+                 GenH5::AttributeException);
     EXPECT_THROW(root.openAttribute(QByteArray{"my_fancy_attr"}),
-                 GtH5::AttributeException);
+                 GenH5::AttributeException);
 
     EXPECT_TRUE(root.createAttribute(QByteArray{"my_fancy_attr"},
-                                     GtH5::DataType::Int,
-                                     GtH5::DataSpace::Scalar).isValid());
+                                     GenH5::DataType::Int,
+                                     GenH5::DataSpace::Scalar).isValid());
 
     EXPECT_NO_THROW(root.openAttribute(QByteArray{"my_fancy_attr"}));
     EXPECT_TRUE(root.openAttribute(QByteArray{"my_fancy_attr"}).isValid());

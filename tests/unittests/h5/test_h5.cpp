@@ -1,8 +1,14 @@
+/* GTlab - Gas Turbine laboratory
+ * copyright 2009-2021 by DLR
+ *
+ * Created on: 29.04.2021
+ * Author: Marius Bröcker
+ * Email: marius.broecker@dlr.de
+ */
+
+#include "genh5_version.h"
 
 #include "gtest/gtest.h"
-
-#include "gth5_version.h"
-#include "gth5_object.h"
 
 #include <QDebug>
 
@@ -12,10 +18,29 @@ class TestH5 : public testing::Test {};
 TEST_F(TestH5, verion)
 {
     // should compile
-    qDebug() << "version hex:" << QString::number(GTH5_VERSION, 16);
-    qDebug() << "version str:" << QStringLiteral(GTH5_VERSION_STR);
-    qDebug() << "major:   " << int{GTH5_VERSION_MAJOR};
-    qDebug() << "minor:   " << int{GTH5_VERSION_MINOR};
-    qDebug() << "patch:   " << int{GTH5_VERSION_PATCH};
-    qDebug() << "addition:" << QStringLiteral(GTH5_VERSION_ADDITIONAL);
+    qDebug() << "version hex:" << QString::number(GENH5_VERSION, 16);
+    qDebug() << "version str:" << QStringLiteral(GENH5_VERSION_STR);
+    qDebug() << "major:   " << int{GENH5_VERSION_MAJOR};
+    qDebug() << "minor:   " << int{GENH5_VERSION_MINOR};
+    qDebug() << "patch:   " << int{GENH5_VERSION_PATCH};
+    qDebug() << "addition:" << QStringLiteral(GENH5_VERSION_ADDITIONAL);
+}
+
+TEST_F(TestH5, verionCheck)
+{
+    EXPECT_TRUE(GENH5_VCHECK(1, 1, 1) > 0x010100);
+    EXPECT_TRUE(GENH5_VCHECK(1, 1, 1) != 0x010100);
+    EXPECT_TRUE(GENH5_VCHECK(1, 1, 1) == 0x010101);
+    EXPECT_TRUE(GENH5_VCHECK(1, 1, 1) >= 0x010101);
+    EXPECT_TRUE(GENH5_VCHECK(1, 1, 1) <= 0x010101);
+    EXPECT_TRUE(GENH5_VCHECK(2, 0, 1) < 0x020101);
+    EXPECT_TRUE(GENH5_VCHECK(1, 2, 1) > 0x000101);
+
+    EXPECT_TRUE((GenH5::Version{1, 1, 1}  > GenH5::Version{0x010100}));
+    EXPECT_TRUE((GenH5::Version{1, 1, 1} != GenH5::Version{0x010100}));
+    EXPECT_TRUE((GenH5::Version{1, 1, 1} == GenH5::Version{0x010101}));
+    EXPECT_TRUE((GenH5::Version{1, 1, 1} <= GenH5::Version{0x010101}));
+    EXPECT_TRUE((GenH5::Version{1, 1, 1} >= GenH5::Version{0x010101}));
+    EXPECT_TRUE((GenH5::Version{2, 0, 1}  < GenH5::Version{0x020103}));
+    EXPECT_TRUE((GenH5::Version{1, 2, 1}  > GenH5::Version{0x000101}));
 }

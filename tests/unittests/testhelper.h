@@ -13,7 +13,7 @@
 
 #include <QVector>
 #include <QRandomGenerator>
-#include "gth5_utils.h"
+#include "genh5_utils.h"
 
 class QDir;
 class QString;
@@ -45,7 +45,7 @@ public:
      * @param length length of the list
      * @return list
      */
-    GtH5::Vector<QByteArray> randomByteArrays(int length) const;
+    GenH5::Vector<QByteArray> randomByteArrays(int length) const;
 
     /**
      * @brief generates a random data vector
@@ -54,7 +54,7 @@ public:
      * @return list
      */
     template<typename T = double>
-    GtH5::Vector<T> randomDataVector(int length)
+    GenH5::Vector<T> randomDataVector(int length)
     {
         QVector<T> retVal;
         retVal.reserve(length);
@@ -75,7 +75,7 @@ public:
      * @return list
      */
     template<typename T = double>
-    GtH5::Vector<T> linearDataVector(int length, T start = 0, T step = 1)
+    GenH5::Vector<T> linearDataVector(int length, T start = 0, T step = 1)
     {
         QVector<T> retVal;
         retVal.reserve(length);

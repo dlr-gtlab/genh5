@@ -7,11 +7,11 @@
  */
 
 #include "gtest/gtest.h"
-#include "gth5_attribute.h"
-#include "gth5_file.h"
-#include "gth5_group.h"
-#include "gth5_dataset.h"
-#include "gth5_data.h"
+#include "genh5_attribute.h"
+#include "genh5_file.h"
+#include "genh5_group.h"
+#include "genh5_dataset.h"
+#include "genh5_data.h"
 
 #include "testhelper.h"
 
@@ -22,11 +22,11 @@ protected:
 
     virtual void SetUp() override
     {
-        doubleData = GtH5::Vector<double>{1, 2, 3, 4, 5};
-        intData    = GtH5::Vector<int>{1, 2, 3, 4, 5};
+        doubleData = GenH5::Vector<double>{1, 2, 3, 4, 5};
+        intData    = GenH5::Vector<int>{1, 2, 3, 4, 5};
         stringData = QStringList{"1", "2", "3", "4", "5", "6"};
 
-        file = GtH5::File(h5TestHelper->newFilePath(), GtH5::Create);
+        file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
         ASSERT_TRUE(file.isValid());
 
         group = file.root().createGroup(QByteArrayLiteral("group"));
@@ -34,23 +34,35 @@ protected:
 
         dataset = group.createDataset(QByteArrayLiteral("dataset"),
                                       intData.dataType(),
-                                      GtH5::DataSpace::Scalar);
+                                      GenH5::DataSpace::Scalar);
         ASSERT_TRUE(dataset.isValid());
     }
 
-    GtH5::File file;
-    GtH5::Group group;
-    GtH5::DataSet dataset;
+    GenH5::File file;
+    GenH5::Group group;
+    GenH5::DataSet dataset;
 
-    GtH5::Data<int> intData;
-    GtH5::Data<double> doubleData;
-    GtH5::Data<QString> stringData;
+    GenH5::Data<int> intData;
+    GenH5::Data<double> doubleData;
+    GenH5::Data<QString> stringData;
 };
 
+TEST_F(TestH5Attribute, versionAttr)
+{
+    EXPECT_TRUE(file.root().createVersionAttribute());
+
+    EXPECT_TRUE(file.root().hasVersionAttribute());
+
+    auto version = file.root().readVersionAttribute();
+    auto current = GenH5::Version::current();
+    EXPECT_EQ(version.major, current.major);
+    EXPECT_EQ(version.minor, current.minor);
+    EXPECT_EQ(version.patch, current.patch);
+}
 
 TEST_F(TestH5Attribute, isValid)
 {
-    GtH5::Attribute attr;
+    GenH5::Attribute attr;
     // test invalid attribute
     EXPECT_FALSE(attr.isValid());
 
@@ -77,7 +89,7 @@ TEST_F(TestH5Attribute, isValid)
 TEST_F(TestH5Attribute, RW)
 {
     // create new dataset
-    GtH5::Attribute attr = group.createAttribute(QByteArrayLiteral("test"),
+    GenH5::Attribute attr = group.createAttribute(QByteArrayLiteral("test"),
                                                  doubleData.dataType(),
                                                  doubleData.dataSpace());
     ASSERT_TRUE(attr.isValid());
@@ -86,7 +98,7 @@ TEST_F(TestH5Attribute, RW)
     EXPECT_FALSE(attr.write(nullptr)); // cannot write from null
     EXPECT_TRUE(attr.write(doubleData));
 
-    GtH5::Data<double> readData;
+    GenH5::Data<double> readData;
     // read data
     EXPECT_FALSE(attr.read(nullptr)); // cannot read to null
     EXPECT_TRUE(attr.read(readData));
@@ -97,7 +109,7 @@ TEST_F(TestH5Attribute, RW)
 
 TEST_F(TestH5Attribute, deleteLink)
 {
-    GtH5::Attribute attr;
+    GenH5::Attribute attr;
     // test invalid attribute
     EXPECT_FALSE(attr.isValid());
 

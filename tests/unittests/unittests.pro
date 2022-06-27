@@ -23,9 +23,10 @@ CONFIG += console
 
 # H5Cpp specific
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
-# disable deprecated symbols
 DEFINES += H5_NO_DEPRECATED_SYMBOLS
-DEFINES += GTH5_NO_DEPRECATED_SYMBOLS
+# GenH5 specific
+DEFINES += GENH5_NO_DEPRECATED_SYMBOLS
+#DEFINES += GENH5_NO_BUFFER_PRE_RESERVING
 
 CONFIG(debug, debug|release){
     MOC_BUILD_DEST = $${MOC_BUILD_DEST}/debug_$${TARGET_DIR_NAME}
@@ -83,7 +84,7 @@ CONFIG(debug, debug|release) {
     unix {
         LIBS += -lhdf5 -lhdf5_cpp
     }
-    LIBS += -lGTlabH5-d
+    LIBS += -lGenH5-d
     # THIRD PARTY
     win32 {
         LIBS += -lgtestd
@@ -93,7 +94,7 @@ CONFIG(debug, debug|release) {
     }
 } else {
     LIBS += -lhdf5 -lhdf5_cpp
-    LIBS += -lGTlabH5
+    LIBS += -lGenH5
     # THIRD PARTY
     LIBS += -lgtest
 }
