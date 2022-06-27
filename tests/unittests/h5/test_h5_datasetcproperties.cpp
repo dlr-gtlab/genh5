@@ -72,7 +72,7 @@ TEST_F(TestH5DataSetProperties, compression)
 
 TEST_F(TestH5DataSetCProperties, createDatasetOptionalParam)
 {
-    GtH5::File file{h5TestHelper->newFilePath(), GtH5::CreateOnly};
+    GtH5::File file{h5TestHelper->newFilePath(), GtH5::Create};
     ASSERT_TRUE(file.isValid());
 
     // optional was explicitly created -> not default and not chunked

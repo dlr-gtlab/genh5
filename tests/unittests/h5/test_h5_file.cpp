@@ -38,7 +38,7 @@ TEST_F(TestH5File, isValid)
     EXPECT_FALSE(GtH5::File::isValidH5File(filePath));
 
     // create a new file
-    file = GtH5::File(filePath, GtH5::CreateOnly);
+    file = GtH5::File(filePath, GtH5::Create);
     EXPECT_TRUE(file.isValid());
     // file path should exist and be valid
     EXPECT_TRUE(GtH5::File::isValidH5File(filePath));
@@ -50,14 +50,15 @@ TEST_F(TestH5File, root)
     // default file object should be invalid
     EXPECT_FALSE(file.isValid());
     // root group should also be invalid
-    GtH5::Group root = file.root();
-    EXPECT_FALSE(root.isValid());
+//    GtH5::Group root = file.root();
+//    EXPECT_FALSE(root.isValid());
+    EXPECT_THROW(file.root(), GtH5::GroupException);
 
     // create a new file
-    file = GtH5::File(filePath, GtH5::CreateOnly);
+    file = GtH5::File(filePath, GtH5::Create);
     EXPECT_TRUE(file.isValid());
     // root group should be valid
-    root = file.root();
+    GtH5::Group root = file.root();
     EXPECT_TRUE(root.isValid());
 
     // handles should be different
@@ -75,7 +76,7 @@ TEST_F(TestH5File, filePath)
 
     // a created file should have the valid filename and filepath associated
     QString fileName = filePath.split(QStringLiteral("/")).last();
-    file = GtH5::File(filePath, GtH5::CreateOnly);
+    file = GtH5::File(filePath, GtH5::Create);
     EXPECT_EQ(file.filePath(), filePath);
     EXPECT_EQ(file.fileName(), fileName);
     EXPECT_EQ(file.fileBaseName() + GtH5::File::dotFileSuffix(), fileName);
@@ -86,11 +87,28 @@ TEST_F(TestH5File, creation)
     GtH5::File file;
     // file does not exist
     // OpenReadOnly -> fail
-    file = GtH5::File(filePath, GtH5::OpenOnly);
+//    file = GtH5::File(filePath, GtH5::OpenOnly);
+//    EXPECT_FALSE(file.isValid());
+//    ASSERT_FALSE(file.fileExists(filePath));
+    try
+    {
+        file = GtH5::File(filePath, GtH5::Open);
+        EXPECT_TRUE(false);
+    }
+    catch (GtH5::FileException const&) { EXPECT_TRUE(true); }
     EXPECT_FALSE(file.isValid());
     ASSERT_FALSE(file.fileExists(filePath));
+
     // OpenReadWrite -> fail
-    file = GtH5::File(filePath, { GtH5::OpenOnly | GtH5::ReadOnly });
+//    file = GtH5::File(filePath, { GtH5::OpenOnly | GtH5::ReadOnly });
+//    EXPECT_FALSE(file.isValid());
+//    ASSERT_FALSE(file.fileExists(filePath));
+    try
+    {
+        file = GtH5::File(filePath, { GtH5::Open | GtH5::ReadOnly });
+        EXPECT_TRUE(false);
+    }
+    catch (GtH5::FileException const&) { EXPECT_TRUE(true); }
     EXPECT_FALSE(file.isValid());
     ASSERT_FALSE(file.fileExists(filePath));
 
@@ -98,13 +116,21 @@ TEST_F(TestH5File, creation)
     EXPECT_NO_THROW(file.close());
 
     // create new file
-    file = GtH5::File(filePath, { GtH5::CreateOnly });
+    file = GtH5::File(filePath, { GtH5::Create });
     EXPECT_TRUE(file.isValid());
     ASSERT_TRUE(file.fileExists(filePath));
     // file does already exist -> fail
-    file = GtH5::File(filePath, GtH5::CreateOnly);
-    EXPECT_FALSE(file.isValid());
+//    file = GtH5::File(filePath, GtH5::CreateOnly);
+    try
+    {
+        file = GtH5::File(filePath, GtH5::Create);
+        EXPECT_TRUE(false);
+    }
+    catch (GtH5::FileException const&) { EXPECT_TRUE(true); }
+    EXPECT_TRUE(file.isValid()); // old file handle is still valid
     ASSERT_TRUE(file.fileExists(filePath));
+    file.close(); // clear file
+
     // file will be overwritten
     file = GtH5::File(filePath, GtH5::Overwrite);
     EXPECT_TRUE(file.isValid());
@@ -118,7 +144,13 @@ TEST_F(TestH5File, creation)
 
     ASSERT_FALSE(file.fileExists(filePath));
     // file does not exist -> fail
-    file = GtH5::File(filePath, GtH5::OpenOnly);
+//    file = GtH5::File(filePath, GtH5::OpenOnly);
+    try
+    {
+        file = GtH5::File(filePath, GtH5::Open);
+        EXPECT_TRUE(false);
+    }
+    catch (GtH5::FileException const&) { EXPECT_TRUE(true); }
     ASSERT_FALSE(file.isValid());
     ASSERT_FALSE(file.fileExists(filePath));
 }
@@ -131,7 +163,7 @@ TEST_F(TestH5File, fileLock)
     // test scope
     {
         // cretae file instance
-        GtH5::File file(filePath, GtH5::CreateOnly);
+        GtH5::File file(filePath, GtH5::Create);
         ASSERT_TRUE(file.isValid());
 
 #ifdef Q_OS_WIN

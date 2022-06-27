@@ -44,13 +44,13 @@ public:
 
     static DataSpace Null;
     static DataSpace Scalar;
-    static DataSpace linear(hsize_t length)
+    static DataSpace linear(hsize_t length) noexcept(false)
     {
         return DataSpace{Dimensions{length}};
     }
     /// overload for signed integral types
     template <typename Tint, GtH5::traits::if_signed_integral<Tint> = true>
-    static DataSpace linear(Tint length)
+    static DataSpace linear(Tint length) noexcept(false)
     {
         return linear(static_cast<hsize_t>(length));
     }
@@ -58,55 +58,55 @@ public:
     /**
      * @brief DataSpace
      */
-    DataSpace();
-    explicit DataSpace(std::initializer_list<hsize_t> initlist);
-    explicit DataSpace(Dimensions const& dimensions);
+    DataSpace() noexcept;
+    explicit DataSpace(std::initializer_list<hsize_t> initlist) noexcept(false);
+    explicit DataSpace(Dimensions const& dimensions) noexcept(false);
     explicit DataSpace(H5::DataSpace dataspace);
 
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::DataSpace const& toH5() const;
+    H5::DataSpace const& toH5() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    hid_t id() const override;
+    hid_t id() const noexcept override;
 
     /**
      * @brief number of dimensions
      * @return nDims
      */
-    int nDims() const;
+    int nDims() const noexcept;
 
     /**
      * @brief Whether this dataspace is scalar. Will return false if space has
      * one dimension and one element.
      * @return true if scalar.
      */
-    bool isScalar() const;
+    bool isScalar() const noexcept;
 
     /**
      * @brief isNull
      * @return true if null
      */
-    bool isNull() const;
+    bool isNull() const noexcept;
 
     /**
      * @brief vector containing the size of each dimensions where the length
      * equals nDims.
      * @return dimensions
      */
-    Dimensions dimensions() const;
+    Dimensions dimensions() const noexcept;
 
     /**
      * @brief Selection size of this dataspace. If selection was not explicitly
      * set, selection size is equal to size.
      * @return number of elements currently selected
      */
-    hssize_t selectionSize() const;
+    hssize_t selectionSize() const noexcept;
 
 private:
 
@@ -144,28 +144,34 @@ public:
         m_op{op}
     { }
 
-    bool commit();
+    hssize_t size()  noexcept(false)
+    {
+        commit();
+        return m_space.selectionSize();
+    }
 
-    hssize_t size() { commit(); return m_space.selectionSize(); }
+    DataSpace const& space()  noexcept(false)
+    {
+        commit();
+        return m_space;
+    }
 
-    DataSpace const& space() { commit(); return m_space; }
+    Dimensions const& count() const noexcept { return m_count; }
+    void setCount(Dimensions count) noexcept { m_count = std::move(count); }
 
-    Dimensions const& count() const { return m_count; }
-    void setCount(Dimensions count) { m_count = std::move(count); }
+    Dimensions const& offset() const noexcept { return m_offset; }
+    void setOffset(Dimensions offset) noexcept { m_offset = std::move(offset); }
 
-    Dimensions const& offset() const { return m_offset; }
-    void setOffset(Dimensions offset) { m_offset = std::move(offset); }
+    Dimensions const& stride() const noexcept{ return m_stride; }
+    void setStride(Dimensions stride) noexcept { m_stride = std::move(stride); }
 
-    Dimensions const& stride() const { return m_stride; }
-    void setStride(Dimensions stride) { m_stride = std::move(stride); }
+    Dimensions const& block() const noexcept { return m_block; }
+    void setBlock(Dimensions block) noexcept { m_block = std::move(block); }
 
-    Dimensions const& block() const { return m_block; }
-    void setBlock(Dimensions block) { m_block = std::move(block); }
+    SelectionOp op() const noexcept { return m_op; }
+    void setOp(SelectionOp op) noexcept { m_op = op; }
 
-    SelectionOp op() const { return m_op; }
-    void setOp(SelectionOp op) { m_op = op; }
-
-    operator DataSpace const&() { return space(); }
+    operator DataSpace const&() noexcept(false) { return space(); }
 
 private:
 
@@ -174,12 +180,26 @@ private:
     Dimensions m_offset{};
     Dimensions m_stride{};
     Dimensions m_block{};
-
     SelectionOp m_op = H5S_SELECT_SET;
 
-    static bool testSelection(Dimensions& dims,
-                              Dimensions const& sDims,
-                              hsize_t fillValue);
+    /**
+     * @brief Applies the selection to the dataspace. Must be called before
+     * accessing dataspace
+     * @throws DataSapceExcetpion
+     */
+    void commit() noexcept(false);
+
+    /**
+     * @brief Extends input dimension to dataspace dimension and fills missing
+     * entries with fillValue.
+     * @throws DataSpaceException if dim exceed dataspace dim
+     * @param dim dim to test
+     * @param sDim dataspace dim
+     * @param fillValue value to fill extend dim with
+     */
+    static void testSelection(Dimensions& dim,
+                              Dimensions const& sDim,
+                              hsize_t fillValue) noexcept(false);
 };
 
 template<typename Tout>
@@ -222,8 +242,5 @@ GTH5_EXPORT bool operator!=(GtH5::DataSpace const& first,
 #ifndef GTH5_NO_DEPRECATED_SYMBOLS
 using GtH5DataSpace = GtH5::DataSpace;
 #endif
-
-GTH5_EXPORT std::ostream& operator<<(std::ostream& s, GtH5::DataSpace const& d);
-GTH5_EXPORT QDebug operator<<(QDebug s, GtH5::DataSpace const& d);
 
 #endif // GTH5_DATASPACE_H

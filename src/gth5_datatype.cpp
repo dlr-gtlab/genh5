@@ -38,7 +38,7 @@ GtH5::DataType::Double{H5::PredType::NATIVE_DOUBLE};
 GtH5::DataType::DataType() = default;
 
 GtH5::DataType
-GtH5::DataType::string(size_t size, bool useUtf8)
+GtH5::DataType::string(size_t size, bool useUtf8) noexcept(false)
 {
     auto dtype = DataType{H5::StrType{H5::PredType::C_S1, size}};
     if (useUtf8)
@@ -50,67 +50,46 @@ GtH5::DataType::string(size_t size, bool useUtf8)
 
 GtH5::DataType
 GtH5::DataType::array(DataType const& type,
-                    Dimensions const& dims)
+                    Dimensions const& dims) noexcept(false)
 {
-    if (!type.isValid())
-    {
-        return {};
-    }
     return DataType{H5::ArrayType{type.toH5(), dims.length(),
                                   dims.constData()}};
 }
 
 GtH5::DataType
-GtH5::DataType::array(DataType const& type, hsize_t length)
+GtH5::DataType::array(DataType const& type, hsize_t length) noexcept(false)
 {
     return array(type, Dimensions{length});
 }
 
 GtH5::DataType
-GtH5::DataType::varLen(DataType const& type)
+GtH5::DataType::varLen(DataType const& type) noexcept(false)
 {
-    if (!type.isValid())
-    {
-        return {};
-    }
     return DataType{H5::VarLenType{type.toH5()}};
 }
 
 GtH5::DataType
-GtH5::DataType::compound(size_t dataSize, CompoundMembers const& members)
+GtH5::DataType::compound(size_t dataSize,
+                         CompoundMembers const& members) noexcept(false)
 {
-    if (members.isEmpty())
+    if (dataSize < 1)
     {
-        qCritical() << "HDF5: Invalid number of members for compound type!";
-        return {};
+        throw DataTypeException{"Creating compound type failed "
+                                "(Data size must be positive)"};
     }
 
-    if (dataSize == 0 || dataSize < members.last().offset)
+    for (auto const& m : members)
     {
-        qCritical() << "HDF5: Invalid data size for compound type!";
-        return {};
-    }
-
-    auto validNames = std::all_of(std::begin(members), std::end(members),
-                                  [](CompoundMember const& m) {
-        return !m.name.isEmpty();
-    });
-
-    if (!validNames)
-    {
-        qCritical() << "HDF5: Invalid member names for compound type!";
-        return {};
-    }
-
-    auto validTypes = std::all_of(std::begin(members), std::end(members),
-                                  [](CompoundMember const& m) {
-        return m.type.isValid();
-    });
-
-    if (!validTypes)
-    {
-        qCritical() << "HDF5: Invalid datatypes for compound type!";
-        return {};
+        if (m.name.isEmpty())
+        {
+            throw DataTypeException{"Creating compound type failed "
+                                    "(Invalid member name)"};
+        }
+        if (!m.type.isValid())
+        {
+            throw DataTypeException{"Creating compound type failed "
+                                    "(Invalid member type)"};
+        }
     }
 
     H5::CompType dtype{dataSize};
@@ -126,6 +105,8 @@ GtH5::DataType::compound(size_t dataSize, CompoundMembers const& members)
                     << m.name << "' into compound type! (offset: " << m.offset
                     << ", size: " << m.type.size()
                     << " vs. datasize: " << dataSize << ")";
+            throw DataTypeException{"Failed to insert member into "
+                                    "compound type"};
         }
     }
 
@@ -134,44 +115,58 @@ GtH5::DataType::compound(size_t dataSize, CompoundMembers const& members)
 
 GtH5::DataType::DataType(H5::DataType type) :
     m_datatype{std::move(type)}
-{
-
-}
+{ }
 
 hid_t
-GtH5::DataType::id() const
+GtH5::DataType::id() const noexcept
 {
     return m_datatype.getId();
 }
 
-bool GtH5::DataType::isArray() const { return type() == Type::H5T_ARRAY; }
+bool
+GtH5::DataType::isArray() const noexcept
+{
+    return type() == Type::H5T_ARRAY;
+}
 
-bool GtH5::DataType::isCompound() const { return type() == Type::H5T_COMPOUND; }
+bool
+GtH5::DataType::isCompound() const noexcept
+{
+    return type() == Type::H5T_COMPOUND;
+}
 
-bool GtH5::DataType::isVarLen() const { return type() == Type::H5T_VLEN; }
+bool
+GtH5::DataType::isVarLen() const noexcept
+{
+    return type() == Type::H5T_VLEN;
+}
 
-bool GtH5::DataType::isVarString() const { return H5Tis_variable_str(id()); }
+bool
+GtH5::DataType::isVarString() const noexcept
+{
+    return H5Tis_variable_str(id());
+}
 
 H5::DataType const&
-GtH5::DataType::toH5() const
+GtH5::DataType::toH5() const  noexcept
 {
     return m_datatype;
 }
 
 size_t
-GtH5::DataType::size() const
+GtH5::DataType::size() const noexcept
 {
     return H5Tget_size(id());
 }
 
 GtH5::DataType::Type
-GtH5::DataType::type() const
+GtH5::DataType::type() const noexcept
 {
     return isValid() ? H5Tget_class(id()) : H5T_NO_CLASS;
 }
 
 GtH5::Dimensions
-GtH5::DataType::arrayDimensions() const
+GtH5::DataType::arrayDimensions() const  noexcept
 {
     if (!isArray())
     {
@@ -191,146 +186,105 @@ GtH5::DataType::compoundMembers() const
     {
         return {};
     }
-    // hacky
-    // TODO: find solution without exception
+
+    H5::CompType dtype(id());
+
+    int n = dtype.getNmembers();
+
+    if (n < 1)
+    {
+        return {};
+    }
+
+    CompoundMembers members;
+    members.reserve(n);
+
     try
     {
-        H5::CompType dtype(id());
-
-        int n = dtype.getNmembers();
-
-        if (n < 1)
-        {
-            return {};
-        }
-
-        CompoundMembers members;
-        members.reserve(n);
-
         for (uint i = 0; i < static_cast<uint>(n); ++i)
         {
             auto* str = H5Tget_member_name(dtype.getId(), i);
             String memberName{str};
             H5free_memory(str);
-            members.append(CompoundMember{
-                               memberName,
-                               dtype.getMemberOffset(i),
-                               DataType{dtype.getMemberDataType(i)}
-                           });
+            members.append({
+               memberName,
+               dtype.getMemberOffset(i),
+               DataType{dtype.getMemberDataType(i)}
+           });
         }
+    }
+    catch (H5::DataTypeIException const& e)
+    {
+        throw DataTypeException{e.getCDetailMsg()};
+    }
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] DataType::compoundMembers";
+        throw DataTypeException{e.getCDetailMsg()};
+    }
 
-        return members;
-    }
-    catch (H5::DataTypeIException& /*e*/)
-    {
-        qCritical() << "HDF5: Fetching compound members failed!";
-    }
-    catch (H5::Exception& /*e*/)
-    {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataType::compoundMembers";
-    }
-    return {};
+    return members;
 }
 
 GtH5::DataType
-GtH5::DataType::superType() const
+GtH5::DataType::superType() const noexcept(false)
 {
     try
     {
         return DataType{m_datatype.getSuper()};
     }
-    catch (H5::DataTypeIException& /*e*/)
+    catch (H5::DataTypeIException const& e)
     {
-        qCritical() << "HDF5: Fetching super datatype failed!";
+        throw DataTypeException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataType::super";
+        qCritical() << "HDF5: [EXCEPTION] DataType::compoundMembers";
+        throw DataTypeException{e.getCDetailMsg()};
     }
-    return {};
 }
 
-bool
-operator==(GtH5::DataType const& first, GtH5::DataType const& other)
+#if 0
+GtH5::String
+GtH5::DataType::toString() const
 {
-    return first.id() == other.id() || (
-               first.type() == other.type() &&
-               first.size() == other.size());
+    String string;
 
-//    try
-//    {
-//        // check isValid to elimante "not a datatype" error from hdf5
-//        return first.id() == other.id() || (first.isValid() &&
-//                                            other.isValid() &&
-//                                            first.toH5() == other.toH5());
-//    }
-//    catch (H5::DataTypeIException& /*e*/)
-//    {
-//        qWarning() << "HDF5: Datatype comparisson failed! (invalid data type)";
-//        return false;
-//    }
-//    catch (H5::Exception& /*e*/)
-//    {
-//        qCritical() << "HDF5: [EXCEPTION] GtH5::DataType:operator== failed!";
-//        return false;
-//    }
-}
-
-bool
-operator!=(GtH5::DataType const& first, GtH5::DataType const& other)
-{
-    return !(first == other);
-}
-
-bool
-operator==(GtH5::CompoundMember const& first, GtH5::CompoundMember const& other)
-{
-    return first.name == other.name &&
-           first.type == other.type &&
-           first.offset == other.offset;
-}
-bool
-operator!=(GtH5::CompoundMember const& first, GtH5::CompoundMember const& other)
-{
-    return !(first == other);
-}
-
-template <typename Stream>
-Stream
-printDataType(Stream stream, GtH5::DataType const& dtype)
-{
-    switch (dtype.type())
+    switch (type())
     {
     case H5T_INTEGER:
-        stream << "Int";
+        string += "Int";
         break;
     case H5T_FLOAT:
-        stream << "Float";
+        string += "Float";
         break;
     case H5T_STRING:
-        stream << "String";
+        string += "String";
         break;
     case H5T_VLEN:
-        stream << "VarLen{ "
-               << dtype.superType()
-               << " }";
+        string += "VarLen{ "
+               +  superType().toString()
+               +  " }";
         break;
     case H5T_COMPOUND:
         {
-            auto members = dtype.compoundMembers();
-            for (auto it = members.cbegin(); it != members.cend()-1; ++it)
+            for (auto const& m : compoundMembers())
             {
-                stream << *it << ", ";
+                string += "CompMember{ \""
+                       +  m.name + "\", "
+                       +  m.type.toString() + ", at "
+                       +  String::number(m.offset)
+                       +  " }, ";
             }
-            stream << members.last();
+            string.remove(string.size()-1-2, 2);
         }
         break;
     case H5T_ARRAY:
-        stream << "Array{ "
-               << dtype.arrayDimensions()
-               << " x "
-               << dtype.superType()
-               << " }";
+        string += "Array{ "
+               +  arrayDimensions()
+               +  " x "
+               +  superType()
+               +  " }";
         break;
     case H5T_OPAQUE:
         stream << "Opaque";
@@ -355,40 +309,49 @@ printDataType(Stream stream, GtH5::DataType const& dtype)
 
     return stream;
 }
+#endif
 
-template <typename Stream>
-Stream
-printCompoundMember(Stream stream, GtH5::CompoundMember const& member)
+bool
+operator==(GtH5::DataType const& first, GtH5::DataType const& other)
 {
-    return stream << "CompMember{ \""
-                  << member.name.constData() << "\", "
-                  << member.type << ", at "
-                  << member.offset
-                  << " }";
+    return first.id() == other.id() || (
+               first.type() == other.type() &&
+               first.size() == other.size());
+
+//    try
+//    {
+//        // check isValid to elimante "not a datatype" error from hdf5
+//        return first.id() == other.id() || (first.isValid() &&
+//                                            other.isValid() &&
+//                                            first.toH5() == other.toH5());
+//    }
+//    catch (H5::DataTypeIException const& /*e*/)
+//    {
+//        qWarning() << "HDF5: Datatype comparisson failed! (invalid data type)";
+//        return false;
+//    }
+//    catch (H5::Exception const& /*e*/)
+//    {
+//        qCritical() << "HDF5: [EXCEPTION] GtH5::DataType:operator== failed!";
+//        return false;
+//    }
 }
 
-std::ostream&
-operator<<(std::ostream& s, GtH5::DataType const& d)
+bool
+operator!=(GtH5::DataType const& first, GtH5::DataType const& other)
 {
-    return printDataType<std::ostream&>(s, d);
+    return !(first == other);
 }
 
-std::ostream&
-operator<<(std::ostream& output, GtH5::CompoundMember const& d)
+bool
+operator==(GtH5::CompoundMember const& first, GtH5::CompoundMember const& other)
 {
-    return printCompoundMember<std::ostream&>(output, d);
+    return first.name == other.name &&
+           first.type == other.type &&
+           first.offset == other.offset;
 }
-
-QDebug
-operator<<(QDebug s, GtH5::CompoundMember const& d)
+bool
+operator!=(GtH5::CompoundMember const& first, GtH5::CompoundMember const& other)
 {
-    QDebugStateSaver saver{s};
-    return printCompoundMember<QDebug>(s.nospace(), d);
-}
-
-QDebug
-operator<<(QDebug s, GtH5::DataType const& d)
-{
-    QDebugStateSaver saver{s};
-    return printDataType<QDebug>(s.nospace(), d);
+    return !(first == other);
 }

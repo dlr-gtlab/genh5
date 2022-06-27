@@ -8,9 +8,7 @@
 
 #include "gth5_utils.h"
 
-#include "gth5_attribute.h"
-#include "gth5_location.h"
-
+#if 0
 #include <QDebug>
 
 template <typename Stream>
@@ -38,3 +36,4 @@ operator<<(QDebug s, GtH5::Dimensions const& d)
     QDebugStateSaver save{s};
     return printDimensions(s.nospace(), d);
 }
+#endif

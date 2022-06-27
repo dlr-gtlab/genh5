@@ -55,6 +55,7 @@ SOURCES += \
     h5/test_h5_datasetcproperties.cpp \
     h5/test_h5_dataspace.cpp \
     h5/test_h5_datatype.cpp \
+    h5/test_h5_exception.cpp \
     h5/test_h5_file.cpp \
     h5/test_h5_group.cpp \
     h5/test_h5_location.cpp \
@@ -63,7 +64,7 @@ SOURCES += \
     h5/test.cpp \
     main.cpp \
     testhelper.cpp
-	
+
 ### GTLAB HDF5
 INCLUDEPATH += ../../src
 LIBS        += -L../../lib/h5
@@ -75,9 +76,13 @@ INCLUDEPATH += $${GOOGLE_TEST_PATH}/include
 LIBS        += -L$${GOOGLE_TEST_PATH}/lib
 DEPENDPATH  += $${GOOGLE_TEST_PATH}/lib
 
-# THIRD PARTY
-LIBS += -lhdf5 -lhdf5_cpp
 CONFIG(debug, debug|release) {
+    win32 {
+        LIBS += -lhdf5_D -lhdf5_cpp_D
+    }
+    unix {
+        LIBS += -lhdf5 -lhdf5_cpp
+    }
     LIBS += -lGTlabH5-d
     # THIRD PARTY
     win32 {
@@ -87,6 +92,7 @@ CONFIG(debug, debug|release) {
         LIBS += -lgtest
     }
 } else {
+    LIBS += -lhdf5 -lhdf5_cpp
     LIBS += -lGTlabH5
     # THIRD PARTY
     LIBS += -lgtest

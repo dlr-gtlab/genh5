@@ -41,25 +41,18 @@ public:
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::Group const& toH5() const;
+    H5::Group const& toH5() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    hid_t id() const override;
+    hid_t id() const noexcept override;
 
     /**
      * @brief deletes the object.
-     * @return success
      */
-    bool deleteLink() override;
-
-    /**
-     * @brief type of the object
-     * @return type
-     */
-    ObjectType type() const override;
+    void deleteLink() noexcept(false) override;
 
     /**
      * @brief explicitly closes the resource handle
@@ -67,22 +60,24 @@ public:
     void close();
 
     // groups
-    Group createGroup(QString const& name);
-    Group createGroup(String const& name);
-    Group openGroup(QString const& name);
-    Group openGroup(String const& name);
+    Group createGroup(QString const& name) noexcept(false);
+    Group createGroup(String const& name)noexcept(false);
+    Group openGroup(QString const& name) noexcept(false);
+    Group openGroup(String const& name) noexcept(false);
 
     // datasets
     GtH5::DataSet createDataset(QString const& name,
                                 DataType const& dtype,
                                 DataSpace const& dspace,
-                                Optional<DataSetCProperties> properties = {});
+                                Optional<DataSetCProperties> properties = {}
+                                ) noexcept(false);
     GtH5::DataSet createDataset(String const& name,
                                 DataType const& dtype,
                                 DataSpace const& dspace,
-                                Optional<DataSetCProperties> properties = {});
-    GtH5::DataSet openDataset(QString const& name);
-    GtH5::DataSet openDataset(String const& name);
+                                Optional<DataSetCProperties> properties = {}
+                                ) noexcept(false);
+    GtH5::DataSet openDataset(QString const& name) noexcept(false);
+    GtH5::DataSet openDataset(String const& name) noexcept(false);
 
 protected:
 
@@ -90,7 +85,7 @@ protected:
      * @brief returns the hdf5 object as a h5object
      * @return h5object
      */
-    H5::H5Object const* toH5Object() const override;
+    H5::H5Object const* toH5Object() const noexcept override;
 
 private:
 

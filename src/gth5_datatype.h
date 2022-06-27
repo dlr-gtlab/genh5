@@ -45,16 +45,16 @@ public:
     static DataType Double;
 
     /// will create an string type with utf8 enabled by default
-    static DataType string(size_t size, bool useUtf8 = true);
+    static DataType string(size_t size, bool useUtf8 = true) noexcept(false);
 
     static DataType array(DataType const& type,
-                          Dimensions const& dims);
-    static DataType array(DataType const& type, hsize_t length);
+                          Dimensions const& dims) noexcept(false);
+    static DataType array(DataType const& type, hsize_t length) noexcept(false);
 
-    static DataType varLen(DataType const& type);
+    static DataType varLen(DataType const& type) noexcept(false);
 
     static DataType compound(size_t dataSize,
-                             CompoundMembers const& members);
+                             CompoundMembers const& members) noexcept(false);
 
     DataType();
     explicit DataType(H5::DataType type);
@@ -63,69 +63,69 @@ public:
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::DataType const& toH5() const;
+    H5::DataType const& toH5() const noexcept;
 
     /**
      * @brief size
      * @return size of a datatype in bytes.
      */
-    size_t size() const;
+    size_t size() const noexcept;
 
     /**
      * @brief type of this datatype (compound, array etc)
      * @return type
      */
-    Type type() const;
+    Type type() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    hid_t id() const override;
+    hid_t id() const noexcept override;
 
     /**
      * @brief whether this datatype is a fixed sized array.
      * @return true if is array type
      */
-    bool isArray() const;
+    bool isArray() const noexcept;
 
     /**
      * @brief whether this datatype is a fixed sized array.
      * @return true if is compound type
      */
-    bool isCompound() const;
+    bool isCompound() const noexcept;
 
     /**
      * @brief  whether this datatype is a variable length datatype.
      * Will return false if type is var string.
      * @return true if is var len.
      */
-    bool isVarLen() const;
+    bool isVarLen() const noexcept;
 
     /**
      * @brief  whether this datatype is a variable length string.
      * @return true if is var string
      */
-    bool isVarString() const;
+    bool isVarString() const noexcept;
 
     /**
      * @brief the dimensions of the fixed sized array datatype.
      * @return array dimensions. empty if not an array or process failed
      */
-    Dimensions arrayDimensions() const;
+    Dimensions arrayDimensions() const noexcept;
 
     /**
      * @brief Returns the compound members of the compound datatype.
      * @return members. Empty if not an compound type
      */
-    CompoundMembers compoundMembers() const;
+    CompoundMembers compoundMembers() const noexcept(false);
 
     /**
      * @brief Returns the super datatype of this type. Used for accessing the
      * underlying type of a var len type.
      * @return super datatype
      */
-    DataType superType() const;
+    DataType superType() const noexcept(false);
 
 protected:
 
@@ -146,7 +146,7 @@ struct CompoundMember
  */
 template <size_t N>
 inline CompoundNames<N>
-getTypeNames(DataType const& dtype)
+getTypeNames(DataType const& dtype) noexcept(false)
 {
     auto members = dtype.compoundMembers();
 
@@ -257,7 +257,7 @@ private:
 // compound type
 template<typename T1, typename T2, typename... Tother>
 inline DataType
-dataType(CompoundNames<sizeof...(Tother)+2> memberNames = {})
+dataType(CompoundNames<sizeof...(Tother)+2> memberNames = {}) noexcept(false)
 {
     using T = Comp<T1, T2, Tother...>;
     return details::datatype_impl<T>(std::move(memberNames));
@@ -266,7 +266,7 @@ dataType(CompoundNames<sizeof...(Tother)+2> memberNames = {})
 // T == compound<...>
 template<typename T>
 inline DataType
-dataType(CompoundNames<traits::comp_size<T>::value> memberNames)
+dataType(CompoundNames<traits::comp_size<T>::value> memberNames) noexcept(false)
 {
     // T must have an datatype associated!
     return details::datatype_impl<T>(std::move(memberNames));
@@ -274,7 +274,7 @@ dataType(CompoundNames<traits::comp_size<T>::value> memberNames)
 
 template<typename T>
 inline DataType
-dataType()
+dataType() noexcept(false)
 {
     // T must have an datatype associated!
     return details::datatype_impl<T>();
@@ -296,13 +296,6 @@ GTH5_EXPORT bool operator!=(GtH5::CompoundMember const& first,
 #ifndef GTH5_NO_DEPRECATED_SYMBOLS
 using GtH5DataType = GtH5::DataType;
 #endif
-
-GTH5_EXPORT std::ostream& operator<<(std::ostream& s, GtH5::DataType const& d);
-GTH5_EXPORT std::ostream& operator<<(std::ostream& s,
-                                     GtH5::CompoundMember const& d);
-
-GTH5_EXPORT QDebug operator<<(QDebug s, GtH5::DataType const& d);
-GTH5_EXPORT QDebug operator<<(QDebug s, GtH5::CompoundMember const& d);
 
 #define GTH5_DECLARE_DATATYPE(NATIVE_TYPE, H5_TYPE) \
     template <> \

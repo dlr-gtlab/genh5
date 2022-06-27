@@ -35,6 +35,7 @@ template <typename... Ts>
 struct comp_size<Comp<Ts...>>:
         std::integral_constant<size_t, sizeof...(Ts)> { };
 
+// access underlying type (for array, varlens and comps)
 template <typename T>
 struct conv_base { using type = T; };
 
@@ -47,6 +48,7 @@ struct conv_base<Array<T, N>> { using type = T; };
 template <typename T>
 using conv_base_t = typename conv_base<T>::type;
 
+// access value_type of Container
 template <typename Container>
 using value_t = typename std::decay_t<Container>::value_type;
 

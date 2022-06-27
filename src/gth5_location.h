@@ -22,16 +22,7 @@ class File;
 class Attribute;
 class Reference;
 
-/**
- * @brief The ObjectType enum
- */
-enum ObjectType
-{
-    UnkownType = 1,     // invalid object type
-    GroupType = 2,      // group
-    DataSetType = 4,    // dataset
-    AttributeType = 8   // attribute
-};
+using ObjectType = H5I_type_t;
 
 /**
  * @brief The Location class
@@ -45,64 +36,63 @@ public:
      * actions. Call this after instantion to verify the resource allocation.
      * @return whether object id is valid
      */
-    bool isValid() const override;
+    bool isValid() const noexcept override;
 
     /**
      * @brief deletes the object.
-     * @return success
      */
-    virtual bool deleteLink() = 0;
-
-    /**
-     * @brief type of the object
-     * @return type
-     */
-    virtual ObjectType type() const;
+    virtual void deleteLink() noexcept(false) = 0;
 
     /**
      * @brief exists
      * @param path Path to check
      * @return exists
      */
-    bool exists(String const& path) const;
+    bool exists(String const& path) const noexcept;
 
     /**
      * @brief exists
      * @param path Path elements to check
      * @return exists
      */
-    bool exists(Vector<String> const& path) const;
+    bool exists(Vector<String> const& path) const noexcept;
 
     /**
      * @brief internal path
      * @return path
      */
-    String path() const;
+    String path() const noexcept;
+
+    /**
+     * @brief returns object type
+     * @return object type
+     */
+    ObjectType type() const noexcept;
 
     /**
      * @brief object name
      * @return name
      */
-    virtual String name() const;
+    virtual String name() const noexcept;
 
     /**
      * @brief returns a reference to this object.
      * @return reference
      */
-    Reference toReference();
+    Reference toReference()  noexcept(false);
 
     /**
      * @brief pointer to the shared file instance of this object
      * @return file
      */
-    std::shared_ptr<File> const& file() const;
+    std::shared_ptr<File> const& file() const noexcept;
 
 protected:
 
     /**
      * @brief Location
      */
-    Location(std::shared_ptr<File> file = {});
+    Location(std::shared_ptr<File> file = {}) noexcept;
 
     // shared file instance
     std::shared_ptr<File> m_file{};
@@ -111,7 +101,7 @@ protected:
      * @brief returns the hdf5 object as a h5location.
      * @return h5location
      */
-    virtual H5::H5Location const* toH5Location() const = 0;
+    virtual H5::H5Location const* toH5Location() const noexcept = 0;
 };
 
 /**
@@ -119,12 +109,12 @@ protected:
  * @param location object
  * @return name
  */
-GTH5_EXPORT String getObjectName(Location const& location);
+GTH5_EXPORT String getObjectName(Location const& location) noexcept;
 
 } // namespace GtH5
 
 inline std::shared_ptr<GtH5::File> const&
-GtH5::Location::file() const
+GtH5::Location::file() const noexcept
 {
     return m_file;
 }

@@ -18,45 +18,42 @@ GtH5::DataSet::DataSet() = default;
 GtH5::DataSet::DataSet(std::shared_ptr<File> file, H5::DataSet dset) :
     Node{std::move(file)},
     m_dataset{std::move(dset)}
-{
-}
+{ }
 
 hid_t
-GtH5::DataSet::id() const
+GtH5::DataSet::id() const noexcept
 {
     return m_dataset.getId();
 }
 
 H5::H5Object const*
-GtH5::DataSet::toH5Object() const
+GtH5::DataSet::toH5Object() const noexcept
 {
     return &m_dataset;
 }
 
 GtH5::DataSetCProperties
-GtH5::DataSet::cProperties() const
+GtH5::DataSet::cProperties() const noexcept(false)
 {
     try
     {
         return DataSetCProperties{m_dataset.getCreatePlist()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::DataSetIException const& e)
     {
-        // ...
+        throw DataSetException{e.getCDetailMsg()};
     }
-    return {};
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] DataSet::cProperties";
+        throw DataSetException{e.getCDetailMsg()};
+    }
 }
 
 H5::DataSet const&
-GtH5::DataSet::toH5() const
+GtH5::DataSet::toH5() const noexcept
 {
     return m_dataset;
-}
-
-GtH5::ObjectType
-GtH5::DataSet::type() const
-{
-    return DataSetType;
 }
 
 bool
@@ -67,16 +64,16 @@ GtH5::DataSet::doWrite(void const* data, DataType const& dtype) const
         m_dataset.write(data, dtype.toH5());
         return true;
     }
-    catch (H5::DataSetIException& /*e*/)
+    catch (H5::DataSetIException const& e)
     {
         qCritical() << "HDF5: Writing dataset failed! -" << name();
+        throw DataSetException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::doWrite failed! -"
-                    << name();
+        qCritical() << "HDF5: [EXCEPTION] Writing dataset failed! -" << name();
+        throw DataSetException{e.getCDetailMsg()};
     }
-    return false;
 }
 
 bool
@@ -87,16 +84,15 @@ GtH5::DataSet::doRead(void* data, DataType const& dtype) const
         m_dataset.read(data, dtype.toH5());
         return true;
     }
-    catch (H5::DataSetIException& /*e*/)
+    catch (H5::DataSetIException const& e)
     {
         qCritical() << "HDF5: Reading dataset failed! -" << name();
-        return  false;
+        throw DataSetException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::doRead failed! -"
-                    << name();
-        return  false;
+        qCritical() << "HDF5: [EXCEPTION] Reading dataset failed! -" << name();
+        throw DataSetException{e.getCDetailMsg()};
     }
 }
 
@@ -131,15 +127,15 @@ GtH5::DataSet::write(void const* data,
         m_dataset.write(data, dtype->toH5(), memSpace.toH5(), fileSpace.toH5());
         return true;
     }
-    catch (H5::DataSetIException& /*e*/)
+    catch (H5::DataSetIException const& e)
     {
-        qCritical() << "HDF5: Writing selection failed! ";
-        return  false;
+        qCritical() << "HDF5: Writing dataset failed! -" << name();
+        throw DataSetException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::write failed!";
-        return  false;
+        qCritical() << "HDF5: [EXCEPTION] Writing dataset failed! -" << name();
+        throw DataSetException{e.getCDetailMsg()};
     }
 }
 
@@ -174,33 +170,32 @@ GtH5::DataSet::read(void* data,
         m_dataset.read(data, dtype->toH5(), memSpace.toH5(), fileSpace.toH5());
         return true;
     }
-    catch (H5::DataSetIException& /*e*/)
+    catch (H5::DataSetIException const& e)
     {
-        qCritical() << "HDF5: Reading selection failed! ";
-        return  false;
+        qCritical() << "HDF5: Reading dataset failed! -" << name();
+        throw DataSetException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::read failed!";
-        return  false;
+        qCritical() << "HDF5: [EXCEPTION] Reading dataset failed! -" << name();
+        throw DataSetException{e.getCDetailMsg()};
     }
 }
 
 H5::AbstractDs const&
-GtH5::DataSet::toH5AbsDataSet() const
+GtH5::DataSet::toH5AbsDataSet() const noexcept
 {
     return m_dataset;
 }
 
-bool
-GtH5::DataSet::deleteLink()
+void
+GtH5::DataSet::deleteLink() noexcept(false)
 {
     qDebug() << "HDF5: Deleting dataset...";
 
     if (!isValid())
     {
-        qWarning() << "HDF5: Dataset deletion failed! (dataset is invalid)";
-        return false;
+        throw LocationException{"Deleting dataset failed (Invalid dataset)"};
     }
 
     auto m_dataspace = dataSpace();
@@ -213,17 +208,14 @@ GtH5::DataSet::deleteLink()
     // returns error type
     if (H5Ldelete(m_file->id(), name().constData(), H5P_DEFAULT))
     {
-        qCritical() << "HDF5: Dataset deletion failed!";
-        return false;
+        throw LocationException{"Deleting dataset failed"};
     }
-
     close();
-    return true;
 }
 
 bool
-GtH5::DataSet::resize(Dimensions const& dimensions)
-{    
+GtH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
+{
     // dataset must be chunked
     if (!properties().isChunked())
     {
@@ -239,25 +231,9 @@ GtH5::DataSet::resize(Dimensions const& dimensions)
     }
 
     // check if resizing is necessary
-    if (dimensions == dataSpace().dimensions())
-    {
-        return true;
-    }
-
-    // try resizing
-    try
+    if (dimensions != dataSpace().dimensions())
     {
         m_dataset.extend(dimensions.constData());
-    }
-    catch (H5::DataSetIException& /*e*/)
-    {
-        qCritical() << "HDF5: Resizing dataset failed! ";
-        return false;
-    }
-    catch (H5::Exception& /*e*/)
-    {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::DataSet::resize";
-        return false;
     }
     return true;
 }

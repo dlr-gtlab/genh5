@@ -29,7 +29,7 @@ public:
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    virtual hid_t id() const = 0;
+    virtual hid_t id() const noexcept = 0;
 
     /**
      * @brief returns whether the object id is valid and can be used for further
@@ -37,7 +37,7 @@ public:
      * verification
      * @return whether object id is valid
      */
-    virtual bool isValid() const
+    virtual bool isValid() const noexcept
     {
         return H5Iis_valid(id());
     }
@@ -47,7 +47,7 @@ public:
      * @param id id
      * @return is valid
      */
-    static bool isValid(hid_t id)
+    static bool isValid(hid_t id) noexcept
     {
         return H5Iis_valid(id);
     }

@@ -14,7 +14,7 @@
 #include <QDir>
 
 GtH5::String
-GtH5::getFileName(File const& file)
+GtH5::getFileName(File const& file) noexcept
 {
     if (!file.isValid())
     {
@@ -41,7 +41,7 @@ GtH5::getFileName(File const& file)
 
 #ifndef GTH5_NO_DEPRECATED_SYMBOLS
 uint32_t
-GtH5::File::accessMode(AccessFlag mode)
+GtH5::File::accessMode(AccessFlag mode) noexcept
 {
     switch (mode)
     {
@@ -62,19 +62,19 @@ GtH5::File::accessMode(AccessFlag mode)
 #endif
 
 uint32_t
-GtH5::File::accessMode(AccessFlags flags)
+GtH5::File::accessMode(AccessFlags flags) noexcept
 {
     switch (flags)
     {
-    case GtH5::Overwrite:
-        return H5F_ACC_TRUNC;
-    case GtH5::CreateOnly:
+    case GtH5::Create:
         return H5F_ACC_EXCL; // fail if file exist
-    case GtH5::OpenOnly:
+    case GtH5::Open:
     case GtH5::ReadWrite:
         return H5F_ACC_RDWR;
     case GtH5::ReadOnly:
         return H5F_ACC_RDONLY;
+    case GtH5::Overwrite:
+        return H5F_ACC_TRUNC;
     }
 
     return H5F_ACC_DEFAULT;
@@ -95,43 +95,36 @@ GtH5::File::File(String path, AccessFlags flags)
 
     if (!fileDir.exists())
     {
-        qCritical() << "HDF5: Accessing file failed! (dir does not exist) -"
-                    << path;
-        return;
+        throw FileException{"Accessing file failed! "
+                            "(Directory does not exist)"};
     }
 
     if (!fileInfo.exists())
     {
-        if ((flags & OpenOnly))
+        if ((flags & Open))
         {
-            qCritical() << "HDF5: Opening file failed! (file does not exist) -"
-                        << path;
-            return;
+            throw FileException{"Opening file failed! "
+                                "(File does not exist)"};
         }
     }
-    else
+    else if ((flags & Create))
     {
-        if ((flags & CreateOnly))
-        {
-            qCritical() << "HDF5: Creating file failed! (file already exist) -"
-                        << path;
-            return;
-        }
+        throw FileException{"Creating file failed! "
+                            "(File already exist)"};
     }
 
     try
     {
         m_file = H5::H5File{path.constData(), accessMode(flags)};
     }
-    catch (H5::FileIException& /*e*/)
+    catch (H5::FileIException const& e)
     {
-        qCritical() << "HDF5: Accessing file failed!"
-                    << path << flags;
+        throw FileException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::File:GtH5File failed!"
-                    << path << flags;
+        qCritical() << "HDF5: [EXCEPTION] File::File";
+        throw FileException{e.getCDetailMsg()};
     }
 }
 
@@ -159,8 +152,6 @@ GtH5::File::File(String path, AccessFlag flag)
                     << path;
         return;
     }
-
-//    H5F_ACC_EXCL
 
     if (!fileInfo.exists())
     {
@@ -202,7 +193,7 @@ GtH5::File::File(String path, AccessFlag flag)
 #endif
 
 bool
-GtH5::File::fileExists(QString const& path)
+GtH5::File::fileExists(QString const& path) noexcept
 {
     return QFileInfo::exists(path);
 }
@@ -222,13 +213,13 @@ GtH5::File::isValidH5File(String const& filePath)
 }
 
 hid_t
-GtH5::File::id() const
+GtH5::File::id() const noexcept
 {
     return m_file.getId();
 }
 
 GtH5::Group
-GtH5::File::root() const
+GtH5::File::root() const noexcept(false)
 {
     if (!isValid(m_root.id()))
     {
@@ -238,31 +229,31 @@ GtH5::File::root() const
 }
 
 GtH5::String
-GtH5::File::fileName() const
+GtH5::File::fileName() const noexcept
 {
-    return QFileInfo{getFileName(*this)}.fileName().toUtf8();
+    return QFileInfo{filePath()}.fileName().toUtf8();
 }
 
 GtH5::String
-GtH5::File::fileBaseName() const
+GtH5::File::fileBaseName() const noexcept
 {
-    return QFileInfo{getFileName(*this)}.baseName().toUtf8();
+    return QFileInfo{filePath()}.baseName().toUtf8();
 }
 
 GtH5::String
-GtH5::File::filePath() const
+GtH5::File::filePath() const noexcept
 {
     return getFileName(*this);
 }
 
 GtH5::String
-GtH5::File::fileSuffix()
+GtH5::File::fileSuffix() noexcept
 {
     return QByteArrayLiteral("h5");
 }
 
 GtH5::String
-GtH5::File::dotFileSuffix()
+GtH5::File::dotFileSuffix() noexcept
 {
     return QByteArrayLiteral(".h5");
 }
@@ -278,7 +269,7 @@ GtH5::File::close()
 }
 
 H5::H5File const&
-GtH5::File::toH5() const
+GtH5::File::toH5() const noexcept
 {
     return m_file;
 }

@@ -38,37 +38,33 @@ public:
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::DataSet const& toH5() const;
+    H5::DataSet const& toH5() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    hid_t id() const override;
+    hid_t id() const noexcept override;
 
     /**
      * @brief deletes the object.
-     * @return success
      */
-    bool deleteLink() override;
-
-    /**
-     * @brief type of the object
-     * @return type
-     */
-    ObjectType type() const override;
+    void deleteLink() noexcept(false) override;
 
     /**
      * @brief properties used to create this object.
      * @return create properties
      */
-    DataSetCProperties properties() const { return cProperties(); }
+    DataSetCProperties properties() const noexcept(false)
+    {
+        return cProperties();
+    }
 
     /**
      * @brief properties used to create this object.
      * @return create properties
      */
-    DataSetCProperties cProperties() const;
+    DataSetCProperties cProperties() const noexcept(false);
 
     /**
      * @brief resizes this dataset.
@@ -76,7 +72,7 @@ public:
      * Number of dimensions must match the current number
      * @return success
      */
-    bool resize(Dimensions const& dimensions);
+    bool resize(Dimensions const& dimensions) noexcept(false) ;
 
     /**
      * @brief explicitly closes the resource handle
@@ -94,19 +90,19 @@ public:
     bool write(void const* data,
                DataSpace const& fileSpace,
                DataSpace const& memSpace,
-               Optional<DataType> dtype = {}) const;
+               Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
     bool write(Vector<T> const& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace = {},
-               Optional<DataType> dtype = {}) const;
+               Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
     bool write(AbstractData<T> const& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace = {},
-               Optional<DataType> dtype = {}) const;
+               Optional<DataType> dtype = {}) const noexcept(false);
 
     using AbstractDataSet::read;
     /**
@@ -119,21 +115,21 @@ public:
     bool read(void* data,
               DataSpace const& fileSpace,
               DataSpace const& memSpace,
-              Optional<DataType> dtype = {});
+              Optional<DataType> dtype = {}) noexcept(false);
 
     template<typename T>
     bool read(Vector<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype = {});
+              Optional<DataType> dtype = {}) noexcept(false);
 
     template<typename T>
     bool read(AbstractData<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype = {});
+              Optional<DataType> dtype = {}) noexcept(false);
 
 protected:
 
-    H5::AbstractDs const& toH5AbsDataSet() const override;
+    H5::AbstractDs const& toH5AbsDataSet() const noexcept override;
 
     bool doWrite(void const* data, DataType const& dtype) const override;
     bool doRead(void* data, DataType const& dtype) const override;
@@ -142,7 +138,7 @@ protected:
      * @brief returns the hdf5 object as a h5object
      * @return h5object
      */
-    H5::H5Object const* toH5Object() const override;
+    H5::H5Object const* toH5Object() const noexcept override;
 
 private:
 
@@ -157,16 +153,13 @@ inline bool
 DataSet::write(Vector<T> const& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace,
-               Optional<DataType> dtype) const
+               Optional<DataType> dtype) const noexcept(false)
 {
     auto selected = fileSpace.selectionSize();
 
-    if (selected > data.length())
+    if (selected > data.size())
     {
-        qCritical() << "HDF5: Writing data failed!"
-                    << "(Too few data elements for selection:"
-                    << data.length() << "vs."
-                    << selected << "selected)";
+        debugWriteError(data.size());
         return false;
     }
 
@@ -183,23 +176,21 @@ inline bool
 DataSet::write(AbstractData<T> const& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace,
-               Optional<DataType> dtype) const
+               Optional<DataType> dtype) const noexcept(false)
 {
-
     if (dtype.isDefault())
     {
         dtype = data.dataType();
     }
 
-    return write(static_cast<Vector<T>>(data),
-                 fileSpace, std::move(memSpace), std::move(dtype));
+    return write(data.c(), fileSpace, std::move(memSpace), std::move(dtype));
 }
 
 template<typename T>
 inline bool
 DataSet::read(Vector<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype)
+              Optional<DataType> dtype) noexcept(false)
 {
     data.resize(fileSpace.selectionSize());
 
@@ -211,7 +202,7 @@ template<typename T>
 inline bool
 DataSet::read(AbstractData<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype)
+              Optional<DataType> dtype) noexcept(false)
 {
     data.resize(fileSpace.selectionSize());
 

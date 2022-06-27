@@ -30,7 +30,7 @@ protected:
         doubleData = QVector<double>{1, 2, 3, 4, 5, 6};
 
         file = GtH5::File(h5TestHelper->newFilePath(),
-                          GtH5::CreateOnly);
+                          GtH5::Create);
         ASSERT_TRUE(file.isValid());
         root = file.root();
         ASSERT_TRUE(root.isValid());
@@ -133,6 +133,22 @@ GTH5_DECLARE_DATATYPE_IMPL(QPointF)
     using Tp = decltype (std::declval<QPointF>().x());
     return GtH5::dataType<Tp, Tp>({"xp", "yp"});
 };
+
+TEST_F(TestH5AbstractDataSet, typeInvalid)
+{
+    GtH5::DataSet dset;
+    EXPECT_THROW(dset.dataType(), GtH5::DataTypeException);
+    GtH5::Attribute attr;
+    EXPECT_THROW(attr.dataType(), GtH5::DataTypeException);
+}
+
+TEST_F(TestH5AbstractDataSet, spaceInvalid)
+{
+    GtH5::DataSet dset;
+    EXPECT_THROW(dset.dataSpace(), GtH5::DataSpaceException);
+    GtH5::Attribute attr;
+    EXPECT_THROW(attr.dataSpace(), GtH5::DataSpaceException);
+}
 
 TEST_F(TestH5AbstractDataSet, RWscalarVarString)
 {

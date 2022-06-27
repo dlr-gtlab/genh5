@@ -13,20 +13,18 @@
 #include "gth5_datatype.h"
 
 
-GtH5::Node::Node(std::shared_ptr<File> file) :
+GtH5::Node::Node(std::shared_ptr<File> file) noexcept :
     Location{std::move(file)}
-{
-
-}
+{ }
 
 H5::H5Location const*
-GtH5::Node::toH5Location() const
+GtH5::Node::toH5Location() const noexcept
 {
     return toH5Object();
 }
 
 bool
-GtH5::Node::hasAttribute(String const& name) const
+GtH5::Node::hasAttribute(String const& name) const noexcept(false)
 {
     return toH5Object()->attrExists(name.constData());
 }
@@ -34,7 +32,7 @@ GtH5::Node::hasAttribute(String const& name) const
 GtH5::Attribute
 GtH5::Node::createAttribute(QString const& name,
                             DataType const& dtype,
-                            DataSpace const& dspace) const
+                            DataSpace const& dspace) const noexcept(false)
 {
     return createAttribute(name.toUtf8(), dtype, dspace);
 }
@@ -42,33 +40,33 @@ GtH5::Node::createAttribute(QString const& name,
 GtH5::Attribute
 GtH5::Node::createAttribute(String const& name,
                             DataType const& dtype,
-                            DataSpace const& dspace) const
+                            DataSpace const& dspace) const noexcept(false)
 {
     auto const& parent = *this;
+
+    if (!parent.isValid())
+    {
+        throw AttributeException{"Creating attribute failed (invalid parent)"};
+    }
 
     // create new attribute!
     if (!parent.hasAttribute(name))
     {
-        H5::Attribute attr;
         try
         {
-            attr = parent.toH5Object()->createAttribute(name.constData(),
-                                                        dtype.toH5(),
-                                                        dspace.toH5());
+            auto attr = parent.toH5Object()->createAttribute(
+                        name.constData(), dtype.toH5(), dspace.toH5());
+            return {parent.file(), std::move(attr)};
         }
-        catch (H5::AttributeIException& /*e*/)
+        catch (H5::AttributeIException const& e)
         {
-            qCritical() << "HDF5: Creating attribute failed! -" << name;
-            return {};
+            throw AttributeException{e.getCDetailMsg()};
         }
-        catch (H5::Exception& /*e*/)
+        catch (H5::Exception const& e)
         {
-            qCritical() << "HDF5: [EXCEPTION] GtH5::Attribute::create failed! -"
-                        << name;
-            return {};
+            qCritical() << "HDF5: [EXCEPTION] Node::createAttribute";
+            throw AttributeException{e.getCDetailMsg()};
         }
-
-        return {parent.file(), std::move(attr)};
     }
 
     // open existing attribute
@@ -81,42 +79,41 @@ GtH5::Node::createAttribute(String const& name,
     }
 
     // attribute cannot be resized and must be deleted
-    qWarning() << "HDF5: Invalid memory layout! Overwriting dataset! -" << name;
-    if (!attr.deleteLink())
-    {
-        return {};
-    }
+    qWarning() << "HDF5: Invalid memory layout! Overwriting attribute! -"
+               << name;
+    attr.deleteLink();
 
     return createAttribute(std::move(name), dtype, dspace);
-//    return GtH5Attribute::create(*this, name, dtype, dspace);
 }
 
 GtH5::Attribute
-GtH5::Node::openAttribute(QString const& name) const
+GtH5::Node::openAttribute(QString const& name) const noexcept(false)
 {
     return openAttribute(name.toUtf8());
 }
 
 GtH5::Attribute
-GtH5::Node::openAttribute(String const& name) const
+GtH5::Node::openAttribute(String const& name) const noexcept(false)
 {
     auto const& parent = *this;
-    H5::Attribute attr;
-    try
+
+    if (!parent.isValid())
     {
-        attr = parent.toH5Object()->openAttribute(name.constData());
-    }
-    catch (H5::DataSetIException& /*e*/)
-    {
-        qCritical() << "HDF5: Opening attribute failed! -" << name;
-        return {};
-    }
-    catch (H5::Exception& /*e*/)
-    {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::Attribute::open failed! -"
-                    << name;
-        return {};
+        throw AttributeException{"Opening attribute failed (invalid parent)"};
     }
 
-    return {parent.file(), std::move(attr)};
+    try
+    {
+        auto attr = parent.toH5Object()->openAttribute(name.constData());
+        return {parent.file(), std::move(attr)};
+    }
+    catch (H5::AttributeIException const& e)
+    {
+        throw AttributeException{e.getCDetailMsg()};
+    }
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] Node::openAttribute";
+        throw AttributeException{e.getCDetailMsg()};
+    }
 }

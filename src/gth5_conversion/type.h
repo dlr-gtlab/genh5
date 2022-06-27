@@ -24,12 +24,12 @@ namespace GtH5
 namespace details
 {
 
-    // For mapping types to their conversion types
-    template<typename Tsrc, typename Tconversion = Tsrc>
-    struct conversion_impl
-    {
-        using type = Tconversion;
-    };
+// For mapping types to their conversion types
+template<typename Tsrc, typename Tconversion = Tsrc>
+struct conversion_impl
+{
+    using type = Tconversion;
+};
 
 } // namespace details
 

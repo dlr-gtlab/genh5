@@ -33,38 +33,24 @@ public:
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5::Attribute const& toH5() const;
+    H5::Attribute const& toH5() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource
      * @return id
      */
-    hid_t id() const override;
-
-    /**
-     * @brief returns whether the object id is valid and can be used for further
-     * actions. Call this after instantion to verify the resource allocation.
-     * @return whether object id is valid
-     */
-    bool isValid() const override;
+    hid_t id() const noexcept override;
 
     /**
      * @brief deletes the object.
-     * @return success
      */
-    bool deleteLink() override;    
-
-    /**
-     * @brief type of the object
-     * @return type
-     */
-    ObjectType type() const override;
+    void deleteLink() noexcept(false) override;
 
     /**
      * @brief attribute name
      * @return name
      */
-    String name() const override;
+    String name() const noexcept override;
 
     /**
      * @brief explicitly closes the resource handle
@@ -73,7 +59,7 @@ public:
 
 protected:
 
-    H5::AbstractDs const& toH5AbsDataSet() const override;
+    H5::AbstractDs const& toH5AbsDataSet() const noexcept override;
 
     bool doWrite(void const* data, DataType const&) const override;
     bool doRead(void* data, DataType const&) const override;
@@ -82,7 +68,7 @@ protected:
      * @brief returns the hdf5 object as a h5location.
      * @return h5location
      */
-    H5::H5Location const* toH5Location() const override;
+    H5::H5Location const* toH5Location() const noexcept override;
 
 private:
 
@@ -94,10 +80,10 @@ private:
 
 /**
  * @brief helper function to retrieve the name of an attribute
- * @param attr
+ * @param attr object
  * @return name
  */
-GTH5_EXPORT String getAttributeName(Attribute const& attr);
+GTH5_EXPORT String getAttributeName(Attribute const& attr) noexcept;
 
 } // namespace GtH5
 

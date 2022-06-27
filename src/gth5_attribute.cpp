@@ -9,11 +9,12 @@
 #include "gth5_attribute.h"
 #include "gth5_node.h"
 #include "gth5_file.h"
+#include "gth5_exception.h"
 
 #include <QDebug>
 
 GtH5::String
-GtH5::getAttributeName(Attribute const& attr)
+GtH5::getAttributeName(Attribute const& attr) noexcept
 {
     if (!attr.isValid())
     {
@@ -43,29 +44,22 @@ GtH5::Attribute::Attribute() = default;
 GtH5::Attribute::Attribute(std::shared_ptr<File> file, H5::Attribute attr) :
     Location{std::move(file)},
     m_attribute(std::move(attr))
-{
-}
+{ }
 
 hid_t
-GtH5::Attribute::id() const
+GtH5::Attribute::id() const noexcept
 {
     return m_attribute.getId();
 }
 
-const H5::H5Location*
-GtH5::Attribute::toH5Location() const
+H5::H5Location const*
+GtH5::Attribute::toH5Location() const noexcept
 {
     return &m_attribute;
 }
 
-bool
-GtH5::Attribute::isValid() const
-{
-    return Location::isValid();
-}
-
 H5::Attribute const&
-GtH5::Attribute::toH5() const
+GtH5::Attribute::toH5() const noexcept
 {
     return m_attribute;
 }
@@ -78,69 +72,49 @@ GtH5::Attribute::doWrite(void const* data, DataType const& dtype) const
         m_attribute.write(dtype.toH5(), data);
         return true;
     }
-    catch (H5::AttributeIException& /*e*/)
+    catch (H5::AttributeIException const& e)
     {
         qCritical() << "HDF5: Writing attribute failed! -" << name();
+        throw AttributeException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::Attribute::doWrite failed! -"
+        qCritical() << "HDF5: [EXCEPTION] Writing attribute failed! -"
                     << name();
+        throw AttributeException{e.getCDetailMsg()};
     }
-    return false;
 }
 
 bool
 GtH5::Attribute::doRead(void* data, DataType const& dtype) const
 {
-    try
-    {
-        m_attribute.read(dtype.toH5(), data);
-        return true;
-    }
-    catch (H5::AttributeIException& /*e*/)
-    {
-        qCritical() << "HDF5: Reading attribute failed! -" << name();
-    }
-    catch (H5::Exception& /*e*/)
-    {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::Attribute::doRead failed! -"
-                    << name();
-    }
-    return false;
+    m_attribute.read(dtype.toH5(), data);
+    return true;
 }
 
-bool
-GtH5::Attribute::deleteLink()
+void
+GtH5::Attribute::deleteLink() noexcept(false)
 {
     qDebug() << "HDF5: Deleting attribute...";
 
     if (!isValid())
     {
-        qWarning() << "HDF5: Attribute deletion failed! (attribute is invalid)";
-        return false;
+        throw LocationException{"Deleting attribute failed "
+                                "(Invalid attribute)"};
     }
 
     // returns error type
     if (H5Adelete_by_name(file()->id(), path().constData(),
                           name().constData(), H5P_DEFAULT))
     {
-        qCritical() << "HDF5: Attribute deletion failed!";
-        return false;
+        throw LocationException{"Deleting attribute failed"};
     }
 
     close();
-    return true;
-}
-
-GtH5::ObjectType
-GtH5::Attribute::type() const
-{
-    return AttributeType;
 }
 
 GtH5::String
-GtH5::Attribute::name() const
+GtH5::Attribute::name() const noexcept
 {
     return getAttributeName(*this);
 }
@@ -152,7 +126,7 @@ GtH5::Attribute::close()
 }
 
 H5::AbstractDs const&
-GtH5::Attribute::toH5AbsDataSet() const
+GtH5::Attribute::toH5AbsDataSet() const noexcept
 {
     return m_attribute;
 }

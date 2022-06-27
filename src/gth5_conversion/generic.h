@@ -13,8 +13,6 @@
 #include "buffer.h"
 #include "gth5_typetraits.h"
 
-#include <QDebug>
-
 namespace GtH5
 {
 

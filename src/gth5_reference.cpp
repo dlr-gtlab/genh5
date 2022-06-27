@@ -16,14 +16,16 @@
 
 GtH5::Reference::Reference() = default;
 
-GtH5::Reference::Reference(Alignment data, ObjectType type) :
-    m_type{type}
+GtH5::Reference::Reference(H5R_ref_t ref) noexcept :
+    m_ref{ref}
+{ }
+
+GtH5::Reference::Reference(Alignment data) noexcept
 {
     m_ref.u.align = data;
 }
 
-GtH5::Reference::Reference(QByteArray buffer, ObjectType type) :
-    m_type{type}
+GtH5::Reference::Reference(QByteArray buffer)  noexcept(false)
 {
     if (buffer.size() != bufferSize)
     {
@@ -31,34 +33,24 @@ GtH5::Reference::Reference(QByteArray buffer, ObjectType type) :
                 << "HDF5: invalid buffer format! ("
                 << buffer.size() << " vs. " << bufferSize
                 << "expected elements)";
-        return;
+        throw ReferenceException{"Invalid buffer format!"};
     }
 
     std::move(std::begin(buffer), std::end(buffer), std::begin(m_ref.u.__data));
 }
 
-GtH5::Reference::Reference(H5R_ref_t ref, ObjectType type) :
-    m_ref{ref},
-    m_type{type}
-{
-
-}
-
-GtH5::Reference::Reference(Location const& location) :
-    m_type(location.type())
+GtH5::Reference::Reference(Location const& location) noexcept(false)
 {
     m_ref.u.align = 0;
 
     if (!location.isValid())
     {
-        qCritical() << "HDF5: Referencing location failed! "
-                       "(location is invalid)";
-        return;
+        throw ReferenceException{"Referencing location failed "
+                                 "(invalid location)"};
     }
 
     herr_t error;
-
-    if (location.type() == ObjectType::AttributeType)
+    if (location.type() == H5I_ATTR)
     {
         error = H5Rcreate_attr(location.file()->id(), location.path(),
                                location.name(), H5P_DEFAULT, &m_ref);
@@ -71,8 +63,7 @@ GtH5::Reference::Reference(Location const& location) :
 
     if (error < 0)
     {
-        qCritical() << "HDF5: Referencing location (attribute) failed!";
-        return;
+        throw ReferenceException{"Referencing location failed"};
     }
 
     // the file ref counter is incremented when creating a reference, however
@@ -84,109 +75,83 @@ GtH5::Reference::Reference(Location const& location) :
 }
 
 bool
-GtH5::Reference::isValid() const
+GtH5::Reference::isValid() const noexcept
 {
     return alignment() > 0;
 }
 
 QByteArray
-GtH5::Reference::buffer() const
+GtH5::Reference::buffer() const noexcept
 {
     return {reinterpret_cast<char const*>(m_ref.u.__data), bufferSize};
 }
 
-GtH5::ObjectType
-GtH5::Reference::type() const
-{
-    return m_type;
-}
-
 H5R_ref_t const&
-GtH5::Reference::toH5() const
+GtH5::Reference::toH5() const noexcept
 {
     return m_ref;
 }
 
 GtH5::Group
-GtH5::Reference::toGroup(File const& file) const
+GtH5::Reference::toGroup(File const& file) const noexcept(false)
 {
-    if (m_type != ObjectType::GroupType && m_type != ObjectType::UnkownType)
-    {
-        qCritical() << "HDF5: Dereferencing group failed! "
-                       "(invalid object type)";
-        return {};
-    }
-
-    H5::Group group;
     try
     {
+        H5::Group group;
         group.dereference(*file.root().toH5Object(), &m_ref);
+        // access shared file in root group as the local one may not be the same
+        return {file.root().file(), std::move(group)};
     }
-    catch (H5::GroupIException& /*e*/)
+    catch (H5::ReferenceException const& e)
     {
-        qCritical() << "HDF5: Dereferencing group failed!";
-        return {};
+        throw ReferenceException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::GroupIException const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::Reference::toGroup failed!";
-        return {};
+        throw GroupException{e.getCDetailMsg()};
     }
-
-    // access shared file in root group as the local one may not be the same
-    return {file.root().file(), std::move(group)};
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] Reference::toGroup";
+        throw ReferenceException{e.getCDetailMsg()};
+    }
 }
 
 GtH5::DataSet
-GtH5::Reference::toDataSet(File const& file) const
+GtH5::Reference::toDataSet(File const& file) const noexcept(false)
 {
-    if (m_type != ObjectType::DataSetType && m_type != ObjectType::UnkownType)
-    {
-        qCritical() << "HDF5: Dereferencing dataset failed! "
-                       "(invalid object type)";
-        return {};
-    }
-
-    H5::DataSet dset;
     try
     {
+        H5::DataSet dset;
         dset.dereference(*file.root().toH5Object(), &m_ref);
+        // access shared file in root group as the local one may not be the same
+        return {file.root().file(), std::move(dset)};
     }
-    catch (H5::DataSetIException& /*e*/)
+    catch (H5::ReferenceException const& e)
     {
-        qCritical() << "HDF5: Dereferencing dataset failed!";
-        return {};
+        throw ReferenceException{e.getCDetailMsg()};
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::DataSetIException const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] GtH5::Reference::toDataSet failed!";
-        return {};
+        throw DataSetException{e.getCDetailMsg()};
     }
-
-    // access shared file in root group as the local one may not be the same
-    return {file.root().file(), std::move(dset)};
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] Reference::toDataSet";
+        throw ReferenceException{e.getCDetailMsg()};
+    }
 }
 
 GtH5::Attribute
-GtH5::Reference::toAttribute(File const& file) const
+GtH5::Reference::toAttribute(File const& file) const noexcept(false)
 {
-    if (m_type != ObjectType::AttributeType && m_type != ObjectType::UnkownType)
-    {
-        qCritical() << "HDF5: Dereferencing attribute failed! "
-                       "(invalid object type)";
-        return {};
-    }
-
     auto ref = m_ref;
     hid_t id = H5Ropen_attr(&ref, H5P_DEFAULT, H5P_DEFAULT);
 
     if (id == -1)
     {
-        qCritical() << "HDF5: Dereferencing attribute failed!";
-        return {};
+        throw ReferenceException{"Dereferencing attribute failed"};
     }
-
-//    H5::Attribute attr{id};
 
     // access shared file in root group as the local one may not be the same
     return {file.root().file(), id};
