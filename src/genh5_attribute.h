@@ -87,8 +87,4 @@ GENH5_EXPORT String getAttributeName(Attribute const& attr) noexcept;
 
 } // namespace GenH5
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5Attribute = GenH5::Attribute;
-#endif
-
 #endif // GENH5_ATTRIBUTE_H

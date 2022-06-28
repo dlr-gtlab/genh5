@@ -78,8 +78,4 @@ private:
 
 } // namespace GenH5
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5DataSetCProperties = GenH5::DataSetCProperties;
-#endif
-
 #endif // GENH5_DATASETCPROPERTIES_H

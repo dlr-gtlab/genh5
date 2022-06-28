@@ -15,8 +15,8 @@
 #define GENH5_TO_STR_HELPER(x) #x
 #define GENH5_TO_STR(x) GENH5_TO_STR_HELPER(x)
 
-#define GENH5_VERSION_MAJOR 1
-#define GENH5_VERSION_MINOR 1
+#define GENH5_VERSION_MAJOR 2
+#define GENH5_VERSION_MINOR 0
 #define GENH5_VERSION_PATCH 0
 #define GENH5_VERSION_ADDITIONAL ""
 #define GENH5_VERSION ((GENH5_VERSION_MAJOR<<16)|\
@@ -34,60 +34,58 @@
 namespace GenH5
 {
 
-struct Version
+struct GENH5_EXPORT Version
 {
     int major{}, minor{}, patch{};
 
-    Version() = default;
+    constexpr Version() = default;
     // cppcheck-suppress noExplicitConstructor
-    Version(int version) :
+    constexpr Version(int version) :
         major{(version & 0xff0000) >> 16},
         minor{(version & 0x00ff00) >> 8},
         patch{(version & 0x0000ff)}
     {}
-    Version(int vMajor, int vMinor, int vPatch) :
+    constexpr Version(int vMajor, int vMinor, int vPatch) :
         major{vMajor}, minor{vMinor}, patch{vPatch}
     {}
 
-    static Version current()
-    {
-        return {GENH5_VERSION_MAJOR, GENH5_VERSION_MINOR, GENH5_VERSION_PATCH};
-    }
+    /**
+     * @brief Returns the version used at compile time of this library
+     * @return current version struct
+     */
+    static Version current();
 
-    int toInt() const
-    {
-        return major << 16 | minor << 8 | patch;
-    }
+    constexpr int toInt() const { return major << 16 | minor << 8 | patch; }
 };
 
 } // namespace GenH5
 
-inline bool
+constexpr inline bool
 operator==(GenH5::Version const& v1, GenH5::Version const& v2)
 {
     return v1.toInt() == v2.toInt();
 }
-inline bool
+constexpr inline bool
 operator!=(GenH5::Version const& v1, GenH5::Version const& v2)
 {
     return v1.toInt() != v2.toInt();
 }
-inline bool
+constexpr inline bool
 operator<=(GenH5::Version const& v1, GenH5::Version const& v2)
 {
     return v1.toInt() <= v2.toInt();
 }
-inline bool
+constexpr inline bool
 operator>=(GenH5::Version const& v1, GenH5::Version const& v2)
 {
     return v1.toInt() >= v2.toInt();
 }
-inline bool
+constexpr inline bool
 operator<(GenH5::Version const& v1, GenH5::Version const& v2)
 {
     return v1.toInt() < v2.toInt();
 }
-inline bool
+constexpr inline bool
 operator>(GenH5::Version const& v1, GenH5::Version const& v2)
 {
     return v1.toInt() > v2.toInt();

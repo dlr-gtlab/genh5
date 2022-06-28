@@ -51,15 +51,6 @@ public:
      */
     bool isValid() const noexcept;
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief returns the alignment of the reference. May be used to serialize
-     * a reference. Only works for datasets and groups. Prefer buffer() instead.
-     * @return alignment of reference
-     */
-    Alignment data() const noexcept { return alignment(); }
-#endif
-
     /**
      * @brief returns the alignment of the reference. May be used to serialize
      * a reference. Only works for datasets and groups. Prefer buffer() instead.
@@ -105,9 +96,5 @@ private:
 };
 
 } // namespace GenH5
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5Reference = GenH5::Reference;
-#endif
 
 #endif // GENH5_REFERENCE_H

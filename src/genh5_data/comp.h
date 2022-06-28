@@ -143,19 +143,4 @@ makeCompData(Containers&&... containers)
 
 } // namespace GenH5
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-template<typename... Ts>
-class GtH5Data : public GenH5::details::CompDataImpl<GenH5::Comp<Ts...>>
-{
-    using base_class = GenH5::details::CompDataImpl<GenH5::Comp<Ts...>>;
-public:
-    using base_class::base_class;
-    using base_class::operator=;
-    using base_class::operator[];
-
-    auto data() const { return base_class::c(); }
-    auto data() { return base_class::c(); }
-};
-#endif
-
 #endif // GENH5_DATA_COMP_H

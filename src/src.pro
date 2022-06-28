@@ -28,7 +28,6 @@ CONFIG += plugin
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
 # disable deprecated symbols
 DEFINES += H5_NO_DEPRECATED_SYMBOLS
-DEFINES += GENH5_NO_DEPRECATED_SYMBOLS
 
 win32 {
     DEFINES += GENH5_DLL
@@ -94,8 +93,10 @@ SOURCES += \
     genh5_group.cpp \
     genh5_location.cpp \
     genh5_node.cpp \
+    genh5_object.cpp \
     genh5_reference.cpp \
-    genh5_utils.cpp
+    genh5_utils.cpp \
+    genh5_version.cpp
 
 CONFIG(debug, debug|release) {
     win32 {

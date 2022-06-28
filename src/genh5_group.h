@@ -59,15 +59,6 @@ public:
      */
     void close();
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    Group createGroup(QString const& name) noexcept(false);
-    Group openGroup(QString const& name) noexcept(false);
-    DataSet createDataset(QString const& name,
-                  DataType const& dtype, DataSpace const& dspace,
-                  Optional<DataSetCProperties> cProps = {}) noexcept(false);
-    DataSet openDataset(QString const& name) noexcept(false);
-#endif
-
     // groups
     Group createGroup(String const& name)noexcept(false);
     Group openGroup(String const& name) noexcept(false);
@@ -95,9 +86,5 @@ private:
 };
 
 } // namespace GenH5
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5Group = GenH5::Group;
-#endif
 
 #endif // GENH5_GROUP_H

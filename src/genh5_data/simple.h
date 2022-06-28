@@ -33,22 +33,4 @@ makeData(Container&& c)
 
 } // namespace GenH5
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-template<typename... Ts>
-class GtH5Data;
-
-template<typename T>
-class GtH5Data<T> : public GenH5::AbstractData<T>
-{
-    using base_class = GenH5::AbstractData<T>;
-public:
-    using base_class::base_class;
-    using base_class::operator=;
-    using base_class::operator[];
-
-    auto data() { return base_class::c(); }
-    auto data() const { return base_class::c(); }
-};
-#endif
-
 #endif // SIMPLE_H
