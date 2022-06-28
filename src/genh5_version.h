@@ -54,6 +54,12 @@ struct GENH5_EXPORT Version
      * @return current version struct
      */
     static Version current();
+    /**
+     * @brief Returns the HDF5 library version used at compile time of this
+     * library
+     * @return HDF5 version struct
+     */
+    static Version hdf5();
 
     constexpr int toInt() const { return major << 16 | minor << 8 | patch; }
 };

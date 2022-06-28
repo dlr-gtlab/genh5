@@ -9,6 +9,7 @@
 #include "genh5_version.h"
 
 #include "gtest/gtest.h"
+#include "H5public.h"
 
 #include <QDebug>
 
@@ -24,6 +25,10 @@ TEST_F(TestH5, verion)
     qDebug() << "minor:   " << int{GENH5_VERSION_MINOR};
     qDebug() << "patch:   " << int{GENH5_VERSION_PATCH};
     qDebug() << "addition:" << QStringLiteral(GENH5_VERSION_ADDITIONAL);
+
+    EXPECT_TRUE(GENH5_VERSION == GenH5::Version::current());
+    EXPECT_TRUE(0x010c00 < GenH5::Version::hdf5());
+    EXPECT_TRUE(0x010d00 > GenH5::Version::hdf5());
 }
 
 TEST_F(TestH5, verionCheck)
