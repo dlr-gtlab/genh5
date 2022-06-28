@@ -19,7 +19,7 @@ namespace GenH5
 /**
  * @brief The Object class
  */
-class /*GENH5_EXPORT*/ Object
+class GENH5_EXPORT Object
 {
 public:
 
@@ -37,20 +37,14 @@ public:
      * verification
      * @return whether object id is valid
      */
-    virtual bool isValid() const noexcept
-    {
-        return H5Iis_valid(id());
-    }
+    virtual bool isValid() const noexcept;
 
     /**
      * @brief Static version of is valid
      * @param id id
      * @return is valid
      */
-    static bool isValid(hid_t id) noexcept
-    {
-        return H5Iis_valid(id);
-    }
+    static bool isValid(hid_t id) noexcept;
 
 protected:
 
@@ -66,9 +60,5 @@ protected:
 };
 
 } // namespace GenH5
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5Object = GenH5::Object;
-#endif
 
 #endif // GENH5_OBJECT_H

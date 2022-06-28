@@ -81,36 +81,6 @@ GenH5::Group::close()
     m_group.close();
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-GenH5::Group
-GenH5::Group::createGroup(QString const& name) noexcept(false)
-{
-    return createGroup(name.toUtf8());
-}
-
-GenH5::Group
-GenH5::Group::openGroup(QString const& name) noexcept(false)
-{
-    return openGroup(name.toUtf8());
-}
-
-GenH5::DataSet
-GenH5::Group::createDataset(QString const& name,
-                           DataType const& dtype,
-                           DataSpace const& dspace,
-                           Optional<DataSetCProperties> properties
-                           ) noexcept(false)
-{
-    return createDataset(name.toUtf8(), dtype, dspace, std::move(properties));
-}
-
-GenH5::DataSet
-GenH5::Group::openDataset(QString const& name) noexcept(false)
-{
-    return openDataset(name.toUtf8());
-}
-#endif
-
 GenH5::Group
 GenH5::Group::createGroup(String const& name) noexcept(false)
 {

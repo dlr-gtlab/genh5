@@ -295,10 +295,6 @@ GENH5_EXPORT bool operator==(GenH5::CompoundMember const& first,
 GENH5_EXPORT bool operator!=(GenH5::CompoundMember const& first,
                             GenH5::CompoundMember const& other);
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5DataType = GenH5::DataType;
-#endif
-
 #define GENH5_DECLARE_DATATYPE(NATIVE_TYPE, H5_TYPE) \
     template <> \
     struct GenH5::details::datatype_impl<NATIVE_TYPE> { \

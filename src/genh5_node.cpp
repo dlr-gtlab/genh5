@@ -39,22 +39,6 @@ GenH5::Node::hasAttribute(String const& name) const
     }
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-GenH5::Attribute
-GenH5::Node::createAttribute(QString const& name,
-                            DataType const& dtype,
-                            DataSpace const& dspace) const noexcept(false)
-{
-    return createAttribute(name.toUtf8(), dtype, dspace);
-}
-
-GenH5::Attribute
-GenH5::Node::openAttribute(QString const& name) const noexcept(false)
-{
-    return openAttribute(name.toUtf8());
-}
-#endif
-
 GenH5::Attribute
 GenH5::Node::createAttribute(String const& name,
                             DataType const& dtype,

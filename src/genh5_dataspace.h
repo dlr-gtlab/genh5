@@ -22,19 +22,6 @@ class GENH5_EXPORT DataSpace : public Object
 {
 public:
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    template<typename Tin, typename Tout = int>
-    static Tout sum(QVector<Tin> const& dimensions)
-    {
-        return GenH5::prod<Tout>(dimensions);
-    }
-
-    template<typename Tout = int>
-    Tout sum() const
-    {
-        return GenH5::prod<Tout>(dimensions());
-    }
-#endif
     /**
      * @brief size
      * @return number of elements
@@ -238,9 +225,5 @@ GENH5_EXPORT bool operator==(GenH5::DataSpace const& first,
                             GenH5::DataSpace const& other);
 GENH5_EXPORT bool operator!=(GenH5::DataSpace const& first,
                             GenH5::DataSpace const& other);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5DataSpace = GenH5::DataSpace;
-#endif
 
 #endif // GENH5_DATASPACE_H

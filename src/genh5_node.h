@@ -34,12 +34,6 @@ public:
      */
     bool hasAttribute(String const& name) const;
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    Attribute createAttribute(QString const& name, DataType const& dtype,
-                              DataSpace const& dspace) const noexcept(false);
-    Attribute openAttribute(QString const& name) const noexcept(false);
-#endif
-
     Attribute createAttribute(String const& name, DataType const& dtype,
                               DataSpace const& dspace) const noexcept(false);
 
@@ -72,9 +66,5 @@ protected:
 };
 
 } // namespace GenH5
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5Node = GenH5::Node;
-#endif
 
 #endif // GENH5_NODE_H

@@ -216,9 +216,5 @@ DataSet::read(AbstractData<T>& data,
 
 } // namespace GenH5
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5DataSet = GenH5::DataSet;
-#endif
-
 
 #endif // GENH5_DATASET_H

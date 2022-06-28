@@ -38,27 +38,6 @@ class GENH5_EXPORT File : public Object
 {
 public:
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    enum AccessFlag
-    {
-        OpenReadOnly = 1,
-        OpenReadWrite = 2,
-        CreateReadWrite = 4,
-        CreateNotExisting = 8,
-        CreateOverwrite = 16
-    };
-
-    static uint32_t accessMode(AccessFlag mode) noexcept;
-
-    /**
-     * @brief returns whether the file exists
-     * @param path file path
-     * @return whether the file exists
-     */
-    static bool fileExists(QString const& path) noexcept;
-
-    static bool isValidH5File(QString const& filePath) noexcept(false);
-#endif
     /**
      * @brief returns whether the file is a valid hdf5 file. Does not check if
      * file is corrupted
@@ -82,12 +61,6 @@ public:
      * @brief File
      */
     File();
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    File(QFile const& h5File, AccessFlag flag);
-    File(QString const& path, AccessFlag flag);
-    File(String path, AccessFlag flag);
-#endif
-
     explicit File(H5::H5File file);
     explicit File(String path, FileAccessFlags flags = ReadWrite);
 
@@ -144,9 +117,5 @@ private:
 GENH5_EXPORT GenH5::String getFileName(File const& file) noexcept;
 
 } // namespace GenH5
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5File = GenH5::File;
-#endif
 
 #endif // GENH5_FILE_H

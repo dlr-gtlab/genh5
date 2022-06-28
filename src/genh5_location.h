@@ -119,8 +119,4 @@ GenH5::Location::file() const noexcept
     return m_file;
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-using GtH5Location = GenH5::Location;
-#endif
-
 #endif // GENH5_LOCATION_H
