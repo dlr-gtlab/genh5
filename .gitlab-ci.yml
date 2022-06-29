@@ -1,11 +1,6 @@
 #################################################################
 ############### GTlab Standard Pipeline Version 2.1.0 ###########
 #################################################################
-# This is a slight changed version
-# - cppcheck uses cppCheckTemplate instead of cppCheckReportTemplate. 
-#   The reason is that cppCheckReportTemplate requires the latest 
-#   version of the pipeline-scripts submodule, but this version is 
-#   not compatible with testLinux512.
 
 # TO USE THIS PIPELINE SET THESE VAIRABLES:
 #   CATEGORY: 02_core
@@ -259,7 +254,7 @@ codingstyle:
  
 cppcheck:
   stage: codequality
-  extends: .cppCheckTemplate
+  extends: .cppCheckReportTemplate
 
 pages:
   stage: badges
