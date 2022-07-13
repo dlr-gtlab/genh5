@@ -15,6 +15,8 @@
 
 #include "testhelper.h"
 
+#include <QStringList>
+
 /// This is a test fixture that does a init for each test
 class TestH5Attribute : public testing::Test
 {
