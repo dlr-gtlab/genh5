@@ -186,7 +186,7 @@ linuxBuildReleaseUnstable:
     QMAKE_EXECUTABLE: /opt/Qt/5.15.2/gcc_64/bin/qmake
 
 # run tests using the binary built before
-testWin512:
+testWin:
   stage: test
   extends: 
     - .stable-debug
@@ -198,7 +198,7 @@ testWin512:
   variables:
     DEVTOOLS: $DEVTOOLS_Win_Stable
 
-testWin512Unstable:
+testWinUnstable:
   stage: unstableTest
   extends:
     - .unstable-debug  
@@ -210,7 +210,7 @@ testWin512Unstable:
   variables:
     DEVTOOLS: $DEVTOOLS_Win_Unstable  
 
-testLinux512:
+testLinux:
   stage: test
   extends: 
     - .stable-debug
@@ -222,8 +222,11 @@ testLinux512:
   variables:
     DEVTOOLS: $DEVTOOLS_Linux_Stable    
 
-testLinux512Unstable:
+testLinuxUnstable:
   stage: unstableTest
+  variables:
+    DEVTOOLS: $DEVTOOLS_Linux_Unstable 
+    LINUX_QT_DIR: /opt/Qt/5.15.2/gcc_64
   extends: 
     - .unstable-debug
     - .linuxTestTemplate
@@ -231,8 +234,6 @@ testLinux512Unstable:
     - linuxBuildDebugUnstable
   dependencies:
     - linuxBuildDebugUnstable
-  variables:
-    DEVTOOLS: $DEVTOOLS_Linux_Unstable   
 
 # deployment
 createJobs:
@@ -289,8 +290,8 @@ badges:
   dependencies:
     - windowsBuildDebug
     - linuxBuildDebug
-    - testWin512
-    - testLinux512
+    - testWin
+    - testLinux
     - codingstyle
 
 badgesUnstable:
@@ -301,6 +302,6 @@ badgesUnstable:
   dependencies:
     - windowsBuildDebugUnstable
     - linuxBuildDebugUnstable
-    - testWin512Unstable
-    - testLinux512Unstable
+    - testWinUnstable
+    - testLinuxUnstable
     - codingstyle
