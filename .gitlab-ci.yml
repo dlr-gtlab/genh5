@@ -35,7 +35,7 @@ variables:
   # UNSTABLE_BRANCH: unstable_master
 
 include:
-  - project: 'gtlab-bugtracking/gitlab-templates'
+  - project: 'at-twk/gitlab-templates'
     file: '/ci-templates/.ci-templates-2-1.yml'
 
 stages:
@@ -90,6 +90,9 @@ windowsBuildDebug:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Win_Stable
+    JOM_PATH: $JOM_PATH_512
+    QMAKE_PATH: $QMAKE_PATH_512
+    VCvarsall: $VCvarsall_512
 
 windowsBuildDebugUnstable:
   stage: unstableBuild
@@ -101,6 +104,9 @@ windowsBuildDebugUnstable:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Win_Unstable
+    JOM_PATH: $JOM_PATH_515
+    QMAKE_PATH: $QMAKE_PATH_515
+    VCvarsall: $VCvarsall_515
 
 windowsBuildRelease:
   stage: build
@@ -112,6 +118,9 @@ windowsBuildRelease:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Win_Stable
+    JOM_PATH: $JOM_PATH_512
+    QMAKE_PATH: $QMAKE_PATH_512
+    VCvarsall: $VCvarsall_512
 
 windowsBuildReleaseUnstable:
   stage: unstableBuild
@@ -123,6 +132,9 @@ windowsBuildReleaseUnstable:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Win_Unstable
+    JOM_PATH: $JOM_PATH_515
+    QMAKE_PATH: $QMAKE_PATH_515
+    VCvarsall: $VCvarsall_515
     
 # build on Linux system
 linuxBuildDebug:
@@ -135,6 +147,7 @@ linuxBuildDebug:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Linux_Stable
+    QMAKE_EXECUTABLE: /opt/Qt/5.12.5/gcc_64/bin/qmake
 
 linuxBuildDebugUnstable:
   stage: unstableBuild
@@ -146,6 +159,7 @@ linuxBuildDebugUnstable:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Linux_Unstable
+    QMAKE_EXECUTABLE: /opt/Qt/5.15.2/gcc_64/bin/qmake
  
 linuxBuildRelease:
   stage: build
@@ -157,6 +171,7 @@ linuxBuildRelease:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Linux_Stable
+    QMAKE_EXECUTABLE: /opt/Qt/5.12.5/gcc_64/bin/qmake
 
 linuxBuildReleaseUnstable:
   stage: unstableBuild
@@ -168,6 +183,7 @@ linuxBuildReleaseUnstable:
       optional: true
   variables:
     DEVTOOLS: $DEVTOOLS_Linux_Unstable
+    QMAKE_EXECUTABLE: /opt/Qt/5.15.2/gcc_64/bin/qmake
 
 # run tests using the binary built before
 testWin512:
