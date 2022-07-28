@@ -137,7 +137,7 @@ inline auto
 makeCompData(Containers&&... containers)
 {
     return CompData<traits::value_t<Containers>...>{
-        std::forward<std::decay_t<Containers>>(containers)...
+        std::forward<Containers>(containers)...
     };
 }
 

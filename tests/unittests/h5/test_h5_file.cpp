@@ -35,13 +35,16 @@ TEST_F(TestH5File, isValid)
     // default file object should be invalid
     EXPECT_FALSE(file.isValid());
     // file should not exist and therefore not be valid
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
     EXPECT_FALSE(GenH5::File::isValidH5File(filePath));
-
+#endif
     // create a new file
     file = GenH5::File(filePath, GenH5::Create);
     EXPECT_TRUE(file.isValid());
     // file path should exist and be valid
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
     EXPECT_TRUE(GenH5::File::isValidH5File(filePath));
+#endif
 }
 
 TEST_F(TestH5File, root)

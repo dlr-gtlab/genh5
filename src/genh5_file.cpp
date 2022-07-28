@@ -63,6 +63,10 @@ GenH5::File::File(String path, FileAccessFlags flags)
     {
         flag = H5F_ACC_TRUNC;
     }
+    else if (flags & ReadWrite)
+    {
+        flag = H5F_ACC_RDWR;
+    }
     else if (!exists)
     {
         if (flags & Create)
@@ -108,13 +112,22 @@ GenH5::File::File(String path, FileAccessFlags flags)
     }
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 bool
 GenH5::File::isValidH5File(String const& filePath)
 {
-    return QFileInfo::exists(filePath) &&
-           H5::H5File::isAccessible(filePath.constData()) &&
-           H5::H5File::isHdf5(filePath.constData());
+    try
+    {
+        return QFileInfo::exists(filePath) &&
+               H5::H5File::isAccessible(filePath.constData()) &&
+               H5::H5File::isHdf5(filePath.constData());
+    }
+    catch (H5::Exception& /*e*/)
+    {
+        return false;
+    }
 }
+#endif
 
 hid_t
 GenH5::File::id() const noexcept

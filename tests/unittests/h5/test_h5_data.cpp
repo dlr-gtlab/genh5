@@ -208,6 +208,40 @@ TEST_F(TestH5Data, compound)
     EXPECT_EQ(desDoubleData, dList);
 }
 
+TEST_F(TestH5Data, makeData)
+{
+    std::vector<double> const dList{42.2, 420};
+
+    GenH5::Data<double> data1{ dList };
+
+    auto data2 = GenH5::makeData(dList);
+
+    ASSERT_EQ(data1.size(), data2.size());
+    EXPECT_EQ(data1.c(), data2.c());
+}
+
+TEST_F(TestH5Data, makeCompoundData)
+{
+    QStringList const sList{"Hello World", "Fany String"};
+    GenH5::Vector<double> const dList{42.2, 420};
+
+    GenH5::CompData<QString, double> data1{
+        GenH5::Vector<GenH5::Comp<QString, double>>{
+            {sList.front(), dList.front()},
+            {sList.back(), dList.back()}
+        }
+    };
+
+    auto data2 = GenH5::makeCompData(sList, dList);
+
+    ASSERT_EQ(data1.size(), data2.size());
+    for (int i = 0; i < data1.size(); ++i)
+    {
+        EXPECT_EQ(std::get<0>(data1[i]), std::get<0>(data2[i]));
+        EXPECT_STREQ(std::get<1>(data1[i]), std::get<1>(data2[i]));
+    }
+}
+
 TEST_F(TestH5Data, reserveBuffer)
 {
     using GenH5::details::reserveBuffer;
