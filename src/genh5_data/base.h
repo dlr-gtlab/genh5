@@ -68,24 +68,30 @@ public:
         return DataSpace::linear(size());
     }
 
-    // constructors
+    /** general constructors **/
+    // types names only
     explicit AbstractData(compound_names names)
         : m_typeNames{names}
     { }
+    // container type
     explicit AbstractData(container_type data, compound_names names = {}) :
         m_data{std::move(data)},
         m_typeNames{names}
     { }
+    // value type
     explicit AbstractData(value_type arg, compound_names names = {}) :
         m_data{std::move(arg)},
         m_typeNames{names}
     { }
+    // value type init list
     explicit AbstractData(std::initializer_list<value_type> args,
                           compound_names names = {}) :
         m_data{std::move(args)},
         m_typeNames{names}
     { }
-    // conversion constructors
+
+    /** conversion constructors **/
+    // arbitrary container types
     template <typename Container,
               traits::if_types_differ<Container, T> = true,
               traits::if_types_differ<Container, container_type> = true,
@@ -95,12 +101,14 @@ public:
     {
         push_back(std::forward<Container>(c));
     }
+    // frwd ref for template type
     template <typename U, traits::if_types_equal<U, T> = true>
     explicit AbstractData(U&& arg, compound_names names = {}) :
         m_typeNames{names}
     {
         push_back(std::forward<U>(arg));
     }
+    // frwd ref for template type init list
     template <typename U, traits::if_types_equal<U, T> = true>
     explicit AbstractData(std::initializer_list<U>&& args,
                           compound_names names ={}) :
@@ -109,19 +117,23 @@ public:
         push_back(std::forward<std::initializer_list<U>>(args));
     }
 
-    // assignments
+    /** general assignments **/
+    // container type
     AbstractData& operator=(container_type data)
     {
         m_data = std::move(data);
         return *this;
     }
+    // value type
     AbstractData& operator=(value_type data)
     {
         m_data.clear();
         push_back(std::move(data));
         return *this;
     }
-    // conversion assignments
+
+    /** conversion assignments **/
+    // arbitrary container types
     template <typename Container,
               traits::if_types_differ<Container, T> = true,
               traits::if_types_differ<Container, container_type> = true,
@@ -132,6 +144,7 @@ public:
         push_back(std::forward<Container>(c));
         return *this;
     }
+    // frwd ref for template type
     template <typename U, traits::if_types_equal<U, T> = true>
     AbstractData& operator=(U&& arg)
     {
@@ -140,16 +153,19 @@ public:
         return *this;
     }
 
-    // push_back
+    /** push_back **/
+    // container type
     void push_back(container_type data)
     {
         m_data.append(std::move(data));
     }
+    // value type
     void push_back(value_type data)
     {
         m_data.push_back(std::move(data));
     }
-    // conversion push_back
+    /** conversion push_back **/
+    // arbitrary container types
     template <typename Container,
               traits::if_types_differ<Container, T> = true,
               traits::if_types_differ<Container, container_type> = true,
@@ -164,6 +180,7 @@ public:
             m_data.push_back(convert(value, m_buffer));
         }
     }
+    // frwd ref for template type
     template <typename U, traits::if_types_equal<U, T> = true>
     void push_back(U&& arg)
     {
@@ -171,25 +188,24 @@ public:
         m_data.push_back(convert(std::forward<U>(arg), m_buffer));
     }
 
-    // deserialize
+    /** deserialize **/
+    // by index
     T deserializeIdx(size_type idx) const
     {
         using GenH5::convertTo; // ADL
         return convertTo<T>(m_data[idx]);
     }
+    // by value
     template <typename Container = Vector<T>>
     Container deserialize() const
     {
         using GenH5::convertTo; // ADL
         Container c;
-        c.reserve(size());
-        for (auto const& value : qAsConst(m_data))
-        {
-            c.push_back(convertTo<T>(value));
-        }
+        deserialize<Container>(c);
         return c;
     }
-    template <typename Container, traits::if_has_value_type<Container, T>>
+    // by reference
+    template <typename Container, traits::if_has_value_type<Container, T> = true>
     void deserialize(Container& c) const
     {
         using GenH5::convertTo; // ADL
@@ -200,6 +216,7 @@ public:
         }
     }
 
+    /** compound type names **/
     // access names used when generating a compound type
     compound_names const& typeNames() const
     {
@@ -216,11 +233,11 @@ public:
         m_typeNames = getTypeNames<N>(dtype);
     }
 
-    // index operator
+    /** index operator **/
     reference operator[](size_type i) { return m_data[i]; }
     const_reference operator[](size_type i) const { return m_data[i]; }
 
-    // for accessing underlying container type
+    /** accessing container **/
     operator container_type const&() const { return m_data; }
     operator container_type&() { return m_data; }
     container_type const& c() const { return m_data; }
@@ -271,6 +288,8 @@ public:
     reference last() { return m_data.last(); }
     const_reference last() const { return m_data.last(); }
 
+    /** append **/
+    // frwd arguemnts to push_back
     template <typename U>
     void append(U&& arg) { push_back(std::forward<U>(arg)); }
 

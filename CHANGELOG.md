@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed 
+- `Attribute::doRead` will now throw a `GenH5::Exception`
+
 ## [2.0.0 - 2022-06-28]
 ### Changed 
 - Changed namespace to `GenH5` - #14
@@ -15,14 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support for partial read/write operations (i.e. hyperslap selections) - #9 
 
 ### Removed 
-- `DataSpace::sum` use `size` or `GenH5::prod` instead
-- Old `Data` and `AbstractData` use `GenH5::Data` or `GenH5::CompData` instead - #7
+- `DataSpace::sum` use `DataSpace::size` or `GenH5::prod` instead
+- Old `Data` and `AbstractData` structs. Use `GenH5::Data` or `GenH5::CompData` instead - #7
 - methods that use `QString`. Use `toUtf8()` instead - #14
 
 ## [1.0.3] - 2022-04-13
 ### Changed 
 - moved to c++14 - #4
-- updated prefix naming sceme to gth5 - #5
+- updated prefix naming sceme to GtH5 - #5
 - improved const correctness, minor interface changes - #4
 
 ### Added

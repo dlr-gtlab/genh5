@@ -15,10 +15,6 @@
 
 namespace GenH5
 {
-// forward decl
-class File;
-class Node;
-class Reference;
 
 /**
  * @brief The DataSet class
@@ -129,9 +125,12 @@ public:
 
 protected:
 
+    /// Returns the abstract hdf5 dataset
     H5::AbstractDs const& toH5AbsDataSet() const noexcept override;
 
+    /// write implementation
     bool doWrite(void const* data, DataType const& dtype) const override;
+    /// read implementation
     bool doRead(void* data, DataType const& dtype) const override;
 
     /**
