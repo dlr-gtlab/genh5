@@ -41,6 +41,7 @@ public:
 
     CompDataImpl() = default;
 
+    /** conversion constructors **/
     template <typename... Containers,
               traits::if_same_size<sizeof...(Ts), sizeof...(Containers)> = true>
     explicit CompDataImpl(Containers&&... containersIn) noexcept(false)
@@ -70,6 +71,7 @@ public:
         });
     }
 
+    /** deserialize **/
     void deserializeIdx(int idx, Ts&... argsIn)
     {
         using GenH5::convertTo; // ADL

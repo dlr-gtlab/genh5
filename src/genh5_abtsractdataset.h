@@ -76,7 +76,7 @@ protected:
     virtual H5::AbstractDs const& toH5AbsDataSet() const noexcept = 0;
 
     /**
-     * @brief Method for wirte implementation
+     * @brief Method for the write implementation
      * @param data Data buffer to write
      * @return success
      */

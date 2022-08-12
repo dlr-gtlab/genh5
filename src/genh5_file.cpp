@@ -112,7 +112,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
     }
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
+//#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 bool
 GenH5::File::isValidH5File(String const& filePath)
 {
@@ -122,12 +122,12 @@ GenH5::File::isValidH5File(String const& filePath)
                H5::H5File::isAccessible(filePath.constData()) &&
                H5::H5File::isHdf5(filePath.constData());
     }
-    catch (H5::Exception& /*e*/)
+    catch (H5::Exception const& /*e*/)
     {
         return false;
     }
 }
-#endif
+//#endif
 
 hid_t
 GenH5::File::id() const noexcept

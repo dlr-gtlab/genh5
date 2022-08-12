@@ -21,7 +21,7 @@ class Attribute;
 struct Version;
 
 /**
- * @brief The GenH5Leaf class
+ * @brief The Node class
  */
 class GENH5_EXPORT Node : public Location
 {

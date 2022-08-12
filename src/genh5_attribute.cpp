@@ -88,8 +88,22 @@ GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 bool
 GenH5::Attribute::doRead(void* data, DataType const& dtype) const
 {
-    m_attribute.read(dtype.toH5(), data);
-    return true;
+    try
+    {
+        m_attribute.read(dtype.toH5(), data);
+        return true;
+    }
+    catch (H5::AttributeIException const& e)
+    {
+        qCritical() << "HDF5: Reading attribute failed! -" << name();
+        throw AttributeException{e.getCDetailMsg()};
+    }
+    catch (H5::Exception const& e)
+    {
+        qCritical() << "HDF5: [EXCEPTION] Reading attribute failed! -"
+                    << name();
+        throw AttributeException{e.getCDetailMsg()};
+    }
 }
 
 void

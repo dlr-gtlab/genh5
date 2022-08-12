@@ -19,7 +19,7 @@ namespace GenH5
  * @brief The Attribute class
  */
 class GENH5_EXPORT Attribute : public Location,
-                              public AbstractDataSet
+                               public AbstractDataSet
 {
 public:
 
@@ -59,9 +59,12 @@ public:
 
 protected:
 
+    /// Returns the abstract hdf5 dataset
     H5::AbstractDs const& toH5AbsDataSet() const noexcept override;
 
+    /// write implementation
     bool doWrite(void const* data, DataType const&) const override;
+    /// read implementation
     bool doRead(void* data, DataType const&) const override;
 
     /**
