@@ -13,6 +13,7 @@
 #include "testhelper.h"
 
 #include <QPoint>
+#include <QList>
 #include <QStringList>
 
 /// This is a test fixture that does a init for each test
@@ -34,19 +35,331 @@ protected:
     bool testSerialize(GenH5::Vector<T> const& values)
     {
         GenH5::Data<T> data{values};
-        EXPECT_EQ(data.c(), values);
-        bool success = (data.c() == values);
+        EXPECT_EQ(data.raw(), values);
+        bool success = (data.raw() == values);
 
         EXPECT_EQ(data.size(), values.size());
         success &= (values.size() == data.size());
 
-        auto desValues = data.deserialize();
+        auto desValues = data.values();
         EXPECT_EQ(desValues, values);
         success &= (desValues == values);
 
         return success;
     }
 };
+
+/*
+    The data classes are supposed to handle many different kinds of types.
+    While doing so they need to convert and reverse convert between the original
+    type and the conversion type.
+    The data classes should have ctors, operators and methods, that are easy to
+    use.
+    Since the meta programming can get quite messy we test the interface for
+    different template types and input data.
+*/
+
+// make sure all ctors work as expected
+TEST_F(TestH5Data, sameConversionType)
+{
+    // conversion container
+    GenH5::conversion_container_t<int> nativeContainer{1, 2, 3, 4, 5};
+    GenH5::Data<int> d1{nativeContainer};
+    EXPECT_EQ(d1.raw(), nativeContainer);
+    // conversion value
+    GenH5::Data<int> d2{15};
+    EXPECT_EQ(d2.first(), 15);
+    // conversion init list
+    GenH5::Data<int> d3{15, 4, 5, 2, 1};
+
+    // other container
+    QList<int> list{51, 23, 42};
+    GenH5::Data<int> d4{list};
+    EXPECT_TRUE(std::equal(std::cbegin(d4), std::cend(d4), std::cbegin(list)));
+
+    // test operators
+    GenH5::Data<int> d;
+    d = nativeContainer;
+    EXPECT_EQ(d.values(), d1.values());
+    d = 15;
+    EXPECT_EQ(d.values(), d2.values());
+    d = list;
+    EXPECT_EQ(d.values(), d4.values());
+
+    d.clear();
+    ASSERT_EQ(d.size(), 0);
+
+    // test pushback
+    d.push_back(nativeContainer);
+    EXPECT_EQ(d.values(), d1.values());
+    d.push_back(15);
+    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    d.push_back(list);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values());
+}
+
+TEST_F(TestH5Data, differentConversionType)
+{
+    char val1[] = "MyString";
+    char val2[] = "Hello";
+    char val3[] = "T";
+    char val4[] = "ABC";
+    // conversion container
+    GenH5::conversion_container_t<QString> nativeContainer{
+        val1, val2, val3, val4
+    };
+    GenH5::Data<QString> d1{nativeContainer};
+    // conversion value
+    GenH5::Data<QString> d2{val1};
+    // conversion init list
+    GenH5::Data<QString> d3{
+        std::initializer_list<char*>{val2, val3, val4}
+    };
+
+    // other container
+    QStringList list{"ABC", "DEF", "Fancy%&!"};
+    GenH5::Data<QString> d4{list};
+    // template value
+    QString str = "Hello World";
+    GenH5::Data<QString> d5{str};
+    // template init list
+    std::initializer_list<QString> initList = {"Hello World", "Test", "Fancy"};
+    GenH5::Data<QString> d6{initList};
+
+    // test operators
+    GenH5::Data<QString> d;
+    d = nativeContainer;
+    EXPECT_EQ(d.values(), d1.values());
+    d = val1;
+    EXPECT_EQ(d.values(), d2.values());
+    d = list;
+    EXPECT_EQ(d.values(), d4.values());
+    d = str;
+    EXPECT_EQ(d.values(), d5.values());
+    d = initList;
+    EXPECT_EQ(d.values(), d6.values());
+
+    d.clear();
+    ASSERT_EQ(d.size(), 0);
+
+    // test pushback
+    d.push_back(nativeContainer);
+    EXPECT_EQ(d.values(), d1.values());
+    d.push_back(val1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    d.push_back(list);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values());
+    d.push_back(str);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values() + d5.values());
+    d.push_back(initList);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values() + d5.values() + d6.values());
+}
+
+TEST_F(TestH5Data, array_sameConversionType)
+{
+    using GenH5::Array;
+    using ArrayT = Array<int, 2>;
+    using CArrayT = int[2]; // test for c-styled arrays
+
+    ArrayT val1{42, 11};
+    ArrayT val2{1, 2};
+    ArrayT val3{3, 4};
+    ArrayT val4{-10, 14};
+
+    CArrayT cval1{42, 11};
+
+    // conversion container
+    GenH5::conversion_container_t<CArrayT> nativeContainer{
+        val1, val2, val3, val4
+    };
+    GenH5::Data<ArrayT> d1_{nativeContainer};
+    GenH5::Data<CArrayT> d1{nativeContainer};
+    // conversion value
+    GenH5::Data<ArrayT> d2_{val1};
+    GenH5::Data<CArrayT> d2{val1};
+    // conversion init list
+    GenH5::Data<ArrayT> d3_{val1, val2, val3, val4, {15, 1}};
+    GenH5::Data<CArrayT> d3{val1, val2, val3, val4, {15, 1}};
+
+    // other container
+    QList<ArrayT> list{val1, val2, val4};
+    GenH5::Data<ArrayT> d4_{list};
+    GenH5::Data<CArrayT> d4{list};
+    // template value
+    GenH5::Data<ArrayT> d5_{cval1};
+    GenH5::Data<CArrayT> d5{cval1};
+
+    // test operators
+    GenH5::Data<CArrayT> d;
+    d = nativeContainer;
+    EXPECT_EQ(d.values(), d1.values());
+    d = val1;
+    EXPECT_EQ(d.values(), d2.values());
+    d = list;
+    EXPECT_EQ(d.values(), d4.values());
+    d = cval1;
+    EXPECT_EQ(d.values(), d5.values());
+
+    d.clear();
+    ASSERT_EQ(d.size(), 0);
+
+    // test pushback
+    d.push_back(nativeContainer);
+    EXPECT_EQ(d.values(), d1.values());
+    d.push_back(val1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    d.push_back(list);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values());
+    d.push_back(cval1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values() + d5.values());
+}
+
+TEST_F(TestH5Data, array_differentConversionType)
+{
+    using GenH5::Array;
+    using ArrayT = Array<QString, 2>;
+    using CArrayT = QString[2]; // test for c-styled arrays
+    using ConvArrayT = Array<char*, 2>;
+
+    char convVal1[] = "MyString";
+    char convVal2[] = "Hello";
+    char convVal3[] = "T";
+    char convVal4[] = "!676adö1ä";
+
+    ConvArrayT val1{convVal1, convVal2};
+    ConvArrayT val2{convVal2, convVal3};
+    ConvArrayT val3{convVal4, convVal1};
+    ConvArrayT val4{convVal1, convVal4};
+
+    // conversion container
+    GenH5::conversion_container_t<CArrayT> nativeContainer{
+        val1, val2, val3, val4
+    };
+    GenH5::Data<ArrayT> d1_{nativeContainer};
+    GenH5::Data<CArrayT> d1{nativeContainer};
+    // conversion value
+    GenH5::Data<ArrayT> d2_{val1};
+    GenH5::Data<CArrayT> d2{val1};
+    // conversion init list
+    GenH5::Data<ArrayT> d3_{
+        std::initializer_list<ConvArrayT>{val1, val2, val3, val4}
+    };
+    GenH5::Data<CArrayT> d3{
+        std::initializer_list<ConvArrayT>{val1, val2, val3, val4}
+    };
+
+    // other container
+    QList<ArrayT> list{{"ABC", "DEF"}, {"Fancy%&!"}, {"MyString", convVal4}};
+    GenH5::Data<ArrayT> d4_{list};
+    GenH5::Data<CArrayT> d4{list};
+    // template value
+    CArrayT cval1{"Hello", convVal4};
+    GenH5::Data<ArrayT> d5_{cval1};
+    GenH5::Data<CArrayT> d5{cval1};
+    // template init list
+    std::initializer_list<ArrayT> initList = {{"Hello", convVal4},
+                                              {"Test"}, {"Fancy", convVal1}};
+    GenH5::Data<ArrayT> d6_{initList};
+    GenH5::Data<CArrayT> d6{initList};
+
+    // test operators
+    GenH5::Data<CArrayT> d;
+    d = nativeContainer;
+    EXPECT_EQ(d.values(), d1.values());
+    d = val1;
+    EXPECT_EQ(d.values(), d2.values());
+    d = list;
+    EXPECT_EQ(d.values(), d4.values());
+    d = cval1;
+    EXPECT_EQ(d.values(), d5.values());
+    d = initList;
+    EXPECT_EQ(d.values(), d6.values());
+
+    d.clear();
+    ASSERT_EQ(d.size(), 0);
+
+    // test pushback
+    d.push_back(nativeContainer);
+    EXPECT_EQ(d.values(), d1.values());
+    d.push_back(val1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    d.push_back(list);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values());
+    d.push_back(cval1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values() + d5.values());
+    d.push_back(initList);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values() + d5.values() + d6.values());
+}
+
+TEST_F(TestH5Data, varlen_differentConversionType)
+{
+    using GenH5::VarLen;
+    using VarLenT = VarLen<double>;
+
+    VarLenT val1{42, 11, 53.1};
+    VarLenT val2{-11.1};
+    VarLenT val3{303213, 1218.12, 3.1415, 42};
+    VarLenT val4{};
+
+    hvl_t hvl1{};
+    hvl_t hvl2{};
+    hvl_t hvl3{};
+
+    // conversion container
+    GenH5::conversion_container_t<VarLenT> nativeContainer{
+        hvl1, hvl2, hvl3
+    };
+    GenH5::Data<VarLenT> d1{nativeContainer};
+    // conversion value
+    GenH5::Data<VarLenT> d2{hvl1};
+    // conversion init list
+    GenH5::Data<VarLenT> d3{std::initializer_list<hvl_t>{hvl1, hvl2, hvl3, {}}};
+
+    // other container
+    QList<VarLenT> list{val1, val2, val3, val4};
+    GenH5::Data<VarLenT> d4{std::move(list)};
+    // template value
+    GenH5::Data<VarLenT> d5{val1};
+    // template init list
+    GenH5::Data<VarLenT> d6{val1, val2, val3, val4};
+
+    // test operators
+    GenH5::Data<VarLenT> d;
+    d = nativeContainer;
+    EXPECT_EQ(d.values(), d1.values());
+    d = hvl1;
+    EXPECT_EQ(d.values(), d2.values());
+    d = list;
+    EXPECT_EQ(d.values(), d4.values());
+    d = val1;
+    EXPECT_EQ(d.values(), d5.values());
+    d = {val1, val2, val3, val4};
+    EXPECT_EQ(d.values(), d6.values());
+
+    d.clear();
+    ASSERT_EQ(d.size(), 0);
+
+    // test pushback
+    d.push_back(nativeContainer);
+    EXPECT_EQ(d.values(), d1.values());
+    d.push_back(hvl1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    d.push_back(list);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values());
+    d.push_back(val1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values() + d5.values());
+}
 
 GENH5_DECLARE_IMPLICIT_CONVERSION(QPoint);
 
@@ -56,190 +369,249 @@ GENH5_DECLARE_DATATYPE_IMPL(QPoint)
     return GenH5::dataType<T, T>({"xp", "yp"});
 };
 
-TEST_F(TestH5Data, serializationPod)
+TEST_F(TestH5Data, compound_differentConversionType)
 {
-    EXPECT_TRUE(testSerialize(h5TestHelper->randomDataVector<int>(10)));
-    EXPECT_TRUE(testSerialize(h5TestHelper->randomDataVector<long>(10)));
-    EXPECT_TRUE(testSerialize(h5TestHelper->randomDataVector<float>(10)));
-    EXPECT_TRUE(testSerialize(h5TestHelper->randomDataVector<double>(10)));
-    EXPECT_TRUE(testSerialize(GenH5::Vector<char const*>{
-        "Abc", "Def", "Geh", "char const*#!^"
-    }));
-    EXPECT_TRUE(testSerialize(GenH5::Vector<char>{'C', '\n', '#', '\0'}));
+    using GenH5::Comp;
+    using CompT = Comp<QString, QPoint>;
+    using ConvCompT = Comp<QPoint, char*>;
 
-//    EXPECT_TRUE((testSerialize(GenH5::vector_t<bool>{true, false})));
-}
+    char strVal1[] = "MyString";
+    char strVal2[] = "Hello";
+    char strVal3[] = "T";
+    char strVal4[] = "!676adö1ä";
 
-TEST_F(TestH5Data, serializationStrings)
-{
-    { // QByteArray
-        auto values = h5TestHelper->randomByteArrays(5);
+    CompT val1{strVal1, {0, 1}};
+    CompT val2{strVal2, {2, 1}};
+    CompT val3{strVal3, {-12, 23}};
+    CompT val4{strVal4, {42, 42}};
 
-        GenH5::Data<QByteArray> data{values};
-        EXPECT_EQ(data.size(), values.size());
-
-        auto desValues = data.deserialize();
-        EXPECT_EQ(desValues, values);
-
-        auto value0 = data.deserializeIdx(0);
-        EXPECT_EQ(value0, values[0]);
-    }
-
-    { // QString
-        auto values = h5TestHelper->randomStringList(5);
-
-        GenH5::Data<QString> data{values};
-        EXPECT_EQ(data.size(), values.size());
-
-        auto desValues = data.deserialize<QStringList>();
-        EXPECT_EQ(desValues, values);
-
-        auto value0 = data.deserializeIdx(0);
-        EXPECT_EQ(value0, values[0]);
-    }
-}
-
-TEST_F(TestH5Data, serializationCompound)
-{
-    auto comData = GenH5::makeCompData(stringData, intData, doubleData);
-    // data must be deserialized first
-    GenH5::Vector<QString> desStrData;
-    GenH5::Vector<int> desIntData;
-    GenH5::Vector<double> desDoubleData;
-
-    comData.deserialize(desStrData, desIntData, desDoubleData);
-
-    EXPECT_EQ(desStrData.toList(), stringData);
-    EXPECT_EQ(desIntData, intData);
-    EXPECT_EQ(desDoubleData, doubleData);
-
-    auto tupleAt0 = comData.deserializeIdx(0);
-    QString s;
-    int i;
-    double d;
-    GenH5::unpack(tupleAt0, s, i, d);
-    EXPECT_EQ(s, stringData[0]);
-    EXPECT_EQ(i, intData[0]);
-    EXPECT_EQ(d, doubleData[0]);
-}
-
-TEST_F(TestH5Data, serializationComplex)
-{
-    GenH5::CompData<GenH5::VarLen<double>, QString> data{
-        GenH5::Comp<GenH5::VarLen<double>, QString>{
-            doubleData,
-            "Fancy String"
-        }
+    QStringList strsIn{strVal1, strVal2, strVal3, strVal4};
+    QList<QPoint> ptsIn{
+        std::get<1>(val1), std::get<1>(val2),
+        std::get<1>(val3), std::get<1>(val4)
     };
 
-    GenH5::Vector<GenH5::VarLen<double>> doubles;
-    GenH5::Vector<QString> strings;
-    data.deserialize(doubles, strings);
+    ConvCompT conVal1{std::get<1>(val1), strVal1};
+    ConvCompT conVal2{std::get<1>(val2), strVal2};
+    ConvCompT conVal3{std::get<1>(val3), strVal3};
+    ConvCompT conVal4{std::get<1>(val4), strVal4};
 
-    ASSERT_EQ(doubles.size(), 1);
-    ASSERT_EQ(strings.size(), 1);
-
-    EXPECT_EQ(doubles.at(0), doubleData);
-    EXPECT_EQ(strings.at(0), QString{"Fancy String"});
-}
-
-TEST_F(TestH5Data, array)
-{
-    using ArrayT = GenH5::Array<QPoint, 6>;
-    ArrayT points = {
-        QPoint{11, 1},
-        QPoint{12, 2},
-        QPoint{-4, -2},
-        QPoint{5, 60}
+    // conversion container
+    GenH5::conversion_container_t<CompT> nativeContainer{
+        conVal1, conVal2, conVal3, conVal4
     };
-    GenH5::Data<ArrayT> data{points};
-
-    EXPECT_EQ(data.size(), 1);
-    EXPECT_EQ(data.dataSpace().size(), 1);
-    EXPECT_TRUE(data.dataType().isValid());
-    EXPECT_TRUE(data.dataType().isArray());
-    EXPECT_TRUE(data.dataType().arrayDimensions() ==
-                GenH5::Dimensions{points.size()});
-
-    ArrayT desData = data.deserializeIdx(0);
-
-    EXPECT_EQ(desData.size(), points.size());
-    EXPECT_EQ(desData, points);
-}
-
-TEST_F(TestH5Data, varlen)
-{
-    auto doubleData = h5TestHelper->linearDataVector<float>(42, 1, 1.1f);
-    GenH5::Data<GenH5::VarLen<float>> data{doubleData};
-
-    EXPECT_EQ(data.size(), 1);
-    EXPECT_EQ(data.dataSpace().size(), 1);
-    EXPECT_TRUE(data.dataType().isValid());
-    EXPECT_TRUE(data.dataType().isVarLen());
-    EXPECT_TRUE(data.dataType().superType() == GenH5::dataType<float>());
-
-    GenH5::VarLen<float> desData = data.deserializeIdx(0);
-
-    EXPECT_EQ(desData.size(), doubleData.size());
-    EXPECT_EQ(desData, doubleData);
-}
-
-TEST_F(TestH5Data, compound)
-{
-    QStringList sList{"Hello World", "Fany String"};
-    GenH5::Vector<double> dList{42.2, 420};
-
-    GenH5::CompData<QString, double> data{
-        GenH5::Vector<GenH5::Comp<QString, double>>{
-            {sList.front(), dList.front()},
-            {sList.back(), dList.back()}
-        }
+    GenH5::CompData<CompT> d1{nativeContainer};
+    // conversion value
+    GenH5::CompData<CompT> d2{conVal1};
+    // conversion init list
+    GenH5::CompData<CompT> d3{
+        std::initializer_list<ConvCompT>{conVal1, conVal2, conVal3, conVal4}
     };
 
-    ASSERT_EQ(data.size(), 2);
-    EXPECT_EQ(data.dataSpace().size(), 2);
-    EXPECT_TRUE((data.dataType() == GenH5::dataType<QString, double>()));
+    // other container
+    QList<CompT> list{val1, val2, val3, val4};
+    GenH5::CompData<CompT> d4{list};
+    // template value
+    GenH5::CompData<CompT> d5{val1};
+    // template init list
+    GenH5::CompData<CompT> d6{val1, val2, val3, val4};
 
-    GenH5::Vector<QString> desStrData;
-    GenH5::Vector<double> desDoubleData;
-    data.deserialize(desStrData, desDoubleData);
+    // comp specific: containers in
+    GenH5::CompData<CompT> d7{strsIn, ptsIn};
 
-    EXPECT_EQ(desStrData.toList(), sList);
-    EXPECT_EQ(desDoubleData, dList);
+    // test operators
+    GenH5::Data<CompT> d;
+    d = nativeContainer;
+    EXPECT_EQ(d.values(), d1.values());
+    d = conVal1;
+    EXPECT_EQ(d.values(), d2.values());
+    d = list;
+    EXPECT_EQ(d.values(), d4.values());
+    d = val1;
+    EXPECT_EQ(d.values(), d5.values());
+
+    d.clear();
+    ASSERT_EQ(d.size(), 0);
+
+    // test pushback
+    d.push_back(nativeContainer);
+    EXPECT_EQ(d.values(), d1.values());
+    d.push_back(conVal1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    d.push_back(list);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values());
+    d.push_back(val1);
+    EXPECT_EQ(d.values(), d1.values() + d2.values() +
+              d4.values() + d5.values());
 }
 
-TEST_F(TestH5Data, makeData)
+TEST_F(TestH5Data, compound_deserialize)
 {
-    std::vector<double> const dList{42.2, 420};
+    using GenH5::Comp;
+    using CompT = Comp<QString, double, char>;
 
-    GenH5::Data<double> data1{ dList };
+    double dVal1 = 42.0;
+    double dVal2 = -.11;
+    double dVal3 = 1623;
+    double dVal4 = 19.1;
 
-    auto data2 = GenH5::makeData(dList);
+    char cVal1 = 'c';
+    char cVal2 = 'w';
+    char cVal3 = '\0';
+    char cVal4 = '0';
 
-    ASSERT_EQ(data1.size(), data2.size());
-    EXPECT_EQ(data1.c(), data2.c());
+    char strVal1[] = "ABCdef";
+    char strVal2[] = "124589";
+    char strVal3[] = "";
+    char strVal4[] = "%!ßqys";
+
+    CompT val1{strVal1, dVal1, cVal1};
+    CompT val2{strVal2, dVal2, cVal2};
+    CompT val3{strVal3, dVal3, cVal3};
+    CompT val4{strVal4, dVal4, cVal4};
+
+    QStringList strsIn{strVal1, strVal2, strVal3, strVal4};
+    QList<double> dsIn{dVal1, dVal2, dVal3, dVal4};
+    QVector<char> charsIn{cVal1, cVal2, cVal3, cVal4};
+
+    GenH5::CompData<CompT> data{strsIn, dsIn, charsIn};
+
+    // deserialize as tuple vector
+    GenH5::Vector<CompT> tuples = data.values();
+    GenH5::Vector<CompT> myTuples = GenH5::makeComp(strsIn, dsIn, charsIn);
+    EXPECT_EQ(tuples, myTuples);
+
+    // deserialize individual tuple vectors
+    EXPECT_EQ((data.getValues<0, QStringList>()), strsIn);
+    EXPECT_EQ((data.getValues<1, QList<double>>()), dsIn);
+    EXPECT_EQ((data.getValues<2, QVector<char>>()), charsIn);
+
+    // deserialize out
+    QStringList strsOut;
+    QList<double> dsOut;
+    QVector<char> csOut;
+    data.unpack(strsOut, dsOut, csOut);
+    EXPECT_EQ(strsOut, strsIn);
+    EXPECT_EQ(dsOut, dsIn);
+    EXPECT_EQ(csOut, charsIn);
+
+    // deserialize single tuple
+    CompT tuple = data.value(0);
+    CompT myTuple = std::make_tuple(strVal1, dVal1, cVal1);
+    EXPECT_EQ(tuple, myTuple);
+
+    // deserialize individual tuple element
+    EXPECT_EQ((data.getValue<0>(1)), strVal2);
+    EXPECT_EQ((data.getValue<1>(1)), dVal2);
+    EXPECT_EQ((data.getValue<2>(1)), cVal2);
+
+    // deserialize idx out
+    QString strOut;
+    double dOut;
+    char cOut;
+    data.unpack(2, strOut, dOut, cOut);
+    EXPECT_EQ(strOut, strVal3);
+    EXPECT_EQ(dOut, dVal3);
+    EXPECT_EQ(cOut, cVal3);
 }
 
-TEST_F(TestH5Data, makeCompoundData)
+TEST_F(TestH5Data, resize)
 {
-    QStringList const sList{"Hello World", "Fany String"};
-    GenH5::Vector<double> const dList{42.2, 420};
+    hsize_t spaceLength = 10;
+    hsize_t arrLength = 5;
+    auto space = GenH5::DataSpace::linear(spaceLength);
+    auto superType = GenH5::dataType<int>();
+    auto arryType = GenH5::DataType::array(superType, arrLength);
 
-    GenH5::CompData<QString, double> data1{
-        GenH5::Vector<GenH5::Comp<QString, double>>{
-            {sList.front(), dList.front()},
-            {sList.back(), dList.back()}
-        }
-    };
+    GenH5::Data<int> data;
+    ASSERT_EQ(data.size(), 0);
+    // resize using space length
+    data.resize(space, superType);
+    EXPECT_EQ(data.size(), spaceLength);
 
-    auto data2 = GenH5::makeCompData(sList, dList);
+    data.clear();
+    ASSERT_EQ(data.size(), 0);
 
-    ASSERT_EQ(data1.size(), data2.size());
-    for (int i = 0; i < data1.size(); ++i)
-    {
-        EXPECT_EQ(std::get<0>(data1[i]), std::get<0>(data2[i]));
-        EXPECT_STREQ(std::get<1>(data1[i]), std::get<1>(data2[i]));
-    }
+    // resize using space * array length
+    data.resize(space, arryType);
+    EXPECT_EQ(data.size(), spaceLength * arrLength);
+}
+
+TEST_F(TestH5Data, valueIdx)
+{
+    GenH5::Dimensions dims{5, 4};
+    GenH5::Data<double> data;
+    data = h5TestHelper->linearDataVector<double>(GenH5::prod<int>(dims), 0, 1);
+
+    // dataspace to big
+    ASSERT_THROW(data.setDimensions({5, 5}), GenH5::InvalidArgumentError);
+
+    ASSERT_NO_THROW(data.setDimensions(dims));
+    ASSERT_EQ(data.dataSpace().dimensions(), dims);
+
+    // 1D
+    EXPECT_EQ(data[4], 4);
+    EXPECT_EQ(data[12], 12);
+
+    EXPECT_EQ(data.at(11), 11);
+    EXPECT_EQ(data.at(19), 19);
+
+    EXPECT_EQ(data.value(3), 3);
+    EXPECT_EQ(data.value(7), 7);
+
+    // 2D
+    EXPECT_EQ(data.at(2, 3), 11);
+    EXPECT_EQ(data.at(0, 4), 4);
+
+    EXPECT_EQ(data.value(3, 3), 15);
+    EXPECT_EQ(data.value(1, 1), 5);
+
+    // > 2D
+    EXPECT_THROW(data.at({1, 2, 3}), GenH5::InvalidArgumentError);
+    EXPECT_THROW(data.value({1, 2, 3}), GenH5::InvalidArgumentError);
+    EXPECT_THROW((data[{1, 2, 3}]), GenH5::InvalidArgumentError);
+}
+
+TEST_F(TestH5Data, compoundValueIdx)
+{
+    GenH5::Dimensions dims{2, 5, 4};
+
+    int size = GenH5::prod<int>(dims);
+    auto ints = h5TestHelper->linearDataVector<int>(size,0, 1);
+    auto bas = h5TestHelper->randomByteArrays(size);
+
+    GenH5::Data<int, QByteArray> data{ints, bas};
+
+    ASSERT_NO_THROW(data.setDimensions(dims));
+    ASSERT_EQ(data.dataSpace().dimensions(), dims);
+
+    // 1D
+    EXPECT_EQ(data.getValue<0>(3), ints[3]);
+    EXPECT_EQ(data.getValue<1>(7), bas[7]);
+
+    // 2D
+    // data is 3D dataset
+    EXPECT_THROW(data.getValue<0>(0, 4), GenH5::InvalidArgumentError);
+    EXPECT_THROW(data.getValue<1>(1, 2), GenH5::InvalidArgumentError);
+
+    // 3D
+    EXPECT_EQ(data.getValue<0>({1, 2, 3}), ints[1 * 20 + 2 * 4 + 3]);
+    EXPECT_EQ(data.getValue<1>({1, 4, 1}), bas[1 * 20 + 4 * 4 + 1]);
+}
+
+TEST_F(TestH5Data, dataspace)
+{
+    GenH5::Data<QString> data;
+    EXPECT_FALSE(data.dataSpace().isScalar());
+
+    data.resize(10);
+    EXPECT_EQ(data.dataSpace().size(), 10);
+    EXPECT_EQ(data.dataSpace().nDims(), 1);
+
+    data.setDimensions({2, 5});
+    EXPECT_EQ(data.dataSpace().size(), 10);
+    EXPECT_EQ(data.dataSpace().nDims(), 2);
 }
 
 TEST_F(TestH5Data, reserveBuffer)
@@ -271,67 +643,4 @@ TEST_F(TestH5Data, reserveBuffer)
     EXPECT_EQ(std::get<2>(buffer5).capacity(), 10); // = QString
     EXPECT_EQ(std::get<1>(buffer5).capacity(), 0); // = int
     EXPECT_EQ(std::get<0>(buffer5).capacity(), 0); // = QPoint
-}
-
-TEST_F(TestH5Data, dataCopy)
-{
-    auto strData = GenH5::makeData(stringData);
-
-    auto data = strData;
-
-    // data must be deserialized first
-    auto desStrData = data.deserialize();
-
-    EXPECT_EQ(desStrData.toList(), stringData);
-}
-
-TEST_F(TestH5Data, dataAssign)
-{
-    GenH5::Vector<QPoint> points{{11, 1}, {42, 12}};
-    auto pData = GenH5::makeData(points);
-
-    GenH5::Data<QPoint> data;
-    data = pData;
-
-    // data must be deserialized first
-    auto desPData = data.deserialize();
-
-    EXPECT_EQ(desPData, points);
-}
-
-TEST_F(TestH5Data, dataCompoundCopy)
-{
-    auto comData = GenH5::makeCompData(intData, doubleData, stringData);
-
-    auto data{comData};
-
-    // data must be deserialized first
-    QStringList desStrData;
-    GenH5::Vector<int> desIntData;
-    GenH5::Vector<double> desDoubleData;
-
-    data.deserialize(desIntData, desDoubleData, desStrData);
-
-    EXPECT_EQ(desIntData, intData);
-    EXPECT_EQ(desDoubleData, doubleData);
-    EXPECT_EQ(desStrData, stringData);
-}
-
-TEST_F(TestH5Data, dataCompoundAssign)
-{
-    auto comData = GenH5::makeCompData(doubleData, intData, stringData);
-
-    GenH5::CompData<double, int, QString> data;
-    data = comData;
-
-    // data must be deserialized first
-    QStringList desStrData;
-    GenH5::Vector<int> desIntData;
-    GenH5::Vector<double> desDoubleData;
-
-    data.deserialize(desDoubleData, desIntData, desStrData);
-
-    EXPECT_EQ(desIntData, intData);
-    EXPECT_EQ(desDoubleData, doubleData);
-    EXPECT_EQ(desStrData, stringData);
 }

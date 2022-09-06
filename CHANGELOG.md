@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed 
+- `Location::type` was moved to `Object::type`
+- Refactored `CompData` and `Data` classes
+- Updated type traits
+
+### Added
+- `Data0D` and `CompData0D` for scalar data
+- `makeArrays` and `makeVarLens` utils functions. Implemented `unpack` overloads accordingly - #25
+- `Data::split` and `Data::resize` overload for reading array types more easily - #25
+- `idx` utils function and overloads for `Data::operator[]`, `Data::at` and `Data::value` to access multidimensional data more easily. 
+   The desired data dimensions must be set prior using `Data::setDimensions`. - #23
+
+### Deprecated 
+- `Data::deserialize`, use or `Data::values` instead. For compound data use `Data::unpack` instead. - #23
+- `Data::deserializeIdx`, use `Data::value` instead. For compound data use `Data::unpack` instead. - #23
+- `Data::c`, use `Data::raw` instead
+- `AbstractData` use `CommonData` or `details::AbstractData` instead
+- `File::isValidH5File`
+
 ### Fixed 
 - `Attribute::doRead` will now throw a `GenH5::Exception`
 

@@ -16,6 +16,8 @@
 
 #include "testhelper.h"
 
+#include <QDebug>
+
 
 /// This is a test fixture that does a init for each test
 class TestH5Reference : public testing::Test
@@ -167,16 +169,10 @@ TEST_F(TestH5Reference, referenceAttributeAlign)
     auto align =  attribute.toReference().alignment();
 
     // dereference does not work for attributes when using alignment data
+    qDebug() << "### EXPECTEING ERROR: Bad value";
     EXPECT_THROW(GenH5::Reference(align).toAttribute(file),
                  GenH5::ReferenceException);
-
-    //    qDebug() << "# Expect Error: invalid reference type";
-//    GenH5::Attribute attr = GenH5::Reference(align).toAttribute(file);
-//    EXPECT_FALSE(attr.isValid());
-
-//    EXPECT_EQ(attr.path(), QByteArray{});
-//    EXPECT_EQ(attr.name(), QByteArray{});
-//    EXPECT_FALSE(attr.file());
+    qDebug() << "### END";
 
     // local file and internal shared file ptr have access
     EXPECT_EQ(H5Iget_ref(file.id()), 2);

@@ -10,7 +10,7 @@
 #define GENH5_CONVERSION_DEFAULTS_H
 
 #include "genh5_datatype.h"
-#include "buffer.h"
+#include "genh5_conversion/buffer.h"
 
 /**
   * Checklist for supporting new types
@@ -35,13 +35,13 @@
     } \
 
 #define GENH5_DECLARE_CONVERSION(TYPE_FROM, VALUE_NAME, BUFFER_NAME) \
-    inline GenH5::conversion_t<std::decay_t<TYPE_FROM>> \
+    inline GenH5::conversion_t<GenH5::traits::decay_crv_t<TYPE_FROM>> \
     convert(TYPE_FROM VALUE_NAME,  \
-            GenH5::buffer_t<std::decay_t<TYPE_FROM>>& BUFFER_NAME)
+            GenH5::buffer_t<GenH5::traits::decay_crv_t<TYPE_FROM>>& BUFFER_NAME)
 
 #define GENH5_DECLARE_REVERSE_CONVERSION(TYPE_TO, TYPE_FROM, VALUE_NAME) \
     template <> \
-    inline TYPE_TO \
+    inline auto \
     GenH5::convertTo<TYPE_TO,TYPE_FROM>(TYPE_FROM VALUE_NAME)
 
 namespace GenH5
@@ -49,7 +49,7 @@ namespace GenH5
 
 /* GENERIC REVERSE CONVERSION */
 template<typename Ttarget, typename Tfrom = Ttarget&&>
-inline Ttarget
+inline auto
 convertTo(Tfrom value)
 {
     // generic reverse conversion

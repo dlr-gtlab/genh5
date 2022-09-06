@@ -14,66 +14,54 @@ class Tests : public testing::Test
 
 };
 
-// QPOINT
-GENH5_DECLARE_IMPLICIT_CONVERSION(QPoint);
-GENH5_DECLARE_IMPLICIT_CONVERSION(QPointF);
+//template<typename T>
+//struct VarLen : public Vector<T>
+//{
+//    using base_class = Vector<T>;
+//    using base_class::base_class;
+////    using base_class::operator=;
+//    using base_class::operator+;
+//    using base_class::operator[];
 
-GENH5_DECLARE_DATATYPE_IMPL(QPoint)
-{
-    struct _PointData{ int xp, yp; };
+//    using base_class::operator!=;
+//    using base_class::operator==;
 
-    static_assert(sizeof(QPoint) == sizeof (_PointData),
-                  "Datatype does not match");
+//    VarLen() = default;
+//    template <typename U>
+//    VarLen(U&& u) : base_class{std::forward<U>(u)} {}
 
-    return GenH5::DataType::compound(sizeof(_PointData), {
-        {"xp", offsetof(_PointData, xp), GenH5::dataType<int>()},
-        {"yp", offsetof(_PointData, yp), GenH5::dataType<int>()}
-    });
-};
+//    template <typename U>
+//    VarLen& operator=(U&& u) {
+//        VarLen temp(std::forward<U>(u));
+//        swap(temp);
+//        return *this;
+//    }
+//};
 
-GENH5_DECLARE_DATATYPE_IMPL(QPointF)
-{
-    using Tp = decltype (std::declval<QPointF>().x());
-    return GenH5::dataType<Tp, Tp>({"xp", "yp"});
-};
+//struct FixedString : public QByteArray
+//{
+//    using QByteArray::QByteArray;
+//    using QByteArray::operator=;
+//    using QByteArray::operator+=;
 
-TEST_F(Tests, compound)
-{
-    using CompT = GenH5::Comp<QString, double>;
-    using ArrayT = GenH5::Array<CompT, 4>;
+////    using QByteArray::operator<;
+////    using QByteArray::operator<=;
+////    using QByteArray::operator==;
+////    using QByteArray::operator!=;
+////    using QByteArray::operator>=;
+////    using QByteArray::operator>;
 
-    GenH5::Vector<ArrayT> vector{
-        ArrayT{
-                CompT{"QPoint{1,1}", 2},
-                CompT{"QPoint{1,2}", 42.1},
-                CompT{"QPoint{2,0}", 0.12},
-                CompT{"{}", .1}
-        }
-    };
+////    using QByteArray::operator const char *;
+////    using QByteArray::operator const void *;
+//};
 
-    auto data = GenH5::makeData(vector);
+//GENH5_DECLARE_CONVERSION_TYPE(GenH5::FixedString, char*);
+//GENH5_DECLARE_BUFFER_TYPE(GenH5::FixedString, QByteArray);
+//GENH5_DECLARE_DATATYPE(GenH5::FixedString, DataType::VarString);
 
-    GenH5::File file(h5TestHelper->newFilePath(), GenH5::Create);
+//template<>
+//struct conversion_container<FixedString>
+//{
+//    using type = FixedString;
+//};
 
-    auto dset = file.root().createDataset(QByteArray{"comp_data.h5"},
-                                          data.dataType(),
-                                          data.dataSpace());
-
-    qDebug() << file.filePath();
-    ASSERT_TRUE(dset.isValid());
-
-    ASSERT_TRUE(dset.write(data));
-
-    GenH5::Data<ArrayT> desData;
-    desData.clear();
-    dset.read(desData);
-
-    ArrayT desArray = desData.deserializeIdx(0);
-
-    GenH5::Vector<QString> strings;
-    GenH5::Vector<double>  doubles;
-    GenH5::unpackNested(desArray, strings, doubles);
-
-    qDebug() << strings;
-    qDebug() << doubles;
-}

@@ -53,7 +53,7 @@ public:
 
     /**
      * @brief returns the alignment of the reference. May be used to serialize
-     * a reference. Only works for datasets and groups. Prefer buffer() instead.
+     * a reference. Only works for datasets and groups.
      * @return alignment of reference
      */
     Alignment alignment() const noexcept
@@ -63,7 +63,7 @@ public:
 
     /**
      * @brief returns the reference data buffer as a QByteArray. Can be used to
-     * serialize and deserialize a reference.Prefer iver data().
+     * serialize and deserialize a reference.
      * @return data array
      */
     QByteArray buffer() const noexcept;

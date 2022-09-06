@@ -98,9 +98,9 @@ GenH5::DataSet::doRead(void* data, DataType const& dtype) const
 
 bool
 GenH5::DataSet::write(void const* data,
-                     DataSpace const& fileSpace,
-                     DataSpace const& memSpace,
-                     Optional<DataType> dtype) const
+                      DataSpace const& fileSpace,
+                      DataSpace const& memSpace,
+                      Optional<DataType> dtype) const
 {
     static constexpr auto errMsg = "HDF5: Writing data vector failed!";
 
@@ -141,9 +141,9 @@ GenH5::DataSet::write(void const* data,
 
 bool
 GenH5::DataSet::read(void* data,
-                    DataSpace const& fileSpace,
-                    DataSpace const& memSpace,
-                    Optional<DataType> dtype)
+                     DataSpace const& fileSpace,
+                     DataSpace const& memSpace,
+                     Optional<DataType> dtype)
 {
     static constexpr auto errMsg = "HDF5: Reading data vector failed!";
 

@@ -22,8 +22,6 @@ class File;
 class Attribute;
 class Reference;
 
-using ObjectType = H5I_type_t;
-
 /**
  * @brief The Location class
  */
@@ -62,12 +60,6 @@ public:
      * @return path
      */
     String path() const noexcept;
-
-    /**
-     * @brief returns object type
-     * @return object type
-     */
-    ObjectType type() const noexcept;
 
     /**
      * @brief object name

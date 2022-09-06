@@ -176,8 +176,8 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
 
 void
 GenH5::DataSpaceSelection::testSelection(Dimensions& dim,
-                                        Dimensions const& sDim,
-                                        hsize_t fillValue) noexcept(false)
+                                         Dimensions const& sDim,
+                                         hsize_t fillValue) noexcept(false)
 {
     auto ndims = sDim.size();
     auto size  = dim.size();

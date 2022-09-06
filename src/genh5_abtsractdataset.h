@@ -10,7 +10,7 @@
 #define GENH5_ABTSRACTDATASET_H
 
 #include "genh5_exports.h"
-#include "genh5_data.h"
+#include "genh5_data/base.h"
 #include "genh5_optional.h"
 
 namespace GenH5
@@ -47,8 +47,9 @@ public:
     template<typename T>
     bool write(Vector<T> const& data,
                Optional<DataType> dtype = {}) const noexcept(false);
+
     template<typename T>
-    bool write(AbstractData<T> const& data,
+    bool write(details::AbstractData<T> const& data,
                Optional<DataType> dtype = {}) const noexcept(false);
 
     /**
@@ -64,7 +65,7 @@ public:
               Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool read(AbstractData<T>& data,
+    bool read(details::AbstractData<T>& data,
               Optional<DataType> dtype = {}) const noexcept(false);
 
 protected:
@@ -89,7 +90,10 @@ protected:
      */
     virtual bool doRead(void* data, DataType const& dtype) const = 0;
 
-    void debugWriteError(size_t length) const;
+    void debugWriteError(size_t length,
+                         Optional<DataSpace> const& space = {}) const;
+    void debugReadError(size_t length,
+                        Optional<DataSpace> const& space = {}) const;
 
     /**
      * @brief AbtsractDataSet
@@ -118,15 +122,21 @@ AbstractDataSet::write(Vector<T> const& data,
 
 template<typename T>
 inline bool
-AbstractDataSet::write(AbstractData<T> const& data,
+AbstractDataSet::write(details::AbstractData<T> const& data,
                        Optional<DataType> dtype) const noexcept(false)
 {
+    if (data.size() < dataSpace().selectionSize())
+    {
+        debugWriteError(data.size());
+        return false;
+    }
+
     if (dtype.isDefault())
     {
         dtype = data.dataType();
     }
 
-    return write(data.c(), std::move(dtype));
+    return write(data.dataWritePtr(), std::move(dtype));
 }
 
 template<typename T>
@@ -134,26 +144,27 @@ inline bool
 AbstractDataSet::read(Vector<T>& data,
                       Optional<DataType> dtype) const noexcept(false)
 {
-    auto dspace = dataSpace();
-    data.resize(dspace.selectionSize());
-
+    data.resize(dataSpace().selectionSize());
     return read(data.data(), std::move(dtype));
 }
 
 template<typename T>
 inline bool
-AbstractDataSet::read(AbstractData<T>& data,
+AbstractDataSet::read(details::AbstractData<T>& data,
                       Optional<DataType> dtype) const noexcept(false)
 {
-    auto dspace = dataSpace();
-    data.resize(dspace.selectionSize());
+    if (!data.resize(dataSpace(), dtype.isDefault() ? dataType() : *dtype))
+    {
+        debugReadError(data.size());
+        return false;
+    }
 
     if (dtype.isDefault())
     {
         dtype = data.dataType();
     }
 
-    return read(data.data(), std::move(dtype));
+    return read(data.dataReadPtr(), std::move(dtype));
 }
 
 } // namespace GenH5

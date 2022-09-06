@@ -61,8 +61,10 @@ HEADERS += \
     genh5_conversion/type.h \
     genh5_data.h \
     genh5_data/base.h \
+    genh5_data/common.h \
+    genh5_data/common0d.h \
     genh5_data/comp.h \
-    genh5_data/simple.h \
+    genh5_data/comp0d.h \
     genh5_dataset.h \
     genh5_datasetcproperties.h \
     genh5_dataspace.h \

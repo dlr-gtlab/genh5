@@ -13,6 +13,7 @@
 #include "genh5_conversion/type.h"
 #include "genh5_typetraits.h"
 #include "genh5_version.h"
+#include "genh5_utils.h"
 
 namespace GenH5
 {
@@ -154,10 +155,10 @@ getTypeNames(DataType const& dtype) noexcept(false)
 
     CompoundNames<N> names{};
 
-    ssize_t offset = members.size()-N;
+    ssize_t offset = members.size() - N;
     if (offset >= 0)
     {
-        std::transform(std::begin(members), std::end(members)-offset,
+        std::transform(std::begin(members), std::end(members) - offset,
                        std::begin(names), [](auto const member){
             return member.name;
         });
@@ -170,17 +171,9 @@ namespace details
 
 // invalid, cannot convert to datatype
 template <typename ...Ts>
-struct datatype_impl;
-
-// specialization for varlen types
-template <typename T>
-struct datatype_impl<VarLen<T>>
+struct datatype_impl
 {
-    datatype_impl(CompoundNames<0> = {}) {}
-    operator DataType() const
-    {
-        return GenH5::DataType::varLen(datatype_impl<T>());
-    }
+    // T must have an datatype associated!
 };
 
 // specialization for array types
@@ -191,6 +184,27 @@ struct datatype_impl<Array<T, N>>
     operator DataType() const
     {
         return GenH5::DataType::array(datatype_impl<T>(), N);
+    }
+};
+
+template <typename T, size_t N>
+struct datatype_impl<T[N]>
+{
+    datatype_impl(CompoundNames<0> = {}) {}
+    operator DataType() const
+    {
+        return GenH5::DataType::array(datatype_impl<T>(), N);
+    }
+};
+
+// specialization for varlen types
+template <typename T>
+struct datatype_impl<VarLen<T>>
+{
+    datatype_impl(CompoundNames<0> = {}) {}
+    operator DataType() const
+    {
+        return GenH5::DataType::varLen(datatype_impl<T>());
     }
 };
 
@@ -212,8 +226,8 @@ struct datatype_impl<Comp<Ts...>>
         CompoundMembers members;
         members.reserve(sizeof...(Ts));
 
-        GenH5::mpl::static_rfor<sizeof...(Ts)>([&](auto const idx,
-                                             auto const ridx){
+        GenH5::mpl::static_rfor<sizeof...(Ts)>(
+                    [&](auto const idx, auto const ridx){
             members.append({
                 m_typeNames.at(ridx),
                 offset<idx>(),
@@ -237,7 +251,7 @@ private:
     template<size_t Idx>
     size_t offset() const
     {
-        return reinterpret_cast<size_t>(&std::get<Idx>(m_t)) -
+        return reinterpret_cast<size_t>(&get<Idx>(m_t)) -
                reinterpret_cast<size_t>(&m_t);
     }
 
@@ -256,7 +270,7 @@ private:
 
 } // namespace details
 
-// compound type
+// compound types
 template<typename T1, typename T2, typename... Tother>
 inline DataType
 dataType(CompoundNames<sizeof...(Tother)+2> memberNames = {}) noexcept(false)
@@ -265,12 +279,11 @@ dataType(CompoundNames<sizeof...(Tother)+2> memberNames = {}) noexcept(false)
     return details::datatype_impl<T>(std::move(memberNames));
 }
 
-// T == compound<...>
+// compound names
 template<typename T>
 inline DataType
 dataType(CompoundNames<traits::comp_size<T>::value> memberNames) noexcept(false)
 {
-    // T must have an datatype associated!
     return details::datatype_impl<T>(std::move(memberNames));
 }
 
@@ -278,7 +291,6 @@ template<typename T>
 inline DataType
 dataType() noexcept(false)
 {
-    // T must have an datatype associated!
     return details::datatype_impl<T>();
 }
 
@@ -312,6 +324,8 @@ GENH5_EXPORT bool operator!=(GenH5::CompoundMember const& first,
     GenH5::details::datatype_impl<NATIVE_TYPE>::operator GenH5::DataType() const
 
 // default datatypes
+GENH5_DECLARE_DATATYPE(bool, DataType::Bool);
+
 GENH5_DECLARE_DATATYPE(char, DataType::Char);
 
 GENH5_DECLARE_DATATYPE(char*, DataType::VarString);
@@ -328,5 +342,12 @@ GENH5_DECLARE_DATATYPE(float, DataType::Float);
 GENH5_DECLARE_DATATYPE(double, DataType::Double);
 
 GENH5_DECLARE_DATATYPE(GenH5::Version, DataType::Version);
+
+// fixed string
+template <size_t N>
+struct GenH5::details::datatype_impl<char[N]> {
+    datatype_impl(CompoundNames<0> = {}) {}
+    operator GenH5::DataType() const { return GenH5::DataType::string(N); }
+};
 
 #endif // GENH5_DATATYPE_H

@@ -33,6 +33,7 @@ TEST_F(TestH5DataSpace, isValid)
     EXPECT_TRUE(GenH5::DataSpace::Null.isValid());
     EXPECT_TRUE(GenH5::DataSpace::Scalar.isValid());
     EXPECT_TRUE(GenH5::DataSpace::linear(42).isValid());
+    EXPECT_TRUE((GenH5::DataSpace{12, 5}.isValid()));
 }
 
 TEST_F(TestH5DataSpace, size)
@@ -41,14 +42,10 @@ TEST_F(TestH5DataSpace, size)
     EXPECT_EQ(dspaceSimple.size(), 42);
     EXPECT_EQ(dspaceMulti.size(), 42);
 
-    EXPECT_NE(dspaceEmpty.size(), 42);
-    EXPECT_NE(dspaceSimple.size(), 0);
-    EXPECT_NE(dspaceMulti.size(), 21);
-
-
     EXPECT_EQ(GenH5::DataSpace::Null.size(), 0);
     EXPECT_EQ(GenH5::DataSpace::Scalar.size(), 1);
     EXPECT_EQ(GenH5::DataSpace::linear(42).size(), 42);
+    EXPECT_EQ((GenH5::DataSpace{12, 5}.size()), 60);
 }
 
 TEST_F(TestH5DataSpace, equal)
@@ -70,11 +67,11 @@ TEST_F(TestH5DataSpace, ndims)
     EXPECT_EQ(GenH5::DataSpace::Null.nDims(), 0);
     EXPECT_EQ(GenH5::DataSpace::Scalar.nDims(), 0);
     EXPECT_EQ(GenH5::DataSpace::linear(42).nDims(), 1);
+    EXPECT_EQ((GenH5::DataSpace{1, 2, 3}.nDims()), 3);
+
     EXPECT_EQ(dspaceEmpty.nDims(), 0);
     EXPECT_EQ(dspaceSimple.nDims(), 1);
     EXPECT_EQ(dspaceMulti.nDims(), 2);
-
-    EXPECT_NE(dspaceMulti.nDims(), 3);
 }
 
 TEST_F(TestH5DataSpace, dimensions)
@@ -85,6 +82,12 @@ TEST_F(TestH5DataSpace, dimensions)
 
     auto x = GenH5::DataSpace::Scalar;
     EXPECT_EQ(x.dimensions(), GenH5::Dimensions{});
+
+    EXPECT_EQ(GenH5::DataSpace::linear(42).dimensions(),
+              GenH5::Dimensions{42});
+
+    EXPECT_EQ((GenH5::DataSpace{1, 2, 3}.dimensions()),
+              (GenH5::Dimensions{1, 2, 3}));
 }
 
 TEST_F(TestH5DataSpace, selection)
@@ -100,5 +103,13 @@ TEST_F(TestH5DataSpace, selection)
 
     EXPECT_TRUE(GenH5::makeSelection(dspace) == dspace);
     EXPECT_TRUE(GenH5::makeSelection(dspace, dspace.dimensions()) == dspace);
-    EXPECT_EQ(GenH5::makeSelection(dspace, {1,2,3}).size(), 6);
+    EXPECT_EQ(GenH5::makeSelection(dspace, {1, 2, 3}).size(), 6);
+
+    // missing nDims will be filled with default values
+    EXPECT_NO_THROW(GenH5::makeSelection(dspace, {1, 2}).space());
+    EXPECT_NO_THROW(GenH5::makeSelection(dspace, {1, 2, 3}, {1, 2}).space());
+
+    // too many nDims is not allowed
+    EXPECT_THROW(GenH5::makeSelection(dspace, {1, 2, 3, 4}).space(),
+                 GenH5::DataSpaceException);
 }

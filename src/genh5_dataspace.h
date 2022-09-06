@@ -131,13 +131,13 @@ public:
         m_op{op}
     { }
 
-    hssize_t size()  noexcept(false)
+    hssize_t size() noexcept(false)
     {
         commit();
         return m_space.selectionSize();
     }
 
-    DataSpace const& space()  noexcept(false)
+    DataSpace const& space() noexcept(false)
     {
         commit();
         return m_space;

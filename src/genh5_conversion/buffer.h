@@ -9,17 +9,17 @@
 #ifndef GENH5_CONVERSION_BUFFER_H
 #define GENH5_CONVERSION_BUFFER_H
 
-#include "type.h"
+#include "genh5_conversion/type.h"
 
 #define GENH5_DECLARE_BUFFER_TYPE(TYPE, BUFFER) \
     template <> \
     struct GenH5::buffer_element<TYPE> : \
-            GenH5::details::buffer_element_impl<TYPE, BUFFER> {};
+           GenH5::details::buffer_element_impl<TYPE, BUFFER> {};
 
 namespace GenH5
 {
 
-/* BUFFER TYPE */
+/** BUFFER ELEMENT TYPE **/
 namespace details
 {
 
@@ -40,16 +40,11 @@ struct buffer_element;
 template<typename ...Ts>
 using buffer_element_t = typename buffer_element<Ts...>::type;
 
-// single element
-template<typename T>
-struct buffer_element<T> :
-        details::buffer_element_impl<T, T> {};
-
-/* BUFFER */
+/** BUFFER TYPE **/
 namespace details
 {
 
-// actual buffer to use (by default vector of elements)
+// actual buffer to use (by default vector of buffer elements)
 template <typename T>
 struct buffer_impl
 {
@@ -70,6 +65,11 @@ struct buffer_impl<Array<T, N>>
     using type = typename buffer_impl<T>::type;
 };
 
+template <typename T, size_t N>
+struct buffer_impl<T[N]>
+{
+    using type = typename buffer_impl<T>::type;
+};
 
 } // namespace details
 
@@ -90,11 +90,21 @@ struct hvl_buffer
 
 } // namespace details
 
-/* BUFFER TYPE SPECIALIZATIONS */
+/** BUFFER ELEMENTTYPE SPECIALIZATIONS **/
+
+// single element
+template<typename T>
+struct buffer_element<T> :
+        details::buffer_element_impl<T, T> {};
+
 // array buffer type
 template <typename T, size_t N>
 struct buffer_element<Array<T, N>> :
         details::buffer_element_impl<Array<T, N>, buffer_element_t<T>> {};
+
+template <typename T, size_t N>
+struct buffer_element<T[N]> :
+        details::buffer_element_impl<T[N], buffer_element_t<T>> {};
 
 // varlen buffer type
 template <typename T>

@@ -21,3 +21,9 @@ Object::isValid(hid_t id) noexcept
 {
     return H5Iis_valid(id);
 }
+
+GenH5::ObjectType
+GenH5::Object::type() const noexcept
+{
+    return H5Iget_type(id());
+}
