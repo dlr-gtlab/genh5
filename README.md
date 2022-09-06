@@ -11,7 +11,7 @@ A good introduction to HDF5 can be found here: https://portal.hdfgroup.org/displ
 The wrapper covers the following aspects:
  - Creating, accessing and deleting files, groups, datsets and attributes
  - Chunked datasets and compression
- - Flexible template-based datatype interface for simple and complex compound types (using `GenH5::Data` or `GenH5::CompData`)
+ - Flexible template-based datatype interface for simple and compound types (using `GenH5::Data` or `GenH5::CompData`)
  - Simple interface for dataspaces
  - Simple interface for (de-) referencing nodes and attributes
 
@@ -19,7 +19,7 @@ Currently not covered:
  - Accessing dataset regions
  - External HDF5 files and datasets
  - Creating soft/hard links to nodes
- - Certain datatypes (eg. opaque types, `bool`, `QPointf` etc.)
+ - Certain datatypes are not properly supported (eg. opaque, time, reference etc.)
 
 ## How to use the wrapper
 

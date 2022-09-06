@@ -20,7 +20,7 @@
 namespace GenH5
 {
 
-/* CONVERSION TYPE */
+/** CONVERSION TYPE **/
 namespace details
 {
 
@@ -38,8 +38,8 @@ template<typename ...Ts>
 struct conversion;
 
 // using declaration
-template<typename ...Ts>
-using conversion_t = typename conversion<Ts...>::type;
+template<typename T>
+using conversion_t = typename conversion<T>::type;
 
 // single element
 template <typename T>
@@ -50,6 +50,10 @@ struct conversion<T> :
 template <typename T, size_t N>
 struct conversion<Array<T, N>> :
         details::conversion_impl<Array<T, N>, Array<conversion_t<T>, N>> {};
+
+template <typename T, size_t N>
+struct conversion<T[N]> :
+        details::conversion_impl<T[N], Array<conversion_t<T>, N>> {};
 
 // varlen element
 template <typename T>
@@ -62,6 +66,17 @@ struct conversion<Comp<Ts...>>
 {
     using type = mpl::reversed_comp_t<Comp<conversion_t<Ts>...>>;
 };
+
+/** CONVERSION CONTAINER TYPE **/
+// by default vector of T
+template<typename T>
+struct conversion_container
+{
+    using type = Vector<conversion_t<T>>;
+};
+
+template<typename T>
+using conversion_container_t = typename conversion_container<T>::type;
 
 } // namespace GenH5
 

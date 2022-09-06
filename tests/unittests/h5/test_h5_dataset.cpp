@@ -14,6 +14,7 @@
 
 #include "testhelper.h"
 
+#include <QDebug>
 #include <QStringList>
 
 /// This is a test fixture that does a init for each test
@@ -44,26 +45,17 @@ protected:
 
 TEST_F(TestH5DataSet, isValid)
 {
-    GenH5::DataSet dset;
     // test invalid dataset
+    GenH5::DataSet dset;
     EXPECT_FALSE(dset.isValid());
+    EXPECT_THROW(dset.cProperties(), GenH5::DataSetException);
 
-    // create and test various datasets
+    // valid dataset
     dset = file.root().createDataset(QByteArrayLiteral("test"),
                                      intData.dataType(),
                                      intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
-
-    dset = group.createDataset(QByteArrayLiteral("test"),
-                               doubleData.dataType(),
-                               doubleData.dataSpace());
-    EXPECT_TRUE(dset.isValid());
-}
-
-TEST_F(TestH5DataSet, propertiesInvalid)
-{
-    GenH5::DataSet dset;
-    EXPECT_THROW(dset.cProperties(), GenH5::DataSetException);
+    EXPECT_TRUE(dset.cProperties().isValid());
 }
 
 TEST_F(TestH5DataSet, deleteLink)
@@ -72,7 +64,7 @@ TEST_F(TestH5DataSet, deleteLink)
     // test invalid attribute
     EXPECT_FALSE(dset.isValid());
 
-    // create valid attribute
+    // create valid dataset
     dset = file.root().createDataset(QByteArrayLiteral("test"),
                                      intData.dataType(),
                                      intData.dataSpace());
@@ -88,10 +80,9 @@ TEST_F(TestH5DataSet, deleteLink)
 TEST_F(TestH5DataSet, resize)
 {
     // create new dataset
-    GenH5::DataSet dset = group.createDataset(QByteArrayLiteral("test"),
-                                           doubleData.dataType(),
-                                           doubleData.dataSpace());
-    ASSERT_TRUE(dset.isValid());
+    auto dset = group.createDataset(QByteArrayLiteral("test"),
+                                    doubleData.dataType(),
+                                    doubleData.dataSpace());
 
     // resize to zero
     EXPECT_TRUE(dset.resize({0}));
@@ -106,20 +97,18 @@ TEST_F(TestH5DataSet, resize)
 
 TEST_F(TestH5DataSet, writeSelection)
 {
-    GenH5::Data<float> data{h5TestHelper->linearDataVector<float>(42, 1, 1)};
+    GenH5::Data<float> data{h5TestHelper->linearDataVector<float>(42, 1)};
     GenH5::DataSpace dspace{2, 3, 7};
-
     ASSERT_EQ(dspace.size(), data.length());
 
     // create new dataset
-    GenH5::DataSet dset = group.createDataset(QByteArrayLiteral("test_selec"),
-                                             data.dataType(),
-                                             dspace);
-    ASSERT_TRUE(dset.isValid());
+    GenH5::DataSet dset = group.createDataset("test_selection",
+                                              data.dataType(),
+                                              dspace);
 
     /* WRITE */
     GenH5::Dimensions count{1, 1, 6};
-    auto selSize = GenH5::prod(count);
+    auto selSize = GenH5::prod<int>(count);
     auto selection = GenH5::makeSelection(dspace, count, {1, 2, 1});
     ASSERT_EQ(selection.size(), selSize);
 
@@ -133,7 +122,6 @@ TEST_F(TestH5DataSet, writeSelection)
 
     GenH5::Vector<float> dummy;
     dummy.resize(size-selSize-1);
-    dummy.fill(0);
 
     EXPECT_EQ(read.mid(size-selSize), data.mid(0, selSize));
     EXPECT_EQ(read.mid(0, size-selSize-1), dummy);
@@ -141,16 +129,14 @@ TEST_F(TestH5DataSet, writeSelection)
 
 TEST_F(TestH5DataSet, readSelection)
 {
-    GenH5::Data<uint64_t> data{h5TestHelper->linearDataVector<uint64_t>(48, 1, 1)};
+    GenH5::Data<uint64_t> data{h5TestHelper->linearDataVector<uint64_t>(48, 1)};
     GenH5::DataSpace dspace{4, 12};
-
     ASSERT_EQ(dspace.size(), data.length());
 
     // create new dataset
     GenH5::DataSet dset = group.createDataset(QByteArrayLiteral("test_selec"),
                                              data.dataType(),
                                              dspace);
-    ASSERT_TRUE(dset.isValid());
 
     /* WRITE */
     dset.write(data, dspace);
@@ -161,7 +147,7 @@ TEST_F(TestH5DataSet, readSelection)
     GenH5::DataSpaceSelection selection(dspace, count);
     selection.setStride({1, 2});
 
-    auto selSize = GenH5::prod(count);
+    auto selSize = GenH5::prod<int>(count);
 
     ASSERT_EQ(selection.size(), selSize);
 
@@ -169,13 +155,15 @@ TEST_F(TestH5DataSet, readSelection)
     dset.read(read, selection);
 
     auto dummy = h5TestHelper->linearDataVector<uint64_t>(selSize, 1, 2);
-    EXPECT_EQ(read.c(), dummy);
+    EXPECT_EQ(read.values(), dummy);
 }
 
 #if 0
-TEST_F(TestH5DataSpace, h5selection) // test selection in hdf5
+#include "genh5_reference.h"
+
+TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
 {
-    auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::CreateOnly);
+    auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
 
     GenH5::Reference ref;
     constexpr uint row = 3;
@@ -198,7 +186,7 @@ TEST_F(TestH5DataSpace, h5selection) // test selection in hdf5
                                               dspace);
         ASSERT_TRUE(dset.isValid());
 
-#if 0
+#if 1
 
         // file space layout
         H5::DataSpace hspace{dspace.toH5()};
@@ -256,13 +244,13 @@ TEST_F(TestH5DataSpace, h5selection) // test selection in hdf5
     {
         qDebug() << "reading...";
 
-        file = GenH5::File(file.filePath(), GenH5::OpenOnly);
+        file = GenH5::File(file.filePath(), GenH5::Open);
 
         ASSERT_TRUE(file.isValid());
 
         auto dset = ref.toDataSet(file);
 
-#if 0
+#if 1
         for (uint i = 0; i < 2; ++i)
         {
             auto selection = GenH5::makeSelection(dset.dataSpace(),
@@ -271,14 +259,13 @@ TEST_F(TestH5DataSpace, h5selection) // test selection in hdf5
                                                  GenH5::Dimensions{1, 2});
 
             qDebug() << "selection:"
-                     << selection.dimensions()
-                     << selection.selectionSize();
+                     << selection.space().dimensions()
+                     << selection.space().selectionSize();
 
-            GenH5Data<double> partial;
+            GenH5::Data<double> partial;
             dset.read(partial, selection);
 
-            qDebug() << "data:"
-                     << partial << partial.capacity();
+            qDebug() << "data:" << partial.raw() << partial.capacity();
         }
 #endif
 

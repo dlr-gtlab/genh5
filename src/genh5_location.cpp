@@ -71,12 +71,6 @@ GenH5::Location::name() const noexcept
     return getObjectName(*this);
 }
 
-GenH5::ObjectType
-GenH5::Location::type() const noexcept
-{
-    return H5Iget_type(id());
-}
-
 GenH5::Reference
 GenH5::Location::toReference() const noexcept(false)
 {

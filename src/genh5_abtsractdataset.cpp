@@ -66,14 +66,27 @@ GenH5::AbstractDataSet::read(void* data, Optional<DataType> dtype) const
 }
 
 void
-GenH5::AbstractDataSet::debugWriteError(size_t length) const
+GenH5::AbstractDataSet::debugWriteError(size_t length,
+                                        Optional<DataSpace> const& space) const
 {
     auto dspace = dataSpace();
     qCritical() << "HDF5: Writing data failed!" <<
                    "(Too few data elements:"
                 << length << "vs."
                 << dspace.dimensions()
-                << dspace.selectionSize() << "elements)";
+                << dspace.selectionSize() << "selected elements)";
+}
+
+void
+GenH5::AbstractDataSet::debugReadError(size_t length,
+                                       Optional<DataSpace> const& space) const
+{
+    auto dspace = space.isDefault() ? dataSpace() : *space;
+    qCritical() << "HDF5: Reading data failed!" <<
+                   "(Data container is too small:"
+                << length << "vs."
+                << dspace.dimensions()
+                << dspace.selectionSize() << "selected elements)";
 }
 
 GenH5::DataType

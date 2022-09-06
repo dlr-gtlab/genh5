@@ -9,19 +9,19 @@
 #ifndef GENH5_CONVERSION_GENERIC_H
 #define GENH5_CONVERSION_GENERIC_H
 
-#include "type.h"
-#include "buffer.h"
+#include "genh5_conversion/type.h"
+#include "genh5_conversion/buffer.h"
 #include "genh5_typetraits.h"
+#include "genh5_utils.h"
 
 namespace GenH5
 {
 
-/*
- * FORWARD DECLARATIONS CONVERSIONS
- */
-
 template<typename T, size_t N>
 auto convert(Array<T, N> const&, buffer_t<Array<T, N>>&);
+
+template<typename T, size_t N>
+auto convert(T const (&)[N], buffer_t<Array<T, N>>&);
 
 template<typename T>
 hvl_t convert(VarLen<T> const&, buffer_t<VarLen<T>>&);
@@ -29,44 +29,60 @@ hvl_t convert(VarLen<T> const&, buffer_t<VarLen<T>>&);
 template<typename... Ts>
 auto convert(Comp<Ts...> const&, buffer_t<Comp<Ts...>>&);
 
-template<typename Ttarget, typename T = traits::value_t<Ttarget>>
-auto convertTo(Array<conversion_t<T>,
-               traits::array_size<Ttarget>::value> const&);
 
-template<typename VarLenT>
-VarLenT convertTo(hvl_t);
+template<typename Ttarget,
+         typename T = traits::base_t<Ttarget>,
+         size_t N = traits::array_size<Ttarget>::value>
+auto convertTo(Array<conversion_t<T>, N> const&);
+
+template<typename Ttarget, typename T = traits::base_t<Ttarget>>
+auto convertTo(hvl_t);
 
 template <typename Ttarget, typename... Ts>
-Ttarget convertTo(Comp<Ts...> const&);
+auto convertTo(Comp<Ts...> const&);
 
-/*
- * IMPLEMENTATIONS
- */
 
-/* ARRAY CONVERSIONS */
+/** ARRAY CONVERSIONS **/
+namespace details
+{
+
+template<size_t N, typename T, typename A, typename B>
+inline auto
+convertArrayImpl(A const& values, B& buffer)
+{
+    using GenH5::convert; // ADL
+    GenH5::conversion_t<Array<T, N>> conv{};
+
+    for (size_t i = 0; i < N; ++i)
+    {
+        conv[i] = convert(values[i], buffer);
+    }
+    return conv;
+}
+
+} // namespace details
+
+
 template<typename T, size_t N>
 inline auto
 convert(Array<T, N> const& values, buffer_t<Array<T, N>>& buffer)
 {
-    using GenH5::convert;
-
-    GenH5::conversion_t<Array<T, N>> conv{};
-
-    for (auto i = 0; i < values.size(); ++i)
-    {
-        conv[i] = convert(values[i], buffer);
-    }
-
-    return conv;
+    return details::convertArrayImpl<N, T>(values, buffer);
 }
 
-/* VARLEN CONVERSIONS */
+template<typename T, size_t N>
+inline auto
+convert(T const (&values)[N], buffer_t<Array<T, N>>& buffer)
+{
+    return details::convertArrayImpl<N, T>(values, buffer);
+}
+
+/** VARLEN CONVERSIONS **/
 template<typename T>
 inline hvl_t
 convert(VarLen<T> const& values, buffer_t<VarLen<T>>& buffer)
 {
-    using GenH5::convert;
-
+    using GenH5::convert; // ADL
     buffer.push_back({});
     auto& hvlB = buffer.back();
 
@@ -82,81 +98,70 @@ convert(VarLen<T> const& values, buffer_t<VarLen<T>>& buffer)
     return hvl;
 }
 
-/* COMPOUND COMVERSION */
+/** COMPOUND COMVERSION **/
 template<typename... Ts>
 inline auto
 convert(Comp<Ts...> const& tuple, buffer_t<Comp<Ts...>>& buffer)
 {
     using GenH5::convert; // ADL
-
     conversion_t<Comp<Ts...>> conv;
 
-    mpl::static_rfor<sizeof...(Ts)>([&](auto const idx, auto const ridx){
-        std::get<ridx>(conv) = convert(std::get<idx>(tuple),
-                                       std::get<ridx>(buffer));
+    mpl::static_for<sizeof...(Ts)>([&](auto const idx){
+        rget<idx>(conv) = convert(get<idx>(tuple), rget<idx>(buffer));
     });
-
     return conv;
 }
 
-/* ARRAY REVERSE CONVERSIONS */
-template<typename Ttarget, typename T>
+
+/** ARRAY REVERSE CONVERSIONS **/
+template<typename Ttarget, typename T, size_t N>
 inline auto
-convertTo(Array<conversion_t<T>,
-          traits::array_size<Ttarget>::value> const& values)
+convertTo(Array<conversion_t<T>, N> const& values)
 {
-    using GenH5::convertTo;
+    using GenH5::convertTo; // ADL
+    traits::convert_to_t<Array<T, N>> conv;
 
-    Ttarget conv;
-
-    for (auto i = 0; i < values.size(); ++i)
+    for (auto i = 0; i < N; ++i)
     {
         conv[i] = convertTo<T>(values[i]);
     }
-
     return conv;
 }
 
-/* VARLEN REVERSE CONVERSIONS */
-template<typename VarLenT> // == VarLen<T>
-inline VarLenT
+/** VARLEN REVERSE CONVERSIONS **/
+template<typename Ttarget, typename T> // == VarLen<T>
+inline auto
 convertTo(hvl_t hvl)
 {
-    using GenH5::convertTo;
-
-    VarLenT conv;
+    using GenH5::convertTo; // ADL
+    traits::convert_to_t<VarLen<T>> conv;
 
     if (hvl.p)
     {
-        conv.reserve(hvl.len);
+        conv.reserve(static_cast<int>(hvl.len));
         for (size_t i = 0; i < hvl.len; ++i)
         {
-            // varlen type must be STL like
-            using ValueType = traits::value_t<VarLenT>;
             // interpret buffer as the conversion type (eg. char* for str types)
-            auto* t = reinterpret_cast<conversion_t<ValueType>*>(hvl.p) + i;
+            auto* t = reinterpret_cast<conversion_t<T>*>(hvl.p) + i;
             // convert to final type
-            conv.push_back(convertTo<ValueType>(*t));
+            conv.push_back(convertTo<T>(*t));
         }
     }
-
     return conv;
 }
 
-/* COMPOUND REVERSE COMVERSION */
+/** COMPOUND REVERSE COMVERSION **/
 template <typename Ttarget, typename... Ts>
-inline Ttarget
+inline auto
 convertTo(Comp<Ts...> const& tuple)
 {
     using GenH5::convertTo; // ADL
+    traits::convert_to_t<Ttarget> conv;
 
-    Ttarget conv;
-
-    mpl::static_rfor<sizeof...(Ts)>([&](auto const idx, auto const ridx){
+    mpl::static_for<sizeof...(Ts)>([&](auto const idx){
         using T = std::tuple_element_t<idx, Ttarget>;
-        std::get<idx>(conv) = convertTo<T>(std::get<ridx>(tuple));
+        get<idx>(conv) = convertTo<T>(rget<idx>(tuple));
     });
-
     return conv;
 }
 

@@ -57,16 +57,16 @@ TEST_F(TestH5DataSetCProperties, autoChunk)
 }
 
 /* not implemented yet
-TEST_F(TestH5DataSetProperties, compression)
+TEST_F(TestH5DataSetCProperties, compression)
 {
     EXPECT_FALSE(propDefault.isCompressed());
     EXPECT_FALSE(propChunked.isCompressed());
 
-    EXPECT_TRUE(m_propCompressed.isCompressed());
+    EXPECT_TRUE(propCompressed.isCompressed());
 
-    EXPECT_EQ(m_propDefault.compression(), 0);
-    EXPECT_EQ(m_propChunked.compression(), 0);
-    EXPECT_EQ(m_propCompressed.compression(), 9);
+    EXPECT_EQ(propDefault.compression(), 0);
+    EXPECT_EQ(propChunked.compression(), 0);
+    EXPECT_EQ(propCompressed.compression(), 9);
 }
 */
 
@@ -85,10 +85,10 @@ TEST_F(TestH5DataSetCProperties, createDatasetOptionalParam)
 
     // optional is default -> by default dset will be chunked
     auto dset2 = file.root().createDataset(
-                                    QByteArrayLiteral("testB"),
-                                    GenH5::DataType::Float,
-                                    GenH5::DataSpace::linear(10),
-                                    GenH5::Optional<GenH5::DataSetCProperties>{});
+                                QByteArrayLiteral("testB"),
+                                GenH5::DataType::VarString,
+                                GenH5::DataSpace::linear(10),
+                                GenH5::Optional<GenH5::DataSetCProperties>{});
 
     EXPECT_TRUE(dset2.properties().isChunked());
 }

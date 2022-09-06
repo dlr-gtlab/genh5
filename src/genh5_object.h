@@ -9,12 +9,18 @@
 #ifndef GENH5_OBJECT_H
 #define GENH5_OBJECT_H
 
-#include "genh5_exports.h"
+#pragma warning( push )
+#pragma warning(disable : 4251)
 #include "H5Cpp.h"
+#pragma warning( pop )
+
+#include "genh5_exports.h"
 
 
 namespace GenH5
 {
+
+using ObjectType = H5I_type_t;
 
 /**
  * @brief The Object class
@@ -45,6 +51,12 @@ public:
      * @return is valid
      */
     static bool isValid(hid_t id) noexcept;
+
+    /**
+     * @brief returns object type
+     * @return object type
+     */
+    ObjectType type() const noexcept;
 
 protected:
 

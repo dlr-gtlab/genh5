@@ -41,6 +41,46 @@ prod(Container const& container)
     return prod<Container, Tout>(container);
 }
 
+/** IDX **/
+inline hsize_t
+idx(Dimensions const& dims, Vector<hsize_t> const& idxs)
+{
+    auto size = dims.size();
+    if (size != idxs.size())
+    {
+        throw InvalidArgumentError{"Number of Dimensions does not equal "
+                                   "Idx-Vector size!"};
+    }
+
+    hsize_t idx = 0;
+    for (auto i = 0; i < size; ++i)
+    {
+        idx += idxs[i] * std::accumulate(std::cbegin(dims) + i + 1,
+                                         std::cend(dims), 1ull,
+                                         [](auto prod, auto dim){
+            return prod * dim;
+        });
+    }
+    return idx;
+}
+
+/** GET  **/
+template <size_t idx,
+          typename Ttuple,
+          size_t size = std::tuple_size<traits::decay_crv_t<Ttuple>>::value>
+inline auto
+rget(Ttuple&& tuple) -> decltype (auto)
+{
+    return std::get<size-1-idx>(std::forward<Ttuple>(tuple));
+}
+
+template <size_t idx, typename Ttuple>
+inline auto
+get(Ttuple&& tuple) -> decltype (auto)
+{
+    return std::get<idx>(std::forward<Ttuple>(tuple));
+}
+
 namespace details
 {
 
@@ -48,42 +88,99 @@ template<typename T, size_t... Is>
 inline auto
 reverseCompImpl(T&& t, std::index_sequence<Is...>)
 {
-    return std::make_tuple(std::get<sizeof...(Is) - Is - 1>(
-                               std::forward<T>(t))...);
+    return std::make_tuple(get<sizeof...(Is) - Is - 1>(std::forward<T>(t))...);
 }
 
 } // namespace details
 
-template<typename T, typename TT = std::decay_t<T>,
-         size_t N = traits::comp_size<TT>::value>
+template<typename T,
+         size_t N = traits::comp_size<traits::decay_crv_t<T>>::value>
 inline auto
 reverseComp(T&& t)
 {
-    return details::reverseCompImpl(std::forward<TT>(t),
+    return details::reverseCompImpl(std::forward<T>(t),
                                     std::make_index_sequence<N>());
 }
 
-/* MAKE HELPERS */
-template <size_t N, typename Container>
+/** MAKE **/
+template <size_t N,
+          typename Container,
+          typename R = Array<traits::value_t<Container>, N>>
 inline auto
 makeArray(Container&& container)
 {
-    Array<traits::value_t<Container>, N> array;
+    R array{};
     std::copy_n(std::cbegin(container),
                 std::min(N, static_cast<size_t>(container.size())),
                 std::begin(array));
     return array;
 }
 
-template <typename Container>
+template <size_t N, typename Container,
+          typename C = traits::value_t<Container>,
+          typename R = Vector<Array<traits::value_t<C>, N>>>
+inline auto
+makeArrays(Container&& container)
+{
+    R arrays;
+    arrays.reserve(container.size());
+    std::transform(std::cbegin(container), std::cend(container),
+                   std::back_inserter(arrays), [](C const& c){
+        return makeArray<N>(c);
+    });
+    return arrays;
+}
+
+template <size_t N, typename Container,
+          typename C = traits::value_t<Container>,
+          typename R = Vector<Array<C, N>>>
+inline auto
+makeArraysFromList(Container&& container) noexcept(false)
+{
+    if (container.size() % N != 0)
+    {
+        throw InvalidArgumentError{"Cannot split container into equally "
+                                   "sized arrays! (size % N != 0)"};
+    }
+    int length = container.size() / N;
+    R arrays;
+    arrays.reserve(length);
+    for (int i = 0; i < length; ++i)
+    {
+        Array<C, N> array{};
+        std::copy(std::cbegin(container) + i * N,
+                  std::cbegin(container) + (i + 1) * N,
+                  std::begin(array));
+        arrays.push_back(std::move(array));
+    }
+    return arrays;
+}
+
+template <typename Container,
+          typename R = Vector<traits::value_t<Container>>>
 inline auto
 makeVarLen(Container&& container)
 {
-    VarLen<traits::value_t<Container>> varlen;
+    R varlen;
     varlen.reserve(container.size());
     std::copy(std::cbegin(container), std::cend(container),
               std::back_inserter(varlen));
     return varlen;
+}
+
+template <typename Container,
+          typename C = traits::value_t<Container>,
+          typename R = Vector<VarLen<traits::value_t<C>>>>
+inline auto
+makeVarLens(Container&& container)
+{
+    R varlens;
+    varlens.reserve(container.size());
+    std::transform(std::cbegin(container), std::cend(container),
+                   std::back_inserter(varlens), [](C const& c){
+        return makeVarLen(c);
+    });
+    return varlens;
 }
 
 template <typename... Containers>
@@ -96,29 +193,31 @@ makeComp(Containers&&... containersIn) noexcept(false)
 
     // for iterating more easily over variadic arguments
     auto containers = std::make_tuple(&containersIn...);
-    auto size = std::get<0>(containers)->size();
+    auto size = get<0>(containers)->size();
     tuples.resize(size);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
-        auto* container = std::get<idx>(containers);
+        auto* container = get<idx>(containers);
         if (size != container->size())
         {
             throw InvalidArgumentError{"Containers have different number "
                                        "of elements!"};
         }
 
-        size_t i = 0;
+        int i = 0;
         for (auto const& value : *container)
         {
-            std::get<idx>(tuples[i++]) = value;
+            get<idx>(tuples[i++]) = value;
         }
     });
 
     return tuples;
 }
 
-/* UNPACK */
-template <typename T, size_t N, typename Container>
+/** UNPACK **/
+template <typename T, size_t N,
+          typename Container,
+          traits::if_has_value_type<Container, T> = true>
 inline void
 unpack(Array<T, N> const& array, Container& container)
 {
@@ -127,13 +226,46 @@ unpack(Array<T, N> const& array, Container& container)
               std::back_inserter(container));
 }
 
-template <typename T, typename Container>
+template <typename T, size_t N,
+          typename Container,
+          typename C = traits::value_t<Container>,
+          traits::if_has_value_type<C, T> = true>
+inline void
+unpack(Vector<Array<T, N>> const& arrays, Container& container)
+{
+    container.reserve(N);
+    std::transform(std::cbegin(arrays), std::cend(arrays),
+                   std::back_inserter(container), [](auto const& array){
+        C c{};
+        unpack(array, c);
+        return c;
+    });
+}
+
+template <typename T,
+          typename Container,
+          traits::if_has_value_type<Container, T> = true>
 inline void
 unpack(VarLen<T> const& varlen, Container& container)
 {
     container.reserve(varlen.size());
     std::copy(std::cbegin(varlen), std::cend(varlen),
               std::back_inserter(container));
+}
+
+template <typename T, typename Container,
+          typename C = traits::value_t<Container>,
+          traits::if_has_value_type<C, T> = true>
+inline void
+unpack(Vector<VarLen<T>> const& varlens, Container& container)
+{
+    container.reserve(varlens.size());
+    std::transform(std::cbegin(varlens), std::cend(varlens),
+                   std::back_inserter(container), [](auto const& varlen){
+        C c{};
+        unpack(varlen, c);
+        return c;
+    });
 }
 
 template <typename... Ts>
@@ -144,7 +276,7 @@ unpack(Comp<Ts...> const& tuple, Ts&... valuesIn)
     auto values = std::make_tuple(&valuesIn...);
 
     mpl::static_for<sizeof...(Ts)>([&](auto const idx){
-        *std::get<idx>(values) = std::get<idx>(tuple);
+        *get<idx>(values) = get<idx>(tuple);
     });
 }
 
@@ -156,13 +288,13 @@ unpack(Vector<Tuple> const& tuples, Containers&... containersIn)
     auto containers = std::make_tuple(&containersIn...);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
-        std::get<idx>(containers)->reserve(tuples.size());
+        get<idx>(containers)->reserve(tuples.size());
     });
 
     for (auto const& tuple : qAsConst(tuples))
     {
         mpl::static_for<traits::comp_size<Tuple>::value>([&](auto const idx){
-            std::get<idx>(containers)->push_back(std::get<idx>(tuple));
+            get<idx>(containers)->push_back(get<idx>(tuple));
         });
     }
 }
@@ -175,10 +307,10 @@ unpackNested(Nested&& nested, Containers&... containersIn)
     auto containers = std::make_tuple(&containersIn...);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
-        std::get<idx>(containers)->resize(nested.size());
+        get<idx>(containers)->resize(nested.size());
     });
 
-    for (size_t i = 0; i < nested.size(); ++i)
+    for (int i = 0; i < nested.size(); ++i)
     {
         unpack(nested[i], containersIn[i]...);
     }

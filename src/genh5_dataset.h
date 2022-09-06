@@ -20,7 +20,7 @@ namespace GenH5
  * @brief The DataSet class
  */
 class GENH5_EXPORT DataSet : public Node,
-                            public AbstractDataSet
+                             public AbstractDataSet
 {
 public:
 
@@ -95,7 +95,7 @@ public:
                Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool write(AbstractData<T> const& data,
+    bool write(details::AbstractData<T>& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace = {},
                Optional<DataType> dtype = {}) const noexcept(false);
@@ -119,7 +119,7 @@ public:
               Optional<DataType> dtype = {}) noexcept(false);
 
     template<typename T>
-    bool read(AbstractData<T>& data,
+    bool read(details::AbstractData<T>& data,
               DataSpace const& fileSpace,
               Optional<DataType> dtype = {}) noexcept(false);
 
@@ -156,7 +156,7 @@ DataSet::write(Vector<T> const& data,
 {
     auto selected = fileSpace.selectionSize();
 
-    if (selected > data.size())
+    if (data.size() < selected)
     {
         debugWriteError(data.size());
         return false;
@@ -172,17 +172,30 @@ DataSet::write(Vector<T> const& data,
 
 template<typename T>
 inline bool
-DataSet::write(AbstractData<T> const& data,
+DataSet::write(details::AbstractData<T>& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace,
                Optional<DataType> dtype) const noexcept(false)
 {
+    auto selected = fileSpace.selectionSize();
+
+    if (data.size() < selected)
+    {
+        debugWriteError(data.size(), fileSpace);
+        return false;
+    }
+
     if (dtype.isDefault())
     {
         dtype = data.dataType();
     }
 
-    return write(data.c(), fileSpace, std::move(memSpace), std::move(dtype));
+    if (memSpace.isDefault())
+    {
+        memSpace = DataSpace::linear(selected);
+    }
+
+    return write(data.dataWritePtr(), fileSpace, memSpace, std::move(dtype));
 }
 
 template<typename T>
@@ -199,18 +212,23 @@ DataSet::read(Vector<T>& data,
 
 template<typename T>
 inline bool
-DataSet::read(AbstractData<T>& data,
+DataSet::read(details::AbstractData<T>& data,
               DataSpace const& fileSpace,
               Optional<DataType> dtype) noexcept(false)
 {
-    data.resize(fileSpace.selectionSize());
+    if (!data.resize(fileSpace, dtype.isDefault() ? dataType() : *dtype))
+    {
+        debugReadError(data.size(), fileSpace);
+        return false;
+    }
 
     if (dtype.isDefault())
     {
         dtype = data.dataType();
     }
 
-    return read(data.data(), fileSpace, data.dataSpace(), std::move(dtype));
+    return read(data.dataReadPtr(), fileSpace, data.dataSpace(),
+                std::move(dtype));
 }
 
 } // namespace GenH5

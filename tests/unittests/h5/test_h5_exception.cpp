@@ -10,7 +10,6 @@
 #include "testhelper.h"
 
 #include "genh5_exception.h"
-#include "H5Cpp.h"
 
 
 /// This is a test fixture that does a init for each test
@@ -19,6 +18,7 @@ class TestH5Exception : public testing::Test
 protected:
 };
 
+#if 0 // redundant
 TEST_F(TestH5Exception, catchGenH5Exception)
 {
     char const* msg = "my exception";
@@ -50,3 +50,4 @@ TEST_F(TestH5Exception, catchStdException)
     // should not be reached
     ASSERT_FALSE(false);
 }
+#endif

@@ -46,6 +46,8 @@ public:
      */
     constexpr Tobject const& value() const noexcept { return m_value; }
 
+    void clear() { m_isDefault = true; m_value = {}; }
+
     constexpr operator Tobject const&() const noexcept { return m_value; }
     constexpr operator Tobject&() noexcept { return m_value; }
 
@@ -71,10 +73,10 @@ public:
     }
 
 private:
-    /// tracks if value was default initialized (i.e. not explcitly by user)
-    bool m_isDefault{true};
     /// value
     Tobject m_value{};
+    /// tracks if value was default initialized (i.e. not explcitly by user)
+    bool m_isDefault{true};
 };
 
 }
