@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated type traits
 
 ### Added
+- Added support for cmake
+- Added support for the conan package manager
 - `Data0D` and `CompData0D` for scalar data
 - `makeArrays` and `makeVarLens` utils functions. Implemented `unpack` overloads accordingly - #25
 - `Data::split` and `Data::resize` overload for reading array types more easily - #25
