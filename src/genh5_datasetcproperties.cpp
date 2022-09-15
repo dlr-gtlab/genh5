@@ -80,14 +80,18 @@ GenH5::DataSetCProperties::setCompression(int level) noexcept(false)
 {
     if (level > s_cmax)
     {
-        qWarning() << "HDF5: Compression level must be within 0 and 9! value:"
-                   << level << "using:" << s_cmax;
+        qWarning().nospace()
+                << "HDF5: Compression level must be within " << s_cmin
+                << " and " << s_cmax << "! value: " << level
+                << " using: " << s_cmax;
         level = s_cmax;
     }
     else if (level < s_cmin)
     {
-        qWarning() << "HDF5: Compression level must be within 0 and 9! value:"
-                   << level << "using:" << s_cmin;
+        qWarning().nospace()
+                << "HDF5: Compression level must be within " << s_cmin
+                << " and " << s_cmax << "! value: " << level
+                << " using: " << s_cmin;
         level = s_cmin;
     }
     if (!isChunked() && level > s_cmin)
@@ -114,7 +118,7 @@ GenH5::DataSetCProperties::setCompression(int level) noexcept(false)
 bool
 GenH5::DataSetCProperties::isChunked() const noexcept
 {
-    return H5Pget_layout(id()) == H5D_layout_t::H5D_CHUNKED;
+    return H5Pget_layout(DataSetCProperties::id()) == H5D_layout_t::H5D_CHUNKED;
 }
 
 //bool

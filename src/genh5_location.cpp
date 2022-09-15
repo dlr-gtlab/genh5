@@ -29,6 +29,32 @@ GenH5::getObjectName(Location const& location) noexcept
     return path.last();
 }
 
+GenH5::String
+GenH5::getObjectPath(GenH5::Location const& location) noexcept
+{
+    if (!location.isValid())
+    {
+        return {};
+    }
+
+    String buffer{32, ' '};
+    auto bufferLen = static_cast<size_t>(buffer.size());
+
+    auto acutalLen = static_cast<size_t>(H5Iget_name(location.id(),
+                                                     buffer.data(),
+                                                     bufferLen));
+
+    if (acutalLen > bufferLen)
+    {
+        bufferLen = acutalLen + 1;
+        buffer.resize(static_cast<int>(bufferLen));
+        H5Iget_name(location.id(), buffer.data(), bufferLen);
+    }
+
+    // chop of excess whitespaces and trailing '\0'
+    return buffer.trimmed().chopped(1);
+}
+
 GenH5::Location::Location(std::shared_ptr<File> file) noexcept :
     m_file(std::move(file))
 { }
@@ -80,24 +106,5 @@ GenH5::Location::toReference() const noexcept(false)
 GenH5::String
 GenH5::Location::path() const noexcept
 {
-    if (!isValid())
-    {
-        return {};
-    }
-
-    String buffer{32, ' '};
-    size_t bufferLen = static_cast<size_t>(buffer.size());
-
-    auto acutalLen = static_cast<size_t>(H5Iget_name(id(), buffer.data(),
-                                                     bufferLen));
-
-    if (acutalLen > bufferLen)
-    {
-        bufferLen = acutalLen + 1;
-        buffer.resize(static_cast<int>(bufferLen));
-        H5Iget_name(id(), buffer.data(), bufferLen);
-    }
-
-    // chop of excess whitespaces and trailing '\0'
-    return buffer.trimmed().chopped(1);
+    return getObjectPath(*this);
 }

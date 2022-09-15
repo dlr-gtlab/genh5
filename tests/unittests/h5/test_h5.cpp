@@ -26,6 +26,10 @@ TEST_F(TestH5, verionMacros)
     qDebug() << "patch:   " << int{GENH5_VERSION_PATCH};
     qDebug() << "addition:" << QStringLiteral(GENH5_VERSION_ADDITIONAL);
 
+    auto v = GenH5::Version::current();
+    qDebug().nospace() << "Version::current() = "
+                       << v.major << "-" << v.minor << "-" << v.patch;
+
     EXPECT_TRUE(GENH5_VERSION == GenH5::Version::current());
 }
 

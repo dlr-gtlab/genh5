@@ -82,7 +82,7 @@ GenH5::Group::close()
 }
 
 GenH5::Group
-GenH5::Group::createGroup(String const& name) noexcept(false)
+GenH5::Group::createGroup(String const& name) const noexcept(false)
 {
     auto const& parent = *this;
 
@@ -115,7 +115,7 @@ GenH5::Group::createGroup(String const& name) noexcept(false)
 }
 
 GenH5::Group
-GenH5::Group::openGroup(String const& name) noexcept(false)
+GenH5::Group::openGroup(String const& name) const noexcept(false)
 {
     auto const& parent = *this;
 
@@ -144,7 +144,7 @@ GenH5::DataSet
 GenH5::Group::createDataset(String const& name,
                            DataType const& dtype,
                            DataSpace const& dspace,
-                           Optional<DataSetCProperties> properties)
+                           Optional<DataSetCProperties> properties) const
 {
     auto const& parent = *this;
 
@@ -202,7 +202,7 @@ GenH5::Group::createDataset(String const& name,
 }
 
 GenH5::DataSet
-GenH5::Group::openDataset(String const& name) noexcept(false)
+GenH5::Group::openDataset(String const& name) const noexcept(false)
 {
     auto const& parent = *this;
 
@@ -229,4 +229,157 @@ GenH5::Group::openDataset(String const& name) noexcept(false)
         qCritical() << "HDF5: [EXCEPTION] Group::openDataset";
         throw DataSetException{e.getCDetailMsg()};
     }
+}
+
+namespace GenH5
+{
+
+namespace alg
+{
+
+inline NodeInfo getNodeInfo(hid_t groupId, char const* nodeName,
+                            H5L_info_t const* nodeInfo)
+{
+    assert(nodeName);
+    assert(nodeInfo);
+    // open object to retrieve object type
+    auto id = H5Oopen_by_token(groupId, nodeInfo->u.token);
+    auto type = H5Iget_type(id);
+    H5Oclose(id);
+
+    NodeInfo info;
+    info.path = QByteArray{nodeName};
+    info.type = type;
+    info.corder = nodeInfo->corder_valid ? nodeInfo->corder : -1;
+    info.token = nodeInfo->u.token;
+    return info;
+}
+
+struct IterAccumulateData
+{
+    Vector<NodeInfo>* nodes{};
+    IterationFilter filter{};
+};
+
+inline herr_t
+accumulateNodes(hid_t groupId, char const* nodeName,
+                H5L_info_t const* nodeInfo, void* dataPtr)
+{
+    assert(dataPtr);
+
+    auto* data = static_cast<IterAccumulateData*>(dataPtr);
+    assert(data->nodes);
+
+    NodeInfo info = getNodeInfo(groupId, nodeName, nodeInfo);
+    if (data->filter == FilterGroups && info.type != H5I_GROUP)
+    {
+        return 0;
+    }
+    if (data->filter == FilterDataSets && info.type != H5I_DATASET)
+    {
+        return 0;
+    }
+//    qDebug() << "NODE" << nodeName;
+    *data->nodes << std::move(info);
+    return 0;
+}
+
+struct IterForeachData
+{
+    Group const* parent{};
+    NodeIterationFunction* f{};
+    IterationFilter filter{};
+};
+
+inline herr_t
+foreachNode(hid_t groupId, char const* nodeName,
+            H5L_info_t const* nodeInfo, void* dataPtr)
+{
+    assert(dataPtr);
+
+    auto* data = static_cast<IterForeachData*>(dataPtr);
+    assert(data->parent);
+    assert(data->f);
+
+    NodeInfo info = getNodeInfo(groupId, nodeName, nodeInfo);
+    if (data->filter == FilterGroups && info.type != H5I_GROUP)
+    {
+        return 0;
+    }
+    if (data->filter == FilterDataSets && info.type != H5I_DATASET)
+    {
+        return 0;
+    }
+//    qDebug() << "NODE" << nodeName;
+    return (*data->f)(*data->parent, info);
+}
+
+} // namespae alg
+
+} // namespace GenH5
+
+GenH5::Vector<GenH5::NodeInfo>
+GenH5::Group::findChildNodes(IterationType iterType,
+                             IterationFilter iterFilter,
+                             IterationIndex iterIndex,
+                             IterationOrder iterOrder) const noexcept
+{
+    Vector<NodeInfo> nodes;
+    alg::IterAccumulateData data{&nodes, iterFilter};
+
+    auto h5index = static_cast<H5_index_t>(iterIndex);
+    auto h5order = static_cast<H5_iter_order_t>(iterOrder);
+
+    if (iterType == FindDirectOnly)
+    {
+        hsize_t idx = 0;
+        H5Literate(id(), h5index, h5order, &idx, alg::accumulateNodes, &data);
+    }
+    else
+    {
+        H5Lvisit(id(), h5index, h5order, alg::accumulateNodes, &data);
+    }
+
+    return nodes;
+}
+
+herr_t
+GenH5::Group::iterateChildNodes(NodeIterationFunction iterFunction,
+                                IterationType iterType,
+                                IterationFilter iterFilter,
+                                IterationIndex iterIndex,
+                                IterationOrder iterOrder) const noexcept
+{
+    assert(iterFunction);
+
+    alg::IterForeachData data{this, &iterFunction, iterFilter};
+    herr_t error = 0;
+
+    auto h5index = static_cast<H5_index_t>(iterIndex);
+    auto h5order = static_cast<H5_iter_order_t>(iterOrder);
+
+    if (iterType == FindDirectOnly)
+    {
+        hsize_t idx = 0;
+        error = H5Literate(id(), h5index, h5order, &idx,
+                           alg::foreachNode, &data);
+    }
+    else
+    {
+        error = H5Lvisit(id(), h5index, h5order,
+                         alg::foreachNode, &data);
+    }
+
+    return error;
+}
+
+GenH5::NodeInfo
+GenH5::Group::nodeInfo(String path) const noexcept(false)
+{
+    H5L_info_t info{};
+    if (H5Lget_info(id(), path.constData(), &info, H5P_DEFAULT))
+    {
+        throw GroupException{"Failed to retrieve node info"};
+    }
+    return alg::getNodeInfo(id(), path.constData(), &info);
 }

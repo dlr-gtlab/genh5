@@ -152,7 +152,7 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
     {
         m_count = dims;
     }
-    testSelection(m_count, dims, 1);
+    testSelection(m_count, dims, 1); // TODO: use value of dataspace?
     testSelection(m_offset, dims, 0);
     testSelection(m_stride, dims, 1);
     testSelection(m_block, dims, 1);

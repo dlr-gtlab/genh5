@@ -6,7 +6,7 @@
  * Email: marius.broecker@dlr.de
  */
 
-#include "genh5_abtsractdataset.h"
+#include "genh5_abstractdataset.h"
 
 #include <QDebug>
 
@@ -69,7 +69,7 @@ void
 GenH5::AbstractDataSet::debugWriteError(size_t length,
                                         Optional<DataSpace> const& space) const
 {
-    auto dspace = dataSpace();
+    auto dspace = space.isDefault() ? dataSpace() : *space;
     qCritical() << "HDF5: Writing data failed!" <<
                    "(Too few data elements:"
                 << length << "vs."

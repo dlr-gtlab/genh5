@@ -17,11 +17,31 @@
 
 namespace GenH5
 {
-// forward decl
-class DataType;
-class File;
-class DataSpace;
-class DataSet;
+
+/**
+ * @brief The IterationType enum. use to specify the search depth when
+ * iterating over child nodes.
+ */
+enum IterationType
+{
+    FindDirectOnly = 0,
+    FindRecursive = 1
+};
+
+/**
+ * @brief The IterationFilter enum. Can be used to filter out certain object
+ * type when iterating over child nodes.
+ */
+enum IterationFilter
+{
+    NoFilter = 0,
+    FilterGroups = 1,
+    FilterDataSets = 2
+};
+
+/// callback function type for iterating over nodes
+using NodeIterationFunction =
+    std::function<herr_t(Group const&, NodeInfo const&)>;
 
 /**
  * @brief The Group class
@@ -60,14 +80,31 @@ public:
     void close();
 
     // groups
-    Group createGroup(String const& name)noexcept(false);
-    Group openGroup(String const& name) noexcept(false);
+    Group createGroup(String const& name) const noexcept(false);
+    Group openGroup(String const& name) const noexcept(false);
 
     // datasets
     DataSet createDataset(String const& name,
-                  DataType const& dtype, DataSpace const& dspace,
-                  Optional<DataSetCProperties> cProps = {}) noexcept(false);
-    DataSet openDataset(String const& name) noexcept(false);
+                          DataType const& dtype,
+                          DataSpace const& dspace,
+                          Optional<DataSetCProperties> cProps = {}
+                          ) const noexcept(false);
+    DataSet openDataset(String const& name) const noexcept(false);
+
+    // find child nodes
+    Vector<NodeInfo> findChildNodes(IterationType iterType = FindDirectOnly,
+                                    IterationFilter iterFilter = NoFilter,
+                                    IterationIndex iterIndex = IndexName,
+                                    IterationOrder iterOrder = NativeOrder
+                                    ) const noexcept;
+    herr_t iterateChildNodes(NodeIterationFunction iterFunction,
+                             IterationType iterType = FindDirectOnly,
+                             IterationFilter iterFilter = NoFilter,
+                             IterationIndex iterIndex = IndexName,
+                             IterationOrder iterOrder = NativeOrder
+                             ) const noexcept;
+
+    NodeInfo nodeInfo(String path) const noexcept(false);
 
 protected:
 

@@ -6,8 +6,8 @@
  * Email: marius.broecker@dlr.de
  */
 
-#ifndef GENH5_ABTSRACTDATASET_H
-#define GENH5_ABTSRACTDATASET_H
+#ifndef GENH5_ABSTRACTDATASET_H
+#define GENH5_ABSTRACTDATASET_H
 
 #include "genh5_exports.h"
 #include "genh5_data/base.h"
@@ -17,7 +17,7 @@ namespace GenH5
 {
 
 /**
- * @brief The AbtsractDataSet class
+ * @brief The AbstractDataSet class
  */
 class GENH5_EXPORT AbstractDataSet
 {
@@ -96,7 +96,7 @@ protected:
                         Optional<DataSpace> const& space = {}) const;
 
     /**
-     * @brief AbtsractDataSet
+     * @brief AbstractDataSet
      */
     AbstractDataSet();
 
@@ -169,4 +169,4 @@ AbstractDataSet::read(details::AbstractData<T>& data,
 
 } // namespace GenH5
 
-#endif // GENH5_ABTSRACTDATASET_H
+#endif // GENH5_ABSTRACTDATASET_H

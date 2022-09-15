@@ -9,10 +9,16 @@
 #ifndef GENH5_OBJECT_H
 #define GENH5_OBJECT_H
 
+#ifndef __GNUC__
 #pragma warning( push )
 #pragma warning(disable : 4251)
+#endif
+
 #include "H5Cpp.h"
+
+#ifndef __GNUC__
 #pragma warning( pop )
+#endif
 
 #include "genh5_exports.h"
 

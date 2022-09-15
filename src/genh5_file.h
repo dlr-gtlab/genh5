@@ -38,7 +38,7 @@ class GENH5_EXPORT File : public Object
 {
 public:
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
+//#ifndef GENH5_NO_DEPRECATED_SYMBOLS
     /**
      * @brief returns whether the file is a valid hdf5 file. Does not check if
      * file is corrupted
@@ -47,7 +47,7 @@ public:
      */
     [[deprecated]]
     static bool isValidH5File(String const& filePath) noexcept(false);
-#endif
+//#endif
 
     /**
      * @brief hdf5 file suffix not including dot

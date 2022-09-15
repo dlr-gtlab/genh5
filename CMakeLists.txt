@@ -5,7 +5,7 @@ if (EXISTS ${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
     include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
 endif()
 
-project(GenH5 VERSION 1.0.0)
+project(GenH5-root)
 
 # also enable to search for hdf5 in devtools
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{GTLAB_DEVTOOLS_DIR}/ThirdPartyLibraries/hdf5)

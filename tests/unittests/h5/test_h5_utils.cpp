@@ -333,7 +333,7 @@ TEST_F(TestH5Utils, makeVarLens)
 
     ASSERT_EQ(varlens.size(), doubles.size());
 
-    for (size_t i = 0; i < doubles.size(); ++i)
+    for (int i = 0; i < doubles.size(); ++i)
     {
         EXPECT_EQ(varlens[i], doubles[i]);
     }

@@ -18,7 +18,7 @@ class TestH5Node : public testing::Test { };
 
 TEST_F(TestH5Node, versionAttribute)
 {
-    ASSERT_FALSE(GenH5::Node::versionAttrName().isEmpty());
+    ASSERT_FALSE(GenH5::Node::versionAttributeName().isEmpty());
 
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
 
@@ -39,7 +39,7 @@ TEST_F(TestH5Node, versionAttributeInvalid)
 
     EXPECT_FALSE(file.root().hasVersionAttribute());
 
-    auto vattr = file.root().createAttribute(GenH5::Node::versionAttrName(),
+    auto vattr = file.root().createAttribute(GenH5::Node::versionAttributeName(),
                                              GenH5::dataType<int>(),
                                              GenH5::DataSpace::Scalar);
 

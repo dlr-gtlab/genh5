@@ -10,7 +10,7 @@
 #define GENH5_DATASET_H
 
 #include "genh5_node.h"
-#include "genh5_abtsractdataset.h"
+#include "genh5_abstractdataset.h"
 #include "genh5_datasetcproperties.h"
 
 namespace GenH5

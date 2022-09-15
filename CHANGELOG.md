@@ -18,9 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Data::split` and `Data::resize` overload for reading array types more easily - #25
 - `idx` utils function and overloads for `Data::operator[]`, `Data::at` and `Data::value` to access multidimensional data more easily. 
    The desired data dimensions must be set prior using `Data::setDimensions`. - #23
+- `Methods for iterating over and finding child nodes and attributes - #24
 
 ### Deprecated 
-- `Data::deserialize`, use or `Data::values` instead. For compound data use `Data::unpack` instead. - #23
+- `Data::deserialize`, use `Data::values` instead. For compound data use `Data::unpack` instead. - #23
 - `Data::deserializeIdx`, use `Data::value` instead. For compound data use `Data::unpack` instead. - #23
 - `Data::c`, use `Data::raw` instead
 - `AbstractData` use `CommonData` or `details::AbstractData` instead
