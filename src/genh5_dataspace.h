@@ -26,7 +26,7 @@ public:
      * @brief size
      * @return number of elements
      */
-    template<typename Tout = int>
+    template<typename Tout = hsize_t>
     Tout size() const;
 
     static DataSpace Null;
@@ -113,11 +113,11 @@ public:
       * @param dspace Dataspace representing the layout of either the file or
       * memory dataspace
       * @param count Block/number of elements in each dimension. Defaults to
-      * dataspace provided
-      * @param offset Offset in each dimension. Defaults to 0
-      * @param stride Step size. Defaults to 1 in each dimension
-      * @param block Block layout. Defaults to 1 in each dimension
-      * @param op Selection operation (i.e. and, or, xor, etc.)
+      * dataspace provided or 1 for each missing dimension.
+      * @param offset Offset in each dimension. Defaults to 0.
+      * @param stride Step size. Defaults to 1 in each dimension.
+      * @param block Block layout. Defaults to 1 in each dimension.
+      * @param op Selection operation (i.e. and, or, xor, etc.).
       */
     explicit DataSpaceSelection(DataSpace dspace,
                                 Dimensions count = {}, Dimensions offset = {},
@@ -193,7 +193,7 @@ template<typename Tout>
 inline Tout
 DataSpace::size() const
 {
-    return isScalar() ? 1 : GenH5::prod(dimensions());
+    return isScalar() ? 1 : GenH5::prod<Tout>(dimensions());
 }
 
 /**

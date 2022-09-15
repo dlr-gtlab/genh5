@@ -121,7 +121,7 @@ convertTo(Array<conversion_t<T>, N> const& values)
     using GenH5::convertTo; // ADL
     traits::convert_to_t<Array<T, N>> conv;
 
-    for (auto i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         conv[i] = convertTo<T>(values[i]);
     }

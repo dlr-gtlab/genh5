@@ -103,6 +103,13 @@ protected:
  */
 GENH5_EXPORT String getObjectName(Location const& location) noexcept;
 
+/**
+ * @brief helper function to retrieve the name of the location
+ * @param location object
+ * @return name
+ */
+GENH5_EXPORT String getObjectPath(Location const& location) noexcept;
+
 } // namespace GenH5
 
 inline std::shared_ptr<GenH5::File> const&

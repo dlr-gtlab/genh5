@@ -27,11 +27,11 @@ public:
     constexpr Optional() = default;
     // cppcheck-suppress noExplicitConstructor
     constexpr Optional(Tobject const& object) noexcept :
-        m_isDefault{false}, m_value{object}
+        m_value{object}, m_isDefault{false}
     { }
     // cppcheck-suppress noExplicitConstructor
     constexpr Optional(Tobject&& object) noexcept :
-        m_isDefault{false}, m_value{std::move(object)}
+        m_value{std::move(object)}, m_isDefault{false}
     { }
 
     /**

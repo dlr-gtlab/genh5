@@ -25,7 +25,7 @@ CONFIG += console
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
 DEFINES += H5_NO_DEPRECATED_SYMBOLS
 # GenH5 specific
-DEFINES += GENH5_NO_DEPRECATED_SYMBOLS
+#DEFINES += GENH5_NO_DEPRECATED_SYMBOLS
 #DEFINES += GENH5_NO_BUFFER_PRE_RESERVING
 
 CONFIG(debug, debug|release){
@@ -60,6 +60,7 @@ SOURCES += \
     h5/test_h5_exception.cpp \
     h5/test_h5_file.cpp \
     h5/test_h5_group.cpp \
+    h5/test_h5_iteration.cpp \
     h5/test_h5_location.cpp \
     h5/test_h5_node.cpp \
     h5/test_h5_optional.cpp \
@@ -100,4 +101,11 @@ CONFIG(debug, debug|release) {
     LIBS += -lGenH5
     # THIRD PARTY
     LIBS += -lgtest
+}
+
+unix:{
+    # suppress the default RPATH if you wish
+    QMAKE_LFLAGS_RPATH=
+    # add your own with quoting gyrations to make sure $ORIGIN gets to the command line unexpanded
+    QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN\''
 }

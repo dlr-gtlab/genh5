@@ -47,8 +47,8 @@ public:
     { }
     // value type
     explicit CommonData0D(value_type arg, compound_names names = {}) :
-        m_data{std::move(arg)},
-        base_class{names}
+        base_class{names},
+        m_data{std::move(arg)}
     { }
 
     /** conversion constructors **/

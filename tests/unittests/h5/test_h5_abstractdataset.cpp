@@ -262,7 +262,7 @@ TEST_F(TestH5AbstractDataSet, RWsimple2D)
     // compare datatype and dataspace
     EXPECT_TRUE(dset.dataType()  == doubleData.dataType());
     EXPECT_TRUE(dset.dataSpace() == GenH5::DataSpace({3, 2}));
-    EXPECT_TRUE(dset.dataSpace().size() == doubleData.length());
+    EXPECT_TRUE(dset.dataSpace().size<int>() == doubleData.length());
 }
 
 TEST_F(TestH5AbstractDataSet, RWcompound)

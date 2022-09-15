@@ -164,6 +164,7 @@ TEST_F(TestH5DataSet, readSelection)
 TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
 {
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
+    auto filePath = file.filePath();
 
     GenH5::Reference ref;
     constexpr uint row = 3;
@@ -171,6 +172,8 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
 
     /* WRITE */
     {
+        qDebug() << "writing...";
+
         double plaindata[row][col] = {
             {1, 2, 3, 4, 5, 6},
             {7, 8, 9, 9, 8, 7},
@@ -186,7 +189,7 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
                                               dspace);
         ASSERT_TRUE(dset.isValid());
 
-#if 1
+#if 0
 
         // file space layout
         H5::DataSpace hspace{dspace.toH5()};
@@ -212,7 +215,7 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
                           memspace,
                           hspace);
 
-#elif 1
+#elif 0
 
         // same as above
         dset.write(data, GenH5::makeSelection(dspace,
@@ -242,15 +245,15 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
     /* READ */
     if (ref.isValid())
     {
-        qDebug() << "reading...";
+        qDebug() << "reading..." << filePath;
 
-        file = GenH5::File(file.filePath(), GenH5::Open);
+        file = GenH5::File(filePath, GenH5::Open);
 
         ASSERT_TRUE(file.isValid());
 
         auto dset = ref.toDataSet(file);
 
-#if 1
+#if 0
         for (uint i = 0; i < 2; ++i)
         {
             auto selection = GenH5::makeSelection(dset.dataSpace(),

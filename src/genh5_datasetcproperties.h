@@ -53,7 +53,7 @@ public:
 
     /**
      * @brief sets the compressions. Must be within 0-9. Can only be used once
-     * chunk dimensions are set.
+     * the chunk dimensions are set.
      * @param level compression level between 0 (none) and 9 (max)
      */
     void setCompression(int level) noexcept(false);

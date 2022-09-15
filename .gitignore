@@ -4,6 +4,7 @@ debug/
 release/
 lib/
 include/
+.qtc_clangd/
 
 local_settings.pri
 !features/local_settings.pri

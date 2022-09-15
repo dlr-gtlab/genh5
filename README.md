@@ -10,21 +10,26 @@ A good introduction to HDF5 can be found here: https://portal.hdfgroup.org/displ
 
 The wrapper covers the following aspects:
  - Creating, accessing and deleting files, groups, datsets and attributes
- - Chunked datasets and compression
- - Flexible template-based datatype interface for simple and compound types (using `GenH5::Data` or `GenH5::CompData`)
- - Simple interface for dataspaces
+ - Chunking datasets and compression
+ - Flexible template-based datatype conversion system for simple and compound types (using `GenH5::Data` or `GenH5::CompData`)
+ - Simple interface for dataspaces and dataset selections
  - Simple interface for (de-) referencing nodes and attributes
+ - Iterating over child nodes and attributes
 
 Currently not covered:
- - Accessing dataset regions
  - External HDF5 files and datasets
  - Creating soft/hard links to nodes
+ - Commiting datatypes
  - Certain datatypes are not properly supported (eg. opaque, time, reference etc.)
+ - Access and Create Property Lists are not properly integrated
+ - No direct interface for Filters, Maps, Plugins or the VOL
 
 ## How to use the wrapper
 
-### Note
-> The try-catch blocks in the following examples were omitted. All exceptions may be catched using `GenH5::Exception` or `std::runtime_error`
+> **Note:** The try-catch blocks in the following examples were omitted. All exceptions may be catched using `GenH5::Exception` or `std::runtime_error`
+
+Additional examples...
+- [Finding child nodes and attributes](examples/find_child_nodes.md)
 
 ### Examples
 
@@ -61,7 +66,7 @@ dataset.read(data);
 // deserialize the data into separate lists
 std::vector<int> ints;
 QStringList strings;
-data.deserialize(ints, strings);
+data.unpack(ints, strings);
 ```
 
 Referencing an attribute:

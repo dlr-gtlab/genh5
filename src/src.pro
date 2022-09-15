@@ -51,7 +51,7 @@ INCLUDEPATH += .\
 
 HEADERS += \
     genh5.h \
-    genh5_abtsractdataset.h \
+    genh5_abstractdataset.h \
     genh5_attribute.h \
     genh5_conversion.h \
     genh5_conversion/bindings.h \
@@ -85,7 +85,7 @@ HEADERS += \
     genh5_version.h
 
 SOURCES += \
-    genh5_abtsractdataset.cpp \
+    genh5_abstractdataset.cpp \
     genh5_attribute.cpp \
     genh5_dataset.cpp \
     genh5_datasetcproperties.cpp \

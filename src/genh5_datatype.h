@@ -125,7 +125,7 @@ public:
 
     /**
      * @brief Returns the super datatype of this type. Used for accessing the
-     * underlying type of a var len type.
+     * underlying type of an array or a varlen type.
      * @return super datatype
      */
     DataType superType() const noexcept(false);
@@ -258,11 +258,13 @@ private:
     /// generate compound member names if missing
     void generateDefaultNames()
     {
-        for (int i = 0; i < m_typeNames.size(); ++i)
+        for (size_t i = 0; i < m_typeNames.size(); ++i)
         {
             if (m_typeNames[i].isEmpty())
             {
-                m_typeNames[i] = String{"type_"} + String::number(i);
+                // String::number ambiguous for size_t
+                m_typeNames[i] = String{"type_"} +
+                                 String::number(static_cast<qulonglong>(i));
             }
         }
     }

@@ -14,6 +14,38 @@ class Tests : public testing::Test
 
 };
 
+TEST_F(Tests, test)
+{
+    H5::DSetCreatPropList props;
+    props.setDeflate(9);
+
+    uint flags{};       // 0 = mandatory, 1 = optional in pipeline
+    size_t len{1};      // length of the filter data, for "deflate" we require only one entry
+    uint compression{}; // "compression level" is the first entry of the user data
+    char name[30];      // name of filter
+    uint config{};      // filter config - not relevant?
+
+    int nfilter = H5Pget_nfilters(props.getId());
+
+    qDebug() << "Number of filters:" << nfilter;
+
+    herr_t err = H5Pget_filter_by_id(props.getId(), H5Z_FILTER_DEFLATE, &flags,
+                                     &len, &compression, 30, name, &config);
+
+    qDebug() << "Error:" << err;
+    qDebug() << "Is Optional:" << flags;
+    qDebug() << "Compression:" << compression;
+    qDebug() << "Filter Name:" << name;
+    qDebug() << "Config:" << config;
+}
+
+#if 0
+TEST_F(Tests, filterDeflate)
+{
+    EXPECT_TRUE(H5Zfilter_avail(H5Z_FILTER_DEFLATE));
+}
+#endif
+
 //template<typename T>
 //struct VarLen : public Vector<T>
 //{

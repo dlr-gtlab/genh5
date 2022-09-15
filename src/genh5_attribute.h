@@ -10,7 +10,7 @@
 #define GENH5_ATTRIBUTE_H
 
 #include "genh5_location.h"
-#include "genh5_abtsractdataset.h"
+#include "genh5_abstractdataset.h"
 
 namespace GenH5
 {
