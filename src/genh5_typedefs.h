@@ -10,6 +10,7 @@
 #define GENH5_TYPES_H
 
 #include "hdf5.h"
+#include "genh5_mpl.h"
 
 #include <tuple>
 #include <array>
@@ -31,6 +32,10 @@ using Dimensions = Vector<hsize_t>;
 // alias for a compound type
 template <typename ...Ts>
 using Comp = std::tuple<Ts...>;
+
+// alias for a reverse compound type
+template <typename ...Ts>
+using RComp = mpl::reversed_comp_t<Comp<Ts...>>;
 
 // alias for a var len type
 template<typename T>

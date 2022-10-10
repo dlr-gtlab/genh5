@@ -29,6 +29,9 @@ Currently not covered:
 > **Note:** The try-catch blocks in the following examples were omitted. All exceptions may be catched using `GenH5::Exception` or `std::runtime_error`
 
 Additional examples...
+- [Creating dataspaces and selections](examples/creating_dataspaces_selections.md)
+- [Creating simple and complex datatypes](examples/creating_datatypes.md)
+- [The conversion system](examples/conversion_system.md)
 - [Finding child nodes and attributes](examples/find_child_nodes.md)
 
 ### Examples

@@ -9,7 +9,8 @@
 #ifndef GENH5_MPL_H
 #define GENH5_MPL_H
 
-#include "genh5_typedefs.h"
+#include <utility>
+#include <stddef.h>
 
 namespace GenH5
 {
@@ -48,7 +49,7 @@ static_rfor_impl(Lambda&& f, std::index_sequence<Is...>)
     // unpack into init list for "looping" in correct order wo recursion
     (void)std::initializer_list<Idx> {
         ((void)f(std::integral_constant<unsigned, Is>(),
-                 std::integral_constant<unsigned, N-Is-1>()), Idx{})...
+                 std::integral_constant<unsigned, N - Is - 1>()), Idx{})...
     };
 }
 
@@ -77,13 +78,12 @@ struct reversed_comp<Tcomp<T1, Tother...>, Tcomp<done...>>
                                         Tcomp<T1, done...>>::type;
 };
 
-/// reverses a compound template type
+// reverses a compound template type
 template<typename T>
 using reversed_comp_t = typename reversed_comp<T>::type;
 
-// static for loop for compound types
 /**
- * @brief Calls a method for each n in N
+ * @brief Calls a method for each n in N. Static for loop for compound types
  * @param f Function to call for each iteration.
  * @tparam N Number of iterations
  * @tparam Lambda Function to call. Must have a single parameter
@@ -98,12 +98,12 @@ static_for(Lambda&& f)
 }
 
 /**
- * @brief Calls a method for each n in N. Can be used to iterate backwards.
+ * @brief Calls a method for each n in N. Static for loop for compound types.
+ * Can be used to iterate backwards.
  * @param f Function to call for each iteration.
  * @tparam N Number of iterations
- * @tparam Lambda Function to call. Must have two parameters. First
- * represents * the current forward index (i.e. n), last the current
- * reversed index (i.e. N - n - 1)
+ * @tparam Lambda Function to call. Must have two parameters. First for the
+ * current index (i.e. n), last the current reversed index (i.e. N - n - 1).
  */
 template<unsigned N, typename Lambda>
 constexpr void

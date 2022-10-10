@@ -7,13 +7,22 @@
 #include <QPointF>
 
 #include "genh5.h"
-#include "genh5_data.h"
 
 class Tests : public testing::Test
 {
 
 };
 
+TEST_F(Tests, filterDeflate)
+{
+    bool isAvail = H5Zfilter_avail(H5Z_FILTER_DEFLATE);
+    qDebug() << "H5Zfilter_avail(H5Z_FILTER_DEFLATE):" << isAvail;
+#if 0
+    EXPECT_TRUE(isAvail);
+#endif
+}
+
+#if 0
 TEST_F(Tests, test)
 {
     H5::DSetCreatPropList props;
@@ -38,13 +47,8 @@ TEST_F(Tests, test)
     qDebug() << "Filter Name:" << name;
     qDebug() << "Config:" << config;
 }
-
-#if 0
-TEST_F(Tests, filterDeflate)
-{
-    EXPECT_TRUE(H5Zfilter_avail(H5Z_FILTER_DEFLATE));
-}
 #endif
+
 
 //template<typename T>
 //struct VarLen : public Vector<T>
@@ -69,6 +73,7 @@ TEST_F(Tests, filterDeflate)
 //        return *this;
 //    }
 //};
+
 
 //struct FixedString : public QByteArray
 //{

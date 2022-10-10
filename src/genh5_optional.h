@@ -26,8 +26,8 @@ public:
 
     constexpr Optional() = default;
     // cppcheck-suppress noExplicitConstructor
-    constexpr Optional(Tobject const& object) noexcept :
-        m_value{object}, m_isDefault{false}
+    constexpr Optional(Tobject const& object, bool isDefault = false) noexcept :
+        m_value{object}, m_isDefault{isDefault}
     { }
     // cppcheck-suppress noExplicitConstructor
     constexpr Optional(Tobject&& object) noexcept :
