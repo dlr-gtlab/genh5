@@ -53,6 +53,7 @@ public:
         auto containers = std::make_tuple(&containersIn...);
         auto size = get<0>(containers)->size();
         base_class::m_data.resize(size);
+        base_class::m_buffer.reserve(size);
 
         mpl::static_for<sizeof...(Ts)>([&](auto const idx){
             auto* container = get<idx>(containers);
@@ -66,7 +67,7 @@ public:
             for (auto const& value : *container)
             {
                 auto& data = rget<idx>(base_class::m_data[i++]);
-                data = convert(value, rget<idx>(base_class::m_buffer));
+                data = convert(value, rget<idx>(base_class::m_buffer()));
             }
         });
     }

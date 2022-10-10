@@ -84,7 +84,7 @@ convert(VarLen<T> const& values, buffer_t<VarLen<T>>& buffer)
 {
     using GenH5::convert; // ADL
     buffer.push_back({});
-    auto& hvlB = buffer.back();
+    details::hvl_buffer<T>& hvlB = buffer.back();
 
     hvlB.data.reserve(values.size());
     for (auto const& val : values)

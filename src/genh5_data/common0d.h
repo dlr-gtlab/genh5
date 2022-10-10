@@ -117,8 +117,10 @@ public:
 
 protected:
 
-    buffer_type m_buffer{};
+    // actual data
     value_type m_data{};
+    /// buffer
+    details::StaticBuffer<T> m_buffer{};
 };
 
 namespace details

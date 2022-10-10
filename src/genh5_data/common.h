@@ -18,14 +18,6 @@
 namespace GenH5
 {
 
-namespace details
-{
-
-template <typename T>
-void reserveBuffer(buffer_t<T>& buffer, size_t size);
-
-} // namespace details
-
 /** DATA VECTOR **/
 template<typename T>
 class CommonData : public details::AbstractData<T>
@@ -153,7 +145,7 @@ public:
     void push_back(Container&& c)
     {
         using GenH5::convert; // ADL
-        details::reserveBuffer<T>(m_buffer, c.size());
+        m_buffer.reserve(static_cast<size_type>(c.size()));
         m_data.reserve(static_cast<size_type>(c.size()));
         std::transform(std::cbegin(c), std::cend(c),
                        std::back_inserter(m_data), [&](auto const& value){
@@ -257,7 +249,7 @@ public:
         return s <= size();
     }
 
-    /** split data into n sub ranges **/
+    /** split data into sub ranges of size n **/
     template <typename Container = Vector<Vector<traits::convert_to_t<T>>>>
     auto split(size_type n) const noexcept(false)
     {
@@ -405,61 +397,16 @@ public:
 
 protected:
 
-    buffer_type m_buffer{};
+    // actual data container
     container_type m_data{};
+    /// data dimensions
     Optional<Dimensions> m_dims{};
+    /// buffer
+    details::StaticBuffer<T> m_buffer{};
 };
 
 namespace details
 {
-
-/** RESERVE BUFFER **/
-template <typename...>
-struct reserve_buffer_impl;
-
-template <typename value_type, typename buffer_type>
-struct reserve_buffer_impl<value_type, buffer_type>
-{
-    static void reserve(buffer_type& buffer, size_t size)
-    {
-        if // if value_type == buffer_type no buffering required
-#if __cplusplus >= 201703L // check for C++17
-        constexpr
-#endif
-        (!std::is_same<value_type, traits::base_t<buffer_type>>::value)
-        {
-            buffer.reserve(static_cast<int>(size));
-        }
-    }
-};
-
-template <typename value_type, typename... Ts>
-struct reserve_buffer_impl<value_type, Comp<Ts...>>
-{
-    using buffer_type = Comp<Ts...>;
-
-    static void reserve(buffer_type& buffer, size_t size)
-    {
-        mpl::static_for<sizeof...(Ts)>([&](const auto idx)
-        {
-            using Tsrc = std::tuple_element_t<idx, value_type>;
-            using Tbuffer = std::tuple_element_t<idx, buffer_type>;
-
-            reserve_buffer_impl<traits::base_t<Tsrc>,
-                                Tbuffer>::reserve(get<idx>(buffer), size);
-        });
-    }
-};
-
-template <typename T>
-inline void
-reserveBuffer(buffer_t<T>& buffer, size_t size)
-{
-#ifndef GENH5_NO_BUFFER_PRE_RESERVING
-    details::reserve_buffer_impl<traits::base_t<conversion_t<T>>,
-                                 buffer_t<T>>::reserve(buffer, size);
-#endif
-}
 
 /** DATA VECTOR **/
 template<typename... Ts>

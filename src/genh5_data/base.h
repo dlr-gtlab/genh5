@@ -11,6 +11,7 @@
 
 #include "genh5_conversion.h"
 #include "genh5_dataspace.h"
+#include "genh5_data/buffer.h"
 
 namespace GenH5
 {
@@ -30,8 +31,7 @@ public:
     AbstractData& operator=(AbstractData const&) = default;
     AbstractData& operator=(AbstractData&&) = default;
 
-    using size_type =
-        typename conversion_container_t<conversion_t<T>>::size_type;
+    using size_type = typename conversion_container_t<T>::size_type;
 
     // only necessary for when creating compound types
     using compound_names = CompoundNames<traits::comp_size<T>::value>;
