@@ -51,7 +51,7 @@ public:
             auto* arg = get<idx>(args);
 
             auto& data = rget<idx>(base_class::m_data);
-            data = convert(*arg, rget<idx>(base_class::m_buffer));
+            data = convert(*arg, rget<idx>(base_class::m_buffer()));
         });
     }
 

@@ -614,33 +614,197 @@ TEST_F(TestH5Data, dataspace)
     EXPECT_EQ(data.dataSpace().nDims(), 2);
 }
 
-TEST_F(TestH5Data, reserveBuffer)
+TEST_F(TestH5Data, buffer_reserve)
 {
-    using GenH5::details::reserveBuffer;
-    size_t bufferSize = 10;
+    using GenH5::details::StaticBuffer;
+    using GenH5::Array;
+    using GenH5::VarLen;
+    using GenH5::Comp;
+
+    int bufferSize = 10;
 
     // reserving should not be necessary
-    GenH5::buffer_t<double> buffer1;
-    reserveBuffer<double>(buffer1, bufferSize);
-    EXPECT_EQ(buffer1.capacity(), 0);
+    StaticBuffer<double> buffer1;
+    buffer1.reserve(bufferSize);
+    EXPECT_EQ(buffer1().capacity(), 0);
 
-    GenH5::buffer_t<QPoint> buffer2;
-    reserveBuffer<QPoint>(buffer2, bufferSize);
-    EXPECT_EQ(buffer2.capacity(), 0);
+    StaticBuffer<QPoint> buffer2;
+    buffer2.reserve(bufferSize);
+    EXPECT_EQ(buffer2().capacity(), 0);
 
     // reserving is necessary
-    GenH5::buffer_t<QString> buffer3;
-    reserveBuffer<QString>(buffer3, bufferSize);
-    EXPECT_EQ(buffer3.capacity(), bufferSize);
+    StaticBuffer<QString> buffer3;
+    buffer3.reserve(bufferSize);
+    EXPECT_EQ(buffer3().capacity(), bufferSize);
 
-    GenH5::buffer_t<QByteArray> buffer4;
-    reserveBuffer<QByteArray>(buffer4, bufferSize);
-    EXPECT_EQ(buffer4.capacity(), bufferSize);
+    StaticBuffer<QByteArray> buffer4;
+    buffer4.reserve(bufferSize);
+    EXPECT_EQ(buffer4().capacity(), bufferSize);
 
-    using CompT = GenH5::Comp<QString, int, QPoint>;
-    GenH5::buffer_t<CompT> buffer5;
-    reserveBuffer<CompT>(buffer5, bufferSize);
-    EXPECT_EQ(std::get<2>(buffer5).capacity(), 10); // = QString
-    EXPECT_EQ(std::get<1>(buffer5).capacity(), 0); // = int
-    EXPECT_EQ(std::get<0>(buffer5).capacity(), 0); // = QPoint
+    using CompT1 = Comp<QString, int, QPoint>;
+    StaticBuffer<CompT1> buffer5;
+    buffer5.reserve(bufferSize);
+    EXPECT_EQ(GenH5::rget<0>(buffer5()).capacity(), bufferSize); // = QString
+    EXPECT_EQ(GenH5::rget<1>(buffer5()).capacity(), 0);          // = int
+    EXPECT_EQ(GenH5::rget<2>(buffer5()).capacity(), 0);          // = QPoint
+
+    StaticBuffer<std::string[5]> buffer6;
+    buffer6.reserve(bufferSize);
+    EXPECT_EQ(buffer6().capacity(), bufferSize);
+
+    // reserving should not be necessary
+    StaticBuffer<Array<float, 5>> buffer7;
+    buffer7.reserve(bufferSize);
+    EXPECT_EQ(buffer7().capacity(), 0);
+
+    // reserving is necessary
+    StaticBuffer<VarLen<double>> buffer8;
+    buffer8.reserve(bufferSize);
+    EXPECT_EQ(buffer8().capacity(), bufferSize);
+
+    using CompT2 = Comp<VarLen<double>, Array<QString, 42>, QPoint>;
+    StaticBuffer<CompT2> buffer9;
+    buffer9.reserve(bufferSize);
+    EXPECT_EQ(GenH5::rget<0>(buffer9()).capacity(), bufferSize); // = VarLen
+    EXPECT_EQ(GenH5::rget<1>(buffer9()).capacity(), bufferSize); // = QString[42]
+    EXPECT_EQ(GenH5::rget<2>(buffer9()).capacity(), 0);          // = QPoint
+}
+
+TEST_F(TestH5Data, buffer_staticReserve)
+{
+    using GenH5::details::StaticBuffer;
+
+    int bufferSize = 10;
+
+    {
+        StaticBuffer<QString> buffer1;
+        buffer1.reserve(10);
+
+        EXPECT_EQ(buffer1().capacity(), bufferSize);
+
+        {
+            StaticBuffer<QString> buffer2;
+            // should share the same buffer
+            ASSERT_EQ(&buffer1(), &buffer2());
+
+            // capacity should not have changed
+            buffer2.reserve(bufferSize);
+            EXPECT_EQ(buffer2().capacity(), bufferSize);
+
+            buffer2().resize(bufferSize * 0.5);
+
+            {
+                StaticBuffer<QString> buffer3;
+                ASSERT_EQ(&buffer1(), &buffer3());
+
+                // reserve should now extend the capacity
+                buffer2.reserve(bufferSize);
+                EXPECT_EQ(buffer2().capacity(), bufferSize * 1.5);
+            }
+
+            // capacity should still be the same
+            EXPECT_EQ(buffer2().capacity(), bufferSize * 1.5);
+        }
+
+        // capacity should still be the same
+        EXPECT_EQ(buffer1().capacity(), bufferSize * 1.5);
+    }
+
+    // buffer should have cleared
+    StaticBuffer<QString> buffer;
+    EXPECT_EQ(buffer().capacity(), 0);
+}
+
+TEST_F(TestH5Data, buffer_clearing)
+{
+    using GenH5::details::StaticBuffer;
+    using GenH5::Array;
+    using GenH5::VarLen;
+    using GenH5::Comp;
+
+    int bufferSize = 10;
+
+    // buffer will not be cleared
+    StaticBuffer<double> buffer1;
+    buffer1().resize(bufferSize);
+    buffer1.clear();
+    EXPECT_EQ(buffer1().size(), bufferSize);
+
+    StaticBuffer<QPoint> buffer2;
+    buffer2().resize(bufferSize);
+    buffer2.clear();
+    EXPECT_EQ(buffer2().size(), bufferSize);
+
+    // buffer will be cleared
+    StaticBuffer<QString> buffer3;
+    buffer3().resize(bufferSize);
+    buffer3.clear();
+    EXPECT_EQ(buffer3().size(), 0);
+
+    StaticBuffer<QByteArray> buffer4;
+    buffer4().resize(bufferSize);
+    buffer4().clear();
+    EXPECT_EQ(buffer4().size(), 0);
+
+    using CompT1 = Comp<QString, int, QPoint>;
+    StaticBuffer<CompT1> buffer5;
+    GenH5::rget<0>(buffer5()).resize(bufferSize);
+    GenH5::rget<1>(buffer5()).resize(bufferSize);
+    GenH5::rget<2>(buffer5()).resize(bufferSize);
+    buffer5.clear();
+    EXPECT_EQ(GenH5::rget<0>(buffer5()).size(), 0);          // = QString
+    EXPECT_EQ(GenH5::rget<1>(buffer5()).size(), bufferSize); // = int
+    EXPECT_EQ(GenH5::rget<2>(buffer5()).size(), bufferSize); // = QPoint
+
+    StaticBuffer<std::string[5]> buffer6;
+    buffer6().resize(bufferSize);
+    buffer6.clear();
+    EXPECT_EQ(buffer6().size(), 0);
+
+    // buffer will not be cleared
+    StaticBuffer<Array<float, 5>> buffer7;
+    buffer7().resize(bufferSize);
+    buffer7.clear();
+    EXPECT_EQ(buffer7().size(), bufferSize);
+
+    // buffer will not be cleared
+    StaticBuffer<VarLen<double>> buffer8;
+    buffer8().resize(bufferSize);
+    buffer8.clear();
+    EXPECT_EQ(buffer8().size(), 0);
+
+    using CompT2 = Comp<VarLen<double>, Array<QString, 42>, QPoint>;
+    StaticBuffer<CompT2> buffer9;
+    GenH5::rget<0>(buffer9()).resize(bufferSize);
+    GenH5::rget<1>(buffer9()).resize(bufferSize);
+    GenH5::rget<2>(buffer9()).resize(bufferSize);
+    buffer9.clear();
+    EXPECT_EQ(GenH5::rget<0>(buffer9()).size(), 0);          // = VarLen
+    EXPECT_EQ(GenH5::rget<1>(buffer9()).size(), 0);          // = QString[42]
+    EXPECT_EQ(GenH5::rget<2>(buffer9()).size(), bufferSize); // = QPoint
+}
+
+// test that buffer elements are not invalidated (char* should still be valid)
+TEST_F(TestH5Data, buffer_constData)
+{
+    using GenH5::details::StaticBuffer;
+
+    StaticBuffer<QString> buffer;
+    buffer().append(QString{"test"}.toUtf8());
+
+    auto firstA = buffer().first().data();
+    auto cdataA = buffer().constData();
+
+    // reallocate buffer
+    buffer().resize(1000);
+
+    auto firstB = buffer().first().data();
+    auto cdataB = buffer().constData();
+
+    GenH5::convert(QString{"wda"}, buffer);
+
+    // data pointers should have changed
+    EXPECT_NE(cdataA, cdataB);
+    // but buffer data should still be valid
+    EXPECT_EQ(firstA, firstB);
 }
