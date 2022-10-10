@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Data0D` and `CompData0D` for scalar data
 - `makeArrays` and `makeVarLens` utils functions. Implemented `unpack` overloads accordingly - #25
 - `Data::split` and `Data::resize` overload for reading array types more easily - #25
+- Getters for deflate compression - #29
 - `idx` utils function and overloads for `Data::operator[]`, `Data::at` and `Data::value` to access multidimensional data more easily. 
    The desired data dimensions must be set prior using `Data::setDimensions`. - #23
 - `Methods for iterating over and finding child nodes and attributes - #24
