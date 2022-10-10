@@ -26,11 +26,13 @@
 
 #define GENH5_DECLARE_IMPLICIT_CONVERSION(TYPE) \
     /* buffered */ \
-    inline TYPE convert(TYPE value, GenH5::buffer_t<TYPE>& /*...*/) { \
+    inline GenH5::conversion_t<GenH5::traits::decay_crv_t<TYPE>> \
+    convert(TYPE value, GenH5::buffer_t<TYPE>& /*...*/) { \
         return value; \
     } \
     /* plain */ \
-    inline TYPE convert(TYPE value) { \
+    inline GenH5::conversion_t<GenH5::traits::decay_crv_t<TYPE>> \
+    convert(TYPE value) { \
         return value; \
     } \
 
@@ -47,7 +49,7 @@
 namespace GenH5
 {
 
-/* GENERIC REVERSE CONVERSION */
+/** GENERIC REVERSE CONVERSION **/
 template<typename Ttarget, typename Tfrom = Ttarget&&>
 inline auto
 convertTo(Tfrom value)

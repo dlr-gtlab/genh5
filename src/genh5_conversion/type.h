@@ -10,7 +10,6 @@
 #define GENH5_CONVERSION_TYPE_H
 
 #include "genh5_typedefs.h"
-#include "genh5_mpl.h"
 
 #define GENH5_DECLARE_CONVERSION_TYPE(NATIVE, CONVERTED) \
     template <> \
@@ -64,7 +63,7 @@ struct conversion<VarLen<T>> :
 template <typename ...Ts>
 struct conversion<Comp<Ts...>>
 {
-    using type = mpl::reversed_comp_t<Comp<conversion_t<Ts>...>>;
+    using type = RComp<conversion_t<Ts>...>;
 };
 
 /** CONVERSION CONTAINER TYPE **/

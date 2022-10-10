@@ -234,8 +234,8 @@ struct datatype_impl<Comp<Ts...>>
                 datatype_impl<std::tuple_element_t<ridx, Comp<Ts...>>>()
             });
         });
-        // members are flipped, not necessary to reverse, but makes
-        // debugging easier
+        // members are flipped, not necessary for compound type creation,
+        // but makes debugging easier
         std::reverse(std::begin(members), std::end(members));
 
         return DataType::compound(sizeof(Compound), members);
@@ -243,7 +243,7 @@ struct datatype_impl<Comp<Ts...>>
 
 private:
     /// compound member for calculating offset of an element
-    Compound m_t;
+    static Compound m_t;
     /// names for compound members
     TypeNames m_typeNames{};
 
@@ -270,12 +270,16 @@ private:
     }
 };
 
+// static compound_type init
+template <typename... Ts>
+conversion_t<Comp<Ts...>> datatype_impl<Comp<Ts...>>::m_t{};
+
 } // namespace details
 
 // compound types
 template<typename T1, typename T2, typename... Tother>
 inline DataType
-dataType(CompoundNames<sizeof...(Tother)+2> memberNames = {}) noexcept(false)
+dataType(CompoundNames<sizeof...(Tother) + 2> memberNames = {}) noexcept(false)
 {
     using T = Comp<T1, T2, Tother...>;
     return details::datatype_impl<T>(std::move(memberNames));

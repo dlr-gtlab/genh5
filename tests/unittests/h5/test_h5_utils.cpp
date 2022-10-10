@@ -71,7 +71,7 @@ TEST_F(TestH5Utils, reverseComp)
 {
     auto tuple = std::make_tuple(42.0f, 12, QString{"hello world"});
 
-    using RT = GenH5::mpl::reversed_comp_t<std::tuple<float, int, QString>>;
+    using RT = GenH5::RComp<float, int, QString>;
     RT rtuple = GenH5::reverseComp(tuple);
 
     EXPECT_EQ(std::get<0>(tuple), std::get<2>(rtuple));

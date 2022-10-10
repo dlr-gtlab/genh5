@@ -115,7 +115,7 @@ struct buffer_element<VarLen<T>> :
 template <typename ...Ts>
 struct buffer_element<Comp<Ts...>>
 {
-    using type = mpl::reversed_comp_t<Comp<buffer_t<Ts>...>>;
+    using type = RComp<buffer_t<Ts>...>;
 };
 
 } // namespace GenH5

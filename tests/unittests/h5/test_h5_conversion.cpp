@@ -218,6 +218,7 @@ TEST_F(TestConversion, compound_bufferTypes)
 TEST_F(TestConversion, complex_conversionTypes)
 {
     using GenH5::Comp;
+    using GenH5::RComp;
     using GenH5::Vector;
     using GenH5::VarLen;
     using GenH5::Array;
@@ -225,11 +226,7 @@ TEST_F(TestConversion, complex_conversionTypes)
     assertCompConversionType<Comp<int, VarLen<QString>, Array<double, 42>>,
                              Comp<int, hvl_t, Array<double, 42>>>();
     assertCompConversionType<Comp<Array<size_t, 1>, Comp<VarLen<int>, QString>>,
-                             Comp<Array<size_t, 1>,
-                                 GenH5::mpl::reversed_comp_t<
-                                                    Comp<hvl_t, char*>>
-                                 >
-                             >();
+                             Comp<Array<size_t, 1>, RComp<hvl_t, char*>>>();
 
     assertConversionType<VarLen<Array<double, 42>>,
                          hvl_t>();
@@ -237,10 +234,7 @@ TEST_F(TestConversion, complex_conversionTypes)
                          hvl_t>();
 
     assertConversionType<Array<Comp<QString, GenH5::Version>, 42>,
-                         Array<GenH5::mpl::reversed_comp_t<
-                                                   Comp<char*, GenH5::Version>>,
-                               42>
-                         >();
+                         Array<RComp<char*, GenH5::Version>, 42>>();
     assertConversionType<VarLen<int>[5], Array<hvl_t, 5>>();
     assertConversionType<Array<QPoint, 15>[5],
                          Array<Array<PointData, 15>, 5>>();
@@ -249,6 +243,7 @@ TEST_F(TestConversion, complex_conversionTypes)
 TEST_F(TestConversion, complex_bufferTypes)
 {
     using GenH5::Comp;
+    using GenH5::RComp;
     using GenH5::Vector;
     using GenH5::VarLen;
     using GenH5::Array;
@@ -260,9 +255,8 @@ TEST_F(TestConversion, complex_bufferTypes)
                          >();
     assertCompBufferType<Comp<Array<size_t, 1>, Comp<VarLen<int>, QString>>,
                          Comp<Vector<size_t>,
-                              GenH5::mpl::reversed_comp_t<
-                                  Comp<Vector<GenH5::details::hvl_buffer<int>>,
-                                       Vector<QByteArray>>>
+                              RComp<Vector<GenH5::details::hvl_buffer<int>>,
+                                    Vector<QByteArray>>
                               >
                           >();
 
@@ -272,9 +266,7 @@ TEST_F(TestConversion, complex_bufferTypes)
                      GenH5::details::hvl_buffer<Comp<double, QPoint>>>();
 
     assertBufferType<Array<Comp<QString, GenH5::Version>, 42>,
-                     GenH5::mpl::reversed_comp_t<
-                         Comp<Vector<QByteArray>, Vector<GenH5::Version>>>
-                     >();
+                     RComp<Vector<QByteArray>, Vector<GenH5::Version>>>();
 
     assertBufferType<VarLen<int>[5],
                      GenH5::details::hvl_buffer<int>>();
