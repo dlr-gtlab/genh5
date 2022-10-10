@@ -22,6 +22,7 @@ class GENH5_EXPORT DataSetCProperties : public Object
 public:
 
     static Dimensions autoChunk(DataSpace const& dataspace) noexcept;
+
     static DataSetCProperties autoChunked(DataSpace const& dataspace,
                                           int compression = 0) noexcept(false)
     {
@@ -51,18 +52,40 @@ public:
      */
     void setChunkDimensions(Dimensions const& dimensions) noexcept(false);
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
     /**
-     * @brief sets the compressions. Must be within 0-9. Can only be used once
-     * the chunk dimensions are set.
+     * @brief sets the compressions (deflate). Must be within 0-9. Can only
+     * be used once the chunk dimensions are set.
      * @param level compression level between 0 (none) and 9 (max)
      */
+    [[deprecated("use setDeflate instead")]]
     void setCompression(int level) noexcept(false);
+#endif
+
+    /**
+     * @brief sets the compressions (gzip deflate). Must be within 0-9. Can only
+     * be used once the chunk dimensions are set.
+     * @param level compression level between 0 (none) and 9 (max)
+     */
+    void setDeflate(int level) noexcept(false);
 
     /**
      * @brief isChunked
      * @return whether chunking is set
      */
     bool isChunked() const noexcept;
+
+    /**
+     * @brief Whether compression is enabled (using gzip deflate)
+     * @return is compressed
+     */
+    bool isDeflated() const noexcept;
+
+    /**
+     * @brief The level of the deflation. Level is between 0 (none) and 9 (max)
+     * @return deflate level. Returns 0 if no deflate compression was used
+     */
+    int deflation() const noexcept;
 
     /**
      * @brief chunkDimensions

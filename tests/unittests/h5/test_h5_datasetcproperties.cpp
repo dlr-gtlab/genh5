@@ -56,19 +56,16 @@ TEST_F(TestH5DataSetCProperties, autoChunk)
               GenH5::Dimensions{1});
 }
 
-/* not implemented yet
 TEST_F(TestH5DataSetCProperties, compression)
 {
-    EXPECT_FALSE(propDefault.isCompressed());
-    EXPECT_FALSE(propChunked.isCompressed());
+    EXPECT_FALSE(propDefault.isDeflated());
+    EXPECT_FALSE(propChunked.isDeflated());
+    EXPECT_TRUE(propCompressed.isDeflated());
 
-    EXPECT_TRUE(propCompressed.isCompressed());
-
-    EXPECT_EQ(propDefault.compression(), 0);
-    EXPECT_EQ(propChunked.compression(), 0);
-    EXPECT_EQ(propCompressed.compression(), 9);
+    EXPECT_EQ(propDefault.deflation(), 0);
+    EXPECT_EQ(propChunked.deflation(), 0);
+    EXPECT_EQ(propCompressed.deflation(), 9);
 }
-*/
 
 TEST_F(TestH5DataSetCProperties, createDatasetOptionalParam)
 {

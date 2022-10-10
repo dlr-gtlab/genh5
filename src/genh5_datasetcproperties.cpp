@@ -26,7 +26,7 @@ GenH5::DataSetCProperties::DataSetCProperties(Dimensions const& dimensions,
                                              int compression)
 {
     setChunkDimensions(dimensions);
-    setCompression(compression);
+    setDeflate(compression);
 }
 
 GenH5::Dimensions
@@ -75,15 +75,23 @@ GenH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions
     }
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 void
 GenH5::DataSetCProperties::setCompression(int level) noexcept(false)
+{
+    return setDeflate(level);
+}
+#endif
+
+void
+GenH5::DataSetCProperties::setDeflate(int level) noexcept(false)
 {
     if (level > s_cmax)
     {
         qWarning().nospace()
                 << "HDF5: Compression level must be within " << s_cmin
                 << " and " << s_cmax << "! value: " << level
-                << " using: " << s_cmax;
+                << ", using: " << s_cmax;
         level = s_cmax;
     }
     else if (level < s_cmin)
@@ -91,13 +99,19 @@ GenH5::DataSetCProperties::setCompression(int level) noexcept(false)
         qWarning().nospace()
                 << "HDF5: Compression level must be within " << s_cmin
                 << " and " << s_cmax << "! value: " << level
-                << " using: " << s_cmin;
+                << ", using: " << s_cmin;
         level = s_cmin;
     }
+
+    if (level == 0)
+    {
+        return; // nothing to do here
+    }
+
     if (!isChunked() && level > s_cmin)
     {
-        throw DataSetException{"Setting compression failed (Dataset must be "
-                               "chunked first)"};
+        throw DataSetException{"Setting deflate compression failed "
+                               "(Dataset must be chunked first)"};
     }
 
     try
@@ -121,19 +135,30 @@ GenH5::DataSetCProperties::isChunked() const noexcept
     return H5Pget_layout(DataSetCProperties::id()) == H5D_layout_t::H5D_CHUNKED;
 }
 
-//bool
-//GenH5DataSetCProperties::isCompressed()
-//{
-//    qCritical() << "not implemented!";
-//    return false;
-//}
+bool
+GenH5::DataSetCProperties::isDeflated() const noexcept
+{
+    uint flags{};
+    uint config{};
 
-//int
-//GenH5DataSetCProperties::compression()
-//{
-//    qCritical() << "not implemented!";
-//    return -1;
-//}
+    return H5Pget_nfilters(id()) &&
+           !H5Pget_filter_by_id(id(), H5Z_FILTER_DEFLATE, &flags,
+                                0, nullptr, 0, nullptr, &config);
+}
+
+int
+GenH5::DataSetCProperties::deflation() const noexcept
+{
+    uint flags{};       // 0 = mandatory, 1 = optional in pipeline
+    size_t len{1};      // length of the filter data
+    uint compression{}; // "compression level" is the first entry in the data
+    uint config{};      // filter config - not relevant?
+
+    herr_t err = H5Pget_filter_by_id(id(), H5Z_FILTER_DEFLATE, &flags,
+                                     &len, &compression, 0, nullptr, &config);
+
+    return err ? 0 : compression;
+}
 
 GenH5::Dimensions
 GenH5::DataSetCProperties::chunkDimensions() const noexcept
