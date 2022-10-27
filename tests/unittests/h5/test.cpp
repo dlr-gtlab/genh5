@@ -7,6 +7,7 @@
 #include <QPointF>
 
 #include "genh5.h"
+#include "genh5_data.h"
 
 class Tests : public testing::Test
 {
@@ -47,8 +48,19 @@ TEST_F(Tests, test)
     qDebug() << "Filter Name:" << name;
     qDebug() << "Config:" << config;
 }
-#endif
 
+TEST_F(Tests, test2)
+{
+    GenH5::CompData0D<int> values0D;
+
+
+    GenH5::CompData<int> values;
+    auto raw = values.raw();
+
+    values.setValue<0>(10, 42);
+    values0D.setValue<0>(42);
+}
+#endif
 
 //template<typename T>
 //struct VarLen : public Vector<T>

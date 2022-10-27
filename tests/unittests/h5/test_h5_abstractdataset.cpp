@@ -346,12 +346,44 @@ TEST_F(TestH5AbstractDataSet, RWarrayAsSimple)
 
     // read array dataset as is were a list of strings
     GenH5::Data<QString> data2;
-    dset.read(data2, GenH5::dataType<QString[3]>());
+    dset.read(data2, data.dataType());
 
     ASSERT_EQ(data2.size(), data.size() * 3);
 
     // split list at every third entry
     Vector<Vector<QString>> list = data2.split(3);
+    EXPECT_EQ(list.size(), data.size());
+}
+
+TEST_F(TestH5AbstractDataSet, RWcompoundArrayAsSimple)
+{
+    using GenH5::Comp;
+    using GenH5::Array;
+    using GenH5::Vector;
+
+    Array<QString, 3> d1 = {"Hello world", "A", "ABC"};
+    Array<QString, 3> d2 = {"Test", "", "2"};
+    Array<QString, 3> d3 = {"Fancy String", "Not so long text", "!?!"};
+    Array<QString, 3> d4 = {"My String", "DEF", "42"};
+
+    GenH5::CompData<QString[3]> data{d1, d2, d3, d4};
+
+    ASSERT_TRUE(data.dataType().compoundMembers().first().type.isArray());
+
+    auto dset = root.createDataset("comp_string[3]",
+                                   data.dataType(),
+                                   data.dataSpace());
+
+    EXPECT_TRUE(dset.write(data));
+
+    // read array dataset as is were a list of strings
+    GenH5::CompData<QString> data2;
+    dset.read(data2, data.dataType());
+
+    ASSERT_EQ(data2.size(), data.size() * 3);
+
+    // split list at every third entry
+    Vector<Vector<Comp<QString>>> list = data2.split(3);
     EXPECT_EQ(list.size(), data.size());
 }
 

@@ -10,6 +10,8 @@
 #define GENH5_NODE_H
 
 #include "genh5_location.h"
+#include "genh5_attribute.h"
+#include "genh5_data.h"
 
 #include <functional>
 
@@ -19,8 +21,6 @@ namespace GenH5
 // forward decl
 class Group;
 class DataSet;
-class DataType;
-class DataSpace;
 class Node;
 
 struct Version;
@@ -66,13 +66,88 @@ public:
      */
     bool hasAttribute(String const& name) const;
 
-    // attributes
+    /*
+     * CREATE/OPEN ATTRIBUTE
+     */
+
+    /**
+     * @brief Creates an attribute. The attribute has no values set. If the
+     * attribute already exists, its datatype and dataspace are checked. If they
+     * match the attribute will be opened else it will be overwritten.
+     * @param name Name of the attribute
+     * @param dtype Datatype of the attribute
+     * @param dspace Dataspace of the attribute
+     * @return Attribute
+     */
     Attribute createAttribute(String const& name,
                               DataType const& dtype,
                               DataSpace const& dspace) const noexcept(false);
+
+    /**
+     * @brief Opens the attribute speicified.
+     * @param name Name of the attribute
+     * @return Attribute
+     */
     Attribute openAttribute(String const& name) const noexcept(false);
+
+    /**
+     * @brief Opens the attribute speicified by its path and name.
+     * @param name Name of the attribute
+     * @return Attribute
+     */
     Attribute openAttribute(String const& path,
                             String const& name) const noexcept(false);
+
+    /*
+     *  READ/WRITE ATTRIBUTE
+     */
+
+    /**
+     * @brief High level method for creating and writing to an attribute.
+     * @param name Name of the attribute
+     * @return data Data to write
+     * @return This
+     */
+    template <typename Container,
+              typename if_container = traits::value_t<Container>,
+              traits::if_has_not_template_type<Container> = true>
+    Node const& writeAttribute(String const& name, Container&& data
+                               ) const noexcept(false);
+
+    /**
+     * @brief Overload.
+     * @param name Name of the attribute
+     * @return data Data to write
+     * @return This
+     */
+    template <typename T>
+    Node const& writeAttribute(String const& name,
+                               details::AbstractData<T> const& data
+                               ) const noexcept(false);
+
+    /**
+     * @brief High level method for creating and writing to an attribute.
+     * Cannot be used to write an object of type Data0D.
+     * @param name Name of the attribute
+     * @return data 0D Data to write
+     * @return This
+     */
+    template <typename Container,
+              traits::if_has_not_template_type<Container> = true>
+    Node const& writeAttribute0D(String const& name, Container&& data
+                                 ) const noexcept(false);
+
+    /**
+     * @brief High level method for opening and reading data from an attribute.
+     * @param name Name of the attribute
+     * @return Data read
+     */
+    template <typename T1, typename... Ts>
+    Data<T1, Ts...> readAttribute(String const& name) const noexcept(false);
+
+    /*
+     *  VERSION ATTRIBUTE
+     */
 
     // version attribute
 #ifndef GENH5_NO_DEPRECATED_SYMBOLS
@@ -84,42 +159,111 @@ public:
      * @return Default name
      */
     static String versionAttributeName();
+
     /**
-     * @brief Whether the node has a version attribute
+     * @brief Whether the node has the version attribute specified. By default
+     * checks the library version attribute
+     * @param string Attribute name
      * @return Does the version attribute exist
      */
-    bool hasVersionAttribute() const;
-    /**
-     * @brief Creates a attribute containing the version of this
-     * library. Can be called to update the version attribute.
-     * @return success
-     */
+    bool hasVersionAttribute(String const& string = versionAttributeName()) const;
+
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
+    [[deprecated("use Node::writeVersionAttribute instead")]]
     bool createVersionAttribute() const noexcept(false);
+#endif
+
     /**
-     * @brief Attempts to read the version attribute and returns its value.
+     * @brief Creates a attribute containing the version specified.
+     * Can be called to update the version attribute. By default creates the
+     * library version attribute.
+     * @param string Attribute name
+     * @param version Version to write
+     * @return This
+     */
+    Node const& writeVersionAttribute(String const& string = versionAttributeName(),
+                                      Version version = Version::current()
+                                      ) const noexcept(false);
+
+    /**
+     * @brief Attempts to read the version attribute specified and returns
+     * its value. By default reads the library version attribute.
+     * @param string Attribute name
      * @return Version
      */
-    Version readVersionAttribute() const noexcept(false);
+    Version readVersionAttribute(String const& string = versionAttributeName()
+                                 ) const noexcept(false);
 
-    // find attributes
+    /*
+     *  FIND ATTRIBUTE
+     */
+
+    /**
+     * @brief Returns a list of all attributes of this Node.
+     * @param indexType Indexing type
+     * @param indexOrder Order of the list
+     * @return Attribute info structs
+     */
     Vector<AttributeInfo> findAttributes(IterationIndex indexType = IndexName,
                                          IterationOrder indexOrder = NativeOrder
                                          ) const noexcept;
+    /**
+     * @brief Overload. Returns a list of all attributes of the Node
+     * specified by path.
+     * @param path Path to attribute
+     * @param indexType Indexing type
+     * @param indexOrder Order of the list
+     * @return Attribute info structs
+     */
     Vector<AttributeInfo> findAttributes(String const& path,
                                          IterationIndex indexType = IndexName,
                                          IterationOrder indexOrder = NativeOrder
                                          ) const noexcept;
+
+    /**
+     * @brief Iterates over each attribute of this Node and calls a function on
+     * it.
+     * @param iterFunction Functon to invoke.
+     * @param indexType Indexing type
+     * @param indexOrder Order
+     * @return Error
+     */
     herr_t iterateAttributes(AttributeIterationFunction iterFunction,
                              IterationIndex indexType = IndexName,
                              IterationOrder indexOrder = NativeOrder
                              ) const noexcept;
+    /**
+     * @brief Overload. Iterates over each attribute of the Node specified by
+     * path and calls a function on it.
+     * @param path Path to attribute
+     * @param iterFunction Functon to invoke.
+     * @param indexType Indexing type
+     * @param indexOrder Order
+     * @return Error
+     */
     herr_t iterateAttributes(String const& path,
                              AttributeIterationFunction iterFunction,
                              IterationIndex indexType = IndexName,
                              IterationOrder indexOrder = NativeOrder
                              ) const noexcept;
 
+    /*
+     *  ATTRIBUTE INFO
+     */
+
+    /**
+     * @brief Returns the info struct of the attribute specified. May throw.
+     * @param name Name of the attribute
+     * @return Attribute info struct
+     */
     AttributeInfo attributeInfo(String const& name) const noexcept(false);
+
+    /**
+     * @brief Returns the info struct of the attribute specified by path and
+     * its name. May throw.
+     * @param name Name of the attribute
+     * @return Attribute info struct
+     */
     AttributeInfo attributeInfo(String const& path,
                                 String const& name) const noexcept(false);
 
@@ -142,6 +286,7 @@ protected:
      */
     H5::H5Location const* toH5Location() const noexcept override;
 };
+
 
 /**
  * @brief The NodeInfo struct. Contains basic information of a node and can be
@@ -194,6 +339,7 @@ struct GENH5_EXPORT NodeInfo
     std::unique_ptr<Node> toNode(Group const& parent) const noexcept(false);
 };
 
+
 struct GENH5_EXPORT AttributeInfo
 {
     /// name
@@ -217,6 +363,71 @@ struct GENH5_EXPORT AttributeInfo
     Attribute toAttribute(Node const& object,
                           String const& path) const noexcept(false);
 };
+
+namespace details
+{
+
+template <typename Object, typename... Ts>
+inline Object const&
+writeAttributeHelper(Object const& obj,
+                     String const& name,
+                     details::AbstractData<Ts...> const& data) noexcept(false)
+{
+    auto attr = obj.createAttribute(name, data.dataType(), data.dataSpace());
+
+    if (!attr.write(data))
+    {
+        throw GenH5::AttributeException{"Failed to write data to attribute!"};
+    }
+
+    return obj;
+}
+
+} // namespace details
+
+template <typename Container, typename if_container,
+          traits::if_has_not_template_type<Container>>
+inline Node const&
+Node::writeAttribute(String const& name,
+                     Container&& data) const noexcept(false)
+{
+    return details::writeAttributeHelper(
+                *this, name, makeData(std::forward<Container>(data)));
+}
+
+template <typename T>
+inline Node const&
+Node::writeAttribute(String const& name,
+                     details::AbstractData<T> const& data) const noexcept(false)
+{
+    return details::writeAttributeHelper(*this, name, data);
+}
+
+template <typename Container, traits::if_has_not_template_type<Container>>
+inline Node const&
+Node::writeAttribute0D(String const& name,
+                       Container&& data) const noexcept(false)
+{
+    return details::writeAttributeHelper(
+                *this, name, makeData0D(std::forward<Container>(data)));
+}
+
+template <typename T1, typename... Ts>
+inline Data<T1, Ts...>
+Node::readAttribute(String const& name) const noexcept(false)
+{
+    auto attr = openAttribute(name);
+
+    Data<T1, Ts...> data;
+    data.setTypeNames(attr.dataType());
+
+    if (!attr.read(data))
+    {
+        throw GenH5::AttributeException{"Failed to read data from attribute!"};
+    }
+
+    return data;
+}
 
 } // namespace GenH5
 

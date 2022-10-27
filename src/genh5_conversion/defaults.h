@@ -55,7 +55,7 @@ inline auto
 convertTo(Tfrom value)
 {
     // generic reverse conversion
-    return Ttarget{std::forward<Tfrom>(value)};
+    return static_cast<Ttarget>(std::forward<Tfrom>(value));
 }
 
 // default conversions

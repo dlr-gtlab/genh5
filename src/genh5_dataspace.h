@@ -144,19 +144,34 @@ public:
     }
 
     Dimensions const& count() const noexcept { return m_count; }
-    void setCount(Dimensions count) noexcept { m_count = std::move(count); }
+    DataSpaceSelection& setCount(Dimensions count) noexcept {
+        m_count = std::move(count);
+        return *this;
+    }
 
     Dimensions const& offset() const noexcept { return m_offset; }
-    void setOffset(Dimensions offset) noexcept { m_offset = std::move(offset); }
+    DataSpaceSelection& setOffset(Dimensions offset) noexcept {
+        m_offset = std::move(offset);
+        return *this;
+    }
 
     Dimensions const& stride() const noexcept{ return m_stride; }
-    void setStride(Dimensions stride) noexcept { m_stride = std::move(stride); }
+    DataSpaceSelection& setStride(Dimensions stride) noexcept {
+        m_stride = std::move(stride);
+        return *this;
+    }
 
     Dimensions const& block() const noexcept { return m_block; }
-    void setBlock(Dimensions block) noexcept { m_block = std::move(block); }
+    DataSpaceSelection& setBlock(Dimensions block) noexcept {
+        m_block = std::move(block);
+        return *this;
+    }
 
     SelectionOp op() const noexcept { return m_op; }
-    void setOp(SelectionOp op) noexcept { m_op = op; }
+    DataSpaceSelection& setOp(SelectionOp op) noexcept {
+        m_op = op;
+        return *this;
+    }
 
     operator DataSpace const&() noexcept(false) { return space(); }
 

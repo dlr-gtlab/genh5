@@ -37,46 +37,79 @@ public:
 
     CompData0DImpl() = default;
 
-    /** conversion constructors **/
-    template <typename... Us,
-              traits::if_same_size<sizeof...(Ts), sizeof...(Us)> = true>
-    explicit CompData0DImpl(Us&&... argsIn) noexcept(false)
+    /** constructors **/
+    // value type arguments
+    template <typename... Args,
+              traits::if_types_equal<Comp<traits::decay_crv_t<Args>...>,
+                                     conversion_t<RComp<Ts...>>> = true>
+    // cppcheck-suppress noExplicitConstructor
+    CompData0DImpl(Args&&... args)
+    {
+        base_class::m_data =
+                reverseComp(std::make_tuple(std::forward<Args>(args)...));
+    }
+
+    // template type arguments
+    template <typename... Args,
+              traits::if_types_differ<Comp<traits::decay_crv_t<Args>...>,
+                                      conversion_t<RComp<Ts...>>> = true,
+              traits::if_types_equal<
+                      conversion_t<Comp<traits::decay_crv_t<Args>...>>,
+                      conversion_t<Comp<Ts...>>> = true>
+    // cppcheck-suppress noExplicitConstructor
+    CompData0DImpl(Args&&... args) noexcept(false)
     {
         using GenH5::convert; // ADL
 
-        // for iterating more easily over variadic arguments
-        auto args = std::make_tuple(&argsIn...);
-
-        mpl::static_for<sizeof...(Ts)>([&](auto const idx){
-            auto* arg = get<idx>(args);
-
-            auto& data = rget<idx>(base_class::m_data);
-            data = convert(*arg, rget<idx>(base_class::m_buffer()));
-        });
+        base_class::m_data =
+                convert(std::make_tuple(std::forward<Args>(args)...),
+                        base_class::m_buffer.get());
     }
 
-    /** unpack **/
-    void unpack(Ts&... argsIn) const
+    /** set value **/
+    template <size_t tidx,
+              typename T,
+              traits::if_types_equal<T, traits::comp_element_t<
+                                     tidx, conversion_t<RComp<Ts...>>>> = true>
+    void setValue(T&& value)
     {
-        using GenH5::convertTo; // ADL
+        rget<tidx>(base_class::m_data) = std::forward<T>(value);
+    }
 
-        // for iterating more easily over variadic arguments
-        auto args = std::make_tuple(&argsIn...);
-
-        mpl::static_for<sizeof...(Ts)>([&](auto const tidx){
-            using T = std::tuple_element_t<tidx, Comp<Ts...>>;
-            auto* arg = get<tidx>(args);
-            *arg = convertTo<T>(rget<tidx>(base_class::m_data));
-        });
+    template <size_t tidx,
+              typename T,
+              traits::if_types_differ<T, traits::comp_element_t<
+                                     tidx, conversion_t<RComp<Ts...>>>> = true>
+    void setValue(T&& value)
+    {
+        using GenH5::convert; // ADL
+        this->setValue<tidx>(convert(std::forward<T>(value),
+                                     rget<tidx>(base_class::m_buffer.get())));
     }
 
     /** get value **/
-    template <size_t tidx>
+    template <size_t tidx,
+              typename T = traits::comp_element_t<tidx, Comp<Ts...>>>
     auto getValue() const
     {
         using GenH5::convertTo; // ADL
-        using T = std::tuple_element_t<tidx, Comp<Ts...>>;
         return convertTo<T>(rget<tidx>(base_class::m_data));
+    }
+
+    /** unpack **/
+    template <typename... Args,
+              traits::if_same_size<sizeof...(Ts), sizeof...(Args)> = true>
+    void unpack(Args&... argsIn) const
+    {
+        // for iterating more easily over variadic arguments
+        auto args = std::make_tuple(&argsIn...);
+        auto& ref = *this;
+
+        mpl::static_for<sizeof...(Ts)>([&](auto const tidx){
+            using Tcomp = Comp<traits::decay_crv_t<Args>...>;
+            using T = traits::comp_element_t<tidx, Tcomp>;
+            *get<tidx>(args) = ref.template getValue<tidx, T>();
+        });
     }
 };
 
@@ -113,7 +146,7 @@ template <typename... Args>
 inline auto
 makeCompData0D(Args&&... args)
 {
-    return CompData0D<traits::value_t<Args>...>{
+    return CompData0D<traits::decay_crv_t<Args>...>{
         std::forward<Args>(args)...
     };
 }

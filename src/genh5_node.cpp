@@ -8,11 +8,7 @@
 
 #include "genh5_node.h"
 
-#include "genh5_attribute.h"
-#include "genh5_dataspace.h"
-#include "genh5_datatype.h"
 #include "genh5_version.h"
-#include "genh5_dataset.h"
 #include "genh5_group.h"
 
 #include <QDebug>
@@ -252,33 +248,44 @@ GenH5::Node::versionAttrName()
 #endif
 
 bool
-GenH5::Node::hasVersionAttribute() const
+GenH5::Node::hasVersionAttribute(String const& string) const
 {
-    return hasAttribute(versionAttributeName());
+    return hasAttribute(string);
 }
-
 
 bool
 GenH5::Node::createVersionAttribute() const noexcept(false)
 {
-    auto version = Version::current();
-    auto attr = createAttribute(versionAttributeName(),
-                                DataType::Version,
-                                DataSpace::Scalar);
-    return attr.write(&version);
+    writeVersionAttribute();
+    return true;
+}
+
+GenH5::Node const&
+GenH5::Node::writeVersionAttribute(String const& string,
+                                   Version version) const noexcept(false)
+{
+    auto attr = createAttribute(string, dataType<Version>(), DataSpace::Scalar);
+    if (!attr.write(&version))
+    {
+        throw AttributeException{"Failed to write version Attribute!"};
+    }
+    return *this;
 }
 
 GenH5::Version
-GenH5::Node::readVersionAttribute() const noexcept(false)
+GenH5::Node::readVersionAttribute(String const& string) const noexcept(false)
 {
-    Version version{};
-    auto attr = openAttribute(versionAttributeName());
+    Version version{-1, -1, -1};
+    auto attr = openAttribute(string);
     if (attr.dataType() != DataType::Version ||
         attr.dataSpace() != DataSpace::Scalar)
     {
         throw AttributeException{"Invalid version Attribute format!"};
     }
-    attr.read(&version);
+    if (!attr.read(&version))
+    {
+        throw AttributeException{"Failed to read version Attribute!"};
+    }
     return version;
 }
 

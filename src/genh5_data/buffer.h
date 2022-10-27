@@ -32,6 +32,7 @@ public:
     using buffer_type         = buffer_t<T>;
     using size_type           = typename conversion_container_t<T>::size_type;
 
+#ifndef GENH5_NO_STATIC_BUFFER
     // incr ref count
     StaticBuffer() { ++m_ref; }
     StaticBuffer(StaticBuffer const&) { ++m_ref; }
@@ -50,7 +51,11 @@ public:
             clear();
         }
     }
+#endif
 
+    /**
+     * @brief Clear the buffer
+     */
     void clear()
     {
         applyToBuffer<T>(m_buffer, [](auto& buffer){
@@ -59,21 +64,37 @@ public:
         });
     }
 
+    /**
+     * @brief Reserves the buffer by additional size elements.
+     * @param size
+     */
     void reserve(size_type size)
     {
-#ifndef GENH5_NO_BUFFER_PRE_RESERVING
+#ifndef GENH5_NO_BUFFER_RESERVING
         applyToBuffer<T>(m_buffer, [=](auto& buffer){
             buffer.reserve(static_cast<int>(buffer.size() + size));
         });
 #endif
     }
 
+    /// call operator as getter for acutal buffer
     buffer_type& operator()() { return m_buffer; }
+
+    /// getter for acutal buffer
+    buffer_type& get() { return m_buffer; }
+
+    /// implicit conversion
     operator buffer_type&() { return m_buffer; }
 
 private:
 
-    static buffer_type m_buffer;
+    /// shared buffer (probably not thread-safe)
+#ifndef GENH5_NO_STATIC_BUFFER
+    static
+#endif
+    buffer_type m_buffer;
+
+    /// ref count for clearing
     static int m_ref;
 };
 
