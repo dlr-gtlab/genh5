@@ -183,6 +183,13 @@ makeVarLens(Container&& container)
     return varlens;
 }
 
+template <typename... Args>
+inline auto
+makeComp0D(Args&&... args) noexcept(false)
+{
+    return std::make_tuple(std::forward<Args>(args)...);
+}
+
 template <typename... Containers>
 inline auto
 makeComp(Containers&&... containersIn) noexcept(false)
@@ -217,7 +224,7 @@ makeComp(Containers&&... containersIn) noexcept(false)
 /** UNPACK **/
 template <typename T, size_t N,
           typename Container,
-          traits::if_has_value_type<Container, T> = true>
+          traits::if_value_types_equal<Container, T> = true>
 inline void
 unpack(Array<T, N> const& array, Container& container)
 {
@@ -229,7 +236,7 @@ unpack(Array<T, N> const& array, Container& container)
 template <typename T, size_t N,
           typename Container,
           typename C = traits::value_t<Container>,
-          traits::if_has_value_type<C, T> = true>
+          traits::if_value_types_equal<C, T> = true>
 inline void
 unpack(Vector<Array<T, N>> const& arrays, Container& container)
 {
@@ -244,7 +251,7 @@ unpack(Vector<Array<T, N>> const& arrays, Container& container)
 
 template <typename T,
           typename Container,
-          traits::if_has_value_type<Container, T> = true>
+          traits::if_value_types_equal<Container, T> = true>
 inline void
 unpack(VarLen<T> const& varlen, Container& container)
 {
@@ -255,7 +262,7 @@ unpack(VarLen<T> const& varlen, Container& container)
 
 template <typename T, typename Container,
           typename C = traits::value_t<Container>,
-          traits::if_has_value_type<C, T> = true>
+          traits::if_value_types_equal<C, T> = true>
 inline void
 unpack(Vector<VarLen<T>> const& varlens, Container& container)
 {

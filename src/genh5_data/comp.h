@@ -19,6 +19,34 @@ namespace GenH5
 namespace details
 {
 
+template <typename Tdata, typename Tbuffer, typename... Args, typename Lambda>
+inline void
+multiAppendHelper(Tdata& data, Tbuffer& buffer,
+                  Lambda&& lambda, Args&&... argsIn)
+{
+    auto args = std::make_tuple(&argsIn...);
+    auto size = static_cast<int>(get<0>(args)->size());
+
+    mpl::static_for<sizeof...(Args)>([&](auto const idx){
+        if (size != get<idx>(args)->size())
+        {
+            throw InvalidArgumentError{
+                "Arguments have different number of " "elements!"
+            };
+        }
+    });
+
+    data.reserve(size);
+    buffer.reserve(size);
+
+    for (int i = 0; i < size; ++i)
+    {
+        // *(std::cbegin(...)+i) same as [i] but also works for init_lists
+        data.append(lambda(std::make_tuple(*(std::cbegin(argsIn)+i)...),
+                           buffer.get()));
+    }
+}
+
 /** DATA VECTOR **/
 template<typename...>
 class CompDataImpl;
@@ -33,6 +61,9 @@ public:
     using base_class::base_class;
     using base_class::operator=;
     using base_class::operator[];
+    using base_class::push_back;
+    using base_class::append;
+    using base_class::setValue;
     using base_class::value;
     using base_class::values;
     using base_class::unpack;
@@ -40,86 +71,149 @@ public:
 
     static constexpr auto compoundSize() { return sizeof...(Ts); }
 
-    CompDataImpl() = default;
+    CompDataImpl() {};
 
-    /** conversion constructors **/
+    /** constructor **/
     template <typename... Containers,
               traits::if_same_size<sizeof...(Ts), sizeof...(Containers)> = true>
-    explicit CompDataImpl(Containers&&... containersIn) noexcept(false)
+    // cppcheck-suppress noExplicitConstructor
+    CompDataImpl(Containers&&... containers) noexcept(false)
+    {
+        push_back(std::forward<Containers>(containers)...);
+    }
+
+    /** push_back **/
+    // value container types
+    template <typename... Containers,
+              typename T = Comp<traits::value_t<Containers>...>,
+              traits::if_types_equal<T, conversion_t<RComp<Ts...>>> = true>
+    void push_back(Containers&&... containers) noexcept(false)
+    {
+        multiAppendHelper(base_class::m_data, base_class::m_buffer,
+                          [](auto const& tuple, auto& /*buffer*/){
+            return reverseComp(tuple);
+        },
+        std::forward<Containers>(containers)...);
+    }
+
+    // template container types
+    template <typename... Containers,
+              typename T = Comp<traits::value_t<Containers>...>,
+              traits::if_types_differ<T, conversion_t<RComp<Ts...>>> = true,
+              traits::if_types_equal<conversion_t<T>,
+                                     conversion_t<Comp<Ts...>>> = true>
+    void push_back(Containers&&... containers) noexcept(false)
     {
         using GenH5::convert; // ADL
 
-        // for iterating more easily over variadic arguments
-        auto containers = std::make_tuple(&containersIn...);
-        auto size = get<0>(containers)->size();
-        base_class::m_data.resize(size);
-        base_class::m_buffer.reserve(size);
-
-        mpl::static_for<sizeof...(Ts)>([&](auto const idx){
-            auto* container = get<idx>(containers);
-            if (size != container->size())
-            {
-                throw InvalidArgumentError{"Containers have different number "
-                                           "of elements!"};
-            }
-
-            size_type i = 0;
-            for (auto const& value : *container)
-            {
-                auto& data = rget<idx>(base_class::m_data[i++]);
-                data = convert(value, rget<idx>(base_class::m_buffer()));
-            }
-        });
+        multiAppendHelper(base_class::m_data, base_class::m_buffer,
+                          [](auto const& tuple, auto& buffer){
+            return convert(tuple, buffer);
+        },
+        std::forward<Containers>(containers)...);
     }
 
-    /** unpack single value **/
-    auto unpack(size_type idx, Ts&... argsIn) const
+    // value type arguments
+    template <typename... Args,
+              traits::if_types_equal<Comp<std::decay_t<Args>...>,
+                                     conversion_t<RComp<Ts...>>> = true>
+    void push_back(Args&&... args) noexcept(false)
     {
-        assert(idx < base_class::size());
-        using GenH5::convertTo; // ADL
+        base_class::m_data.append(
+                    reverseComp(
+                        std::make_tuple(std::forward<Args>(args)...)));
+    }
 
-        // for iterating more easily over variadic arguments
-        auto args = std::make_tuple(&argsIn...);
-        auto const& value = base_class::m_data[idx];
+    // template type arguments
+    template <typename... Args,
+              traits::if_types_differ<Comp<traits::decay_crv_t<Args>...>,
+                                      conversion_t<RComp<Ts...>>> = true,
+              traits::if_types_equal<
+                      conversion_t<Comp<traits::decay_crv_t<Args>...>>,
+                      conversion_t<Comp<Ts...>>> = true>
+    void push_back(Args&&... args) noexcept(false)
+    {
+        using GenH5::convert; // ADL
 
-        mpl::static_for<sizeof...(Ts)>([&](auto const tidx){
-            using T = std::tuple_element_t<tidx, Comp<Ts...>>;
-            auto* arg = get<tidx>(args);
-            *arg = convertTo<T>(rget<tidx>(value));
-        });
+        base_class::m_data.append(
+                    convert(std::make_tuple(std::forward<Args>(args)...),
+                            base_class::m_buffer.get()));
+    }
+
+    /** append **/
+    // frwd arguemnts to push_back
+    template <typename... Args,
+              traits::if_same_size<sizeof...(Ts), sizeof...(Args)> = true>
+    void append(Args&&... args) { push_back(std::forward<Args>(args)...); }
+
+    /** set value **/
+    template <size_t tidx,
+              typename T,
+              traits::if_types_equal<T, traits::comp_element_t<
+                                     tidx, conversion_t<RComp<Ts...>>>> = true>
+    void setValue(size_type i, T&& value)
+    {
+        assert(base_class::m_data.size() > i);
+        rget<tidx>(base_class::m_data[i]) = std::forward<T>(value);
+    }
+
+    template <size_t tidx,
+              typename T,
+              traits::if_types_differ<T, traits::comp_element_t<
+                                     tidx, conversion_t<RComp<Ts...>>>> = true>
+    void setValue(size_type i, T&& value)
+    {
+        using GenH5::convert; // ADL
+        this->setValue<tidx>(i,convert(std::forward<T>(value),
+                                       rget<tidx>(base_class::m_buffer.get())));
     }
 
     /** get value **/
     // 1D
-    template <size_t tidx>
+    template <size_t tidx,
+              typename T = traits::comp_element_t<tidx, Comp<Ts...>>>
     auto getValue(size_type idx) const
     {
         assert(idx < base_class::size());
         using GenH5::convertTo; // ADL
 
-        using T = std::tuple_element_t<tidx, Comp<Ts...>>;
         return convertTo<T>(rget<tidx>(base_class::m_data[idx]));
     }    
     // 2D
-    template <size_t tidx>
+    template <size_t tidx,
+              typename T = traits::comp_element_t<tidx, Comp<Ts...>>>
     auto getValue(hsize_t idxA, hsize_t idxB) const
     {
-        return getValue<tidx>(idx(base_class::m_dims, {idxA, idxB}));
+        return getValue<tidx, T>(idx(base_class::m_dims, {idxA, idxB}));
     }
     // ND
-    template <size_t tidx>
+    template <size_t tidx,
+              typename T = traits::comp_element_t<tidx, Comp<Ts...>>>
     auto getValue(Vector<hsize_t> const& idxs) const
     {
-        return getValue<tidx>(idx(base_class::m_dims, idxs));
+        return getValue<tidx, T>(idx(base_class::m_dims, idxs));
     }
 
     /** unpack **/
+    template <typename... Args,
+              traits::if_same_size<sizeof...(Ts), sizeof...(Args)> = true>
+    void unpack(size_type idx, Args&... argsIn) const
+    {
+        auto& ref = *this; // for lambda capture
+
+        // for iterating more easily over variadic arguments
+        auto args = std::make_tuple(&argsIn...);
+        mpl::static_for<sizeof...(Ts)>([&](auto const tidx){
+            using Tcomp = Comp<traits::decay_crv_t<Args>...>;
+            using T = traits::comp_element_t<tidx, Tcomp>;
+            *get<tidx>(args) = ref.template getValue<tidx, T>(idx);
+        });
+    }
+
     template <typename... Containers,
               traits::if_same_size<sizeof...(Ts), sizeof...(Containers)> = true>
     void unpack(Containers&... containersIn) const
     {
-        using GenH5::convertTo; // ADL
-
         // for iterating more easily over variadic arguments
         auto containers = std::make_tuple(&containersIn...);
 
@@ -127,12 +221,18 @@ public:
             get<idx>(containers)->reserve(base_class::size());
         });
 
-        for (auto const& value : qAsConst(base_class::m_data))
+        auto size = base_class::m_data.size();
+        auto& ref = *this; // for lambda capture
+
+        // cppcheck-suppress shadowFunction
+        for (int idx = 0; idx < size; ++idx)
         {
-            mpl::static_for<sizeof...(Ts)>([&](auto const idx){
-                using T = std::tuple_element_t<idx, Comp<Ts...>>;
-                auto* container = get<idx>(containers);
-                container->push_back(convertTo<T>(rget<idx>(value)));
+            mpl::static_for<sizeof...(Ts)>([&](auto const tidx){
+                using Tcomp = Comp<traits::decay_crv_t<Containers>...>;
+                using Tcontainer = traits::comp_element_t<tidx, Tcomp>;
+                using T = traits::value_t<Tcontainer>;
+                get<tidx>(containers)->push_back(
+                            ref.template getValue<tidx, T>(idx));
             });
         }
     }
@@ -140,12 +240,12 @@ public:
     /** get values **/
     template <size_t tidx, typename Container =
                   Vector<traits::convert_to_t<
-                         std::tuple_element_t<tidx, Comp<Ts...>>>>>
+                         traits::comp_element_t<tidx, Comp<Ts...>>>>>
     auto getValues() const
     {
         using GenH5::convertTo; // ADL
 
-        using T = std::tuple_element_t<tidx, Comp<Ts...>>;
+        using T = traits::value_t<Container>;
         Container c;
         c.reserve(base_class::size());
         std::transform(std::cbegin(base_class::m_data),

@@ -22,7 +22,7 @@ TEST_F(TestH5Node, versionAttribute)
 
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
 
-    EXPECT_TRUE(file.root().createVersionAttribute());
+    ASSERT_NO_THROW(file.root().writeVersionAttribute());
 
     EXPECT_TRUE(file.root().hasVersionAttribute());
 

@@ -39,6 +39,13 @@ template <typename... Ts>
 struct comp_size<Comp<Ts...>> :
         std::integral_constant<size_t, sizeof...(Ts)> { };
 
+// element of a compound template type
+template <size_t idx, typename T>
+using comp_element_t = std::tuple_element_t<idx, T>;
+
+template <size_t idx, typename T, size_t size = std::tuple_size<T>::value>
+using rcomp_element_t = std::tuple_element_t<size-1-idx, T>;
+
 // for deducing return type of convert to methods
 template <typename... Ts>
 struct convert_to;
@@ -88,6 +95,22 @@ using decay_crv_t = typename decay_crv<T>::type;
 template <typename Container>
 using value_t = typename decay_crv_t<Container>::value_type;
 
+// helper struct to check if a type exists
+template<typename T, class R = void>
+struct enable_if_type { using type = R; };
+
+template<typename T, class R = void>
+using enable_if_type_t = typename enable_if_type<T, R>::type;
+
+// to check if T::template_type exists
+template<typename T, class Enable = void>
+struct has_template_type :
+        std::false_type {};
+
+template<typename T>
+struct has_template_type<T, enable_if_type_t<typename T::template_type>>:
+        std::true_type {};
+
 // used to enable template if types differ
 template<typename T, typename U>
 using if_types_differ = std::enable_if_t<
@@ -102,7 +125,7 @@ using if_types_equal = std::enable_if_t<
 
 // used to enable template if T::value_type exists and is equal to U
 template<typename T, typename U>
-using if_has_value_type = std::enable_if_t<
+using if_value_types_equal = std::enable_if_t<
             std::is_same<value_t<T>, decay_crv_t<U>>::value ||
             std::is_same<value_t<T>, convert_to_t<decay_crv_t<U>>>::value,
             bool>;
@@ -116,6 +139,27 @@ template <typename Tint>
 using if_signed_integral =
             std::enable_if_t<std::is_integral<Tint>::value &&
                              std::is_signed<Tint>::value, bool>;
+
+// used to check if T::template_type exists
+template <typename T>
+using if_has_template_type =
+            std::enable_if_t<has_template_type<decay_crv_t<T>>::value, bool>;
+
+// used to check if T::template_type does not exist
+template <typename T>
+using if_has_not_template_type =
+            std::enable_if_t<!has_template_type<decay_crv_t<T>>::value, bool>;
+
+// used to check if U is derived of T
+template <typename T, typename U>
+using if_base_of =
+            std::enable_if_t<std::is_base_of<T, decay_crv_t<U>>::value, bool>;
+
+// used to check if U is not derived of T
+template <typename T, typename U>
+using if_not_base_of =
+            std::enable_if_t<!std::is_base_of<T, decay_crv_t<U>>::value, bool>;
+
 
 } // namespace traits
 

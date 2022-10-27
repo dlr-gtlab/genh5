@@ -47,6 +47,14 @@ protected:
 
         return success;
     }
+
+    // conversion by value
+    template<typename T>
+    void conversion(GenH5::Vector<T> value)
+    {
+        EXPECT_TRUE(true);
+        Q_UNUSED(value);
+    }
 };
 
 /*
@@ -97,6 +105,10 @@ TEST_F(TestH5Data, sameConversionType)
     d.push_back(list);
     EXPECT_EQ(d.values(), d1.values() + d2.values() +
               d4.values());
+    d.push_back(size_t{52});
+
+    // test converions
+    conversion<int>(d);
 }
 
 TEST_F(TestH5Data, differentConversionType)
@@ -157,6 +169,29 @@ TEST_F(TestH5Data, differentConversionType)
     d.push_back(initList);
     EXPECT_EQ(d.values(), d1.values() + d2.values() +
               d4.values() + d5.values() + d6.values());
+
+    // test converions
+    conversion<QString>(d);
+
+    /*
+     *  test for args with different types compared to CompT
+     */
+
+    QStringList list2;
+    d4.unpack(list2);
+    EXPECT_EQ(list, list2);
+
+    QByteArrayList qbalist;
+    d5.unpack(qbalist);
+    EXPECT_EQ(qbalist.first(), str);
+    EXPECT_EQ(qbalist, d5.values<QByteArrayList>());
+
+    // setters
+    QString qba{"Hello World"};
+    GenH5::Data<QString> d10{list2};
+    EXPECT_NE(d10.value(0), qba);
+    d10.setValue(0, qba);
+    EXPECT_EQ(d10.value(0), qba);
 }
 
 TEST_F(TestH5Data, array_sameConversionType)
@@ -218,6 +253,9 @@ TEST_F(TestH5Data, array_sameConversionType)
     d.push_back(cval1);
     EXPECT_EQ(d.values(), d1.values() + d2.values() +
               d4.values() + d5.values());
+
+    // test converions
+    conversion<ArrayT>(d);
 }
 
 TEST_F(TestH5Data, array_differentConversionType)
@@ -268,6 +306,16 @@ TEST_F(TestH5Data, array_differentConversionType)
     GenH5::Data<ArrayT> d6_{initList};
     GenH5::Data<CArrayT> d6{initList};
 
+    // compound tests
+    GenH5::CompData<ArrayT> cd1_{list};
+    GenH5::CompData<CArrayT> cd1{list};
+    cd1_.push_back(list);
+    cd1.push_back(list);
+    GenH5::CompData<ArrayT> cd2_{initList};
+    GenH5::CompData<CArrayT> cd2{initList};
+    cd2_.push_back(initList);
+    cd2.push_back(initList);
+
     // test operators
     GenH5::Data<CArrayT> d;
     d = nativeContainer;
@@ -298,6 +346,19 @@ TEST_F(TestH5Data, array_differentConversionType)
     d.push_back(initList);
     EXPECT_EQ(d.values(), d1.values() + d2.values() +
               d4.values() + d5.values() + d6.values());
+
+    // test converions
+    conversion<ArrayT>(d);
+
+    // setters
+    using ArrayT2 = Array<QByteArray, 2>;
+    ArrayT2 array2{"Hello World", "Test"};
+    GenH5::Data<ArrayT> d10{d4};
+    EXPECT_NE(d10.value(0)[0], array2[0]);
+    EXPECT_NE(d10.value(0)[1], array2[1]);
+    d10.setValue(0, array2);
+    EXPECT_EQ(d10.value(0)[0], array2[0]);
+    EXPECT_EQ(d10.value(0)[1], array2[1]);
 }
 
 TEST_F(TestH5Data, varlen_differentConversionType)
@@ -359,6 +420,9 @@ TEST_F(TestH5Data, varlen_differentConversionType)
     d.push_back(val1);
     EXPECT_EQ(d.values(), d1.values() + d2.values() +
               d4.values() + d5.values());
+
+    // test converions
+    conversion<VarLenT>(d);
 }
 
 GENH5_DECLARE_IMPLICIT_CONVERSION(QPoint);
@@ -385,6 +449,7 @@ TEST_F(TestH5Data, compound_differentConversionType)
     CompT val3{strVal3, {-12, 23}};
     CompT val4{strVal4, {42, 42}};
 
+    QList<char*> convStrs{strVal1, strVal2, strVal3, strVal4};
     QStringList strsIn{strVal1, strVal2, strVal3, strVal4};
     QList<QPoint> ptsIn{
         std::get<1>(val1), std::get<1>(val2),
@@ -416,8 +481,31 @@ TEST_F(TestH5Data, compound_differentConversionType)
     // template init list
     GenH5::CompData<CompT> d6{val1, val2, val3, val4};
 
-    // comp specific: containers in
+    // comp specific: template containers in
     GenH5::CompData<CompT> d7{strsIn, ptsIn};
+
+    // comp specific: conversion containers in
+    GenH5::CompData<CompT> d8{convStrs, ptsIn};
+
+    // comp specific: template arg in
+    GenH5::CompData<CompT> d9{strsIn.first(), ptsIn.first()};
+
+    // comp specific: conversion args in
+    GenH5::CompData<CompT> d10{static_cast<char*>(strVal1), ptsIn.first()};
+
+    // comp specific: other template args in
+    GenH5::CompData<CompT> d11{std::string(strVal1), ptsIn.first()};
+
+    GenH5::CompData<QString> cd1{std::string(strVal1)};
+    GenH5::CompData<QString> cd2{static_cast<char*>(strVal1)};
+    GenH5::CompData<QString> cd3{QString(strVal1)};
+
+    // test pushback
+    d10.push_back(nativeContainer);
+    d10.push_back(conVal1);
+    d10.push_back(list);
+    d10.push_back(val1);
+    d10.push_back(strsIn.first().toUtf8(), ptsIn.first());
 
     // test operators
     GenH5::Data<CompT> d;
@@ -444,6 +532,15 @@ TEST_F(TestH5Data, compound_differentConversionType)
     d.push_back(val1);
     EXPECT_EQ(d.values(), d1.values() + d2.values() +
               d4.values() + d5.values());
+
+    // test converions
+    conversion<CompT>(d);
+
+    // setters
+    QByteArray qba{"Test"};
+    EXPECT_NE(d10.getValue<0>(0), qba);
+    d10.setValue<0>(0, qba);
+    EXPECT_EQ(d10.getValue<0>(0), qba);
 }
 
 TEST_F(TestH5Data, compound_deserialize)
@@ -502,7 +599,7 @@ TEST_F(TestH5Data, compound_deserialize)
     EXPECT_EQ(tuple, myTuple);
 
     // deserialize individual tuple element
-    EXPECT_EQ((data.getValue<0>(1)), strVal2);
+    EXPECT_EQ((data.getValue<0>(1)), QString{strVal2});
     EXPECT_EQ((data.getValue<1>(1)), dVal2);
     EXPECT_EQ((data.getValue<2>(1)), cVal2);
 
@@ -514,15 +611,50 @@ TEST_F(TestH5Data, compound_deserialize)
     EXPECT_EQ(strOut, strVal3);
     EXPECT_EQ(dOut, dVal3);
     EXPECT_EQ(cOut, cVal3);
+
+    /*
+     *  test for args with different types compared to CompT
+     */
+
+    // cast to QByteArray instead of QString
+    EXPECT_EQ((data.getValue<0, QByteArray>(1)), QByteArray{strVal2});
+    // use QChar instead of char
+    EXPECT_EQ((data.getValue<2, QChar>(1)), QChar{cVal2});
+
+    // cast to QByteArray instead of QString
+    auto vals = data.getValues<0, QList<QByteArray>>();
+    EXPECT_TRUE(std::equal(std::cbegin(vals), std::cend(vals),
+                           std::cbegin(strsIn)));
+
+    // deserialize idx out
+    std::string stdstrOut;
+    QChar qcOut;
+    data.unpack(2, stdstrOut, dOut, qcOut);
+    EXPECT_EQ(stdstrOut, strVal3);
+    EXPECT_EQ(dOut, dVal3);
+    EXPECT_EQ(qcOut, cVal3);
+
+    // deserialize out
+    QList<QByteArray> qbasOut;
+    QVector<QChar> qcsOut;
+    dsOut.clear();
+    data.unpack(qbasOut, dsOut, qcsOut);
+    EXPECT_EQ(dsOut, dsIn);
+    EXPECT_TRUE(std::equal(std::cbegin(qbasOut), std::cend(qbasOut),
+                           std::cbegin(strsIn)));
+    EXPECT_TRUE(std::equal(std::cbegin(qcsOut), std::cend(qcsOut),
+                           std::cbegin(csOut)));
 }
 
 TEST_F(TestH5Data, resize)
 {
-    hsize_t spaceLength = 10;
-    hsize_t arrLength = 5;
+    constexpr hsize_t spaceLength = 10;
+    constexpr hsize_t arrLength = 5;
+
+    // for simple types
     auto space = GenH5::DataSpace::linear(spaceLength);
     auto superType = GenH5::dataType<int>();
-    auto arryType = GenH5::DataType::array(superType, arrLength);
+    auto arryType = GenH5::dataType<GenH5::Array<int, arrLength>>();
 
     GenH5::Data<int> data;
     ASSERT_EQ(data.size(), 0);
@@ -536,6 +668,23 @@ TEST_F(TestH5Data, resize)
     // resize using space * array length
     data.resize(space, arryType);
     EXPECT_EQ(data.size(), spaceLength * arrLength);
+
+    // for compound types
+    auto csuperType = GenH5::dataType<GenH5::Comp<int>>();
+    auto carryType = GenH5::dataType<GenH5::Comp<GenH5::Array<int, arrLength>>>();
+
+    GenH5::CompData<int> cdata;
+    ASSERT_EQ(cdata.size(), 0);
+    // resize using space length
+    cdata.resize(space, csuperType);
+    EXPECT_EQ(cdata.size(), spaceLength);
+
+    cdata.clear();
+    ASSERT_EQ(cdata.size(), 0);
+
+    // resize using space * array length
+    cdata.resize(space, carryType);
+    EXPECT_EQ(cdata.size(), spaceLength * arrLength);
 }
 
 TEST_F(TestH5Data, valueIdx)
@@ -598,6 +747,33 @@ TEST_F(TestH5Data, compoundValueIdx)
     // 3D
     EXPECT_EQ(data.getValue<0>({1, 2, 3}), ints[1 * 20 + 2 * 4 + 3]);
     EXPECT_EQ(data.getValue<1>({1, 4, 1}), bas[1 * 20 + 4 * 4 + 1]);
+}
+
+TEST_F(TestH5Data, compoundValueIdxTest)
+{
+    GenH5::Dimensions dims{2, 5, 4};
+
+    int size = GenH5::prod<int>(dims);
+    auto ints = h5TestHelper->linearDataVector<int>(size,0, 1);
+    auto bas = h5TestHelper->randomByteArrays(size);
+
+    GenH5::CompData<QByteArray, int> data{bas, ints};
+    data.push_back(bas, ints);
+    data.push_back(bas.first(), ints.first());
+    data.push_back(bas.first().data(), ints.first());
+
+    ASSERT_NO_THROW(data.setDimensions(dims));
+    ASSERT_EQ(data.dataSpace().dimensions(), dims);
+
+    // 1D
+    EXPECT_EQ(data.getValue<0>(7), bas[7]);
+
+    // 2D
+    // data is 3D dataset
+    EXPECT_THROW(data.getValue<0>(0, 4), GenH5::InvalidArgumentError);
+
+    // 3D
+    EXPECT_EQ(data.getValue<0>({1, 4, 1}), bas[1 * 20 + 4 * 4 + 1]);
 }
 
 TEST_F(TestH5Data, dataspace)

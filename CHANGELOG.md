@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed 
 - `Location::type` was moved to `Object::type`
-- Refactored `CompData` and `Data` classes
 - Updated type traits
 
 ### Added
@@ -15,17 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for the conan package manager
 - `Data0D` and `CompData0D` for scalar data
 - `makeArrays` and `makeVarLens` utils functions. Implemented `unpack` overloads accordingly - #25
-- `Data::split` and `Data::resize` overload for reading array types more easily - #25
+- `Data::split` method for reading array types more easily - #25
 - Getters for deflate compression - #29
 - `idx` utils function and overloads for `Data::operator[]`, `Data::at` and `Data::value` to access multidimensional data more easily. 
    The desired data dimensions must be set prior using `Data::setDimensions`. - #23
+- `CompData0D::setValue` and `Data::setValue` methods - #31
 - `Methods for iterating over and finding child nodes and attributes - #24
+- High level methods for writing and reading datasets and attributes in one call - #27
 
 ### Deprecated 
-- `Data::deserialize`, use `Data::values` instead. For compound data use `Data::unpack` instead. - #23
-- `Data::deserializeIdx`, use `Data::value` instead. For compound data use `Data::unpack` instead. - #23
+- `Data::deserialize` and `Data::deserializeIdx`, use `Data::value(s)`, `Data::unpack` or `CompData::getValue(s)` instead. - #23
 - `Data::c`, use `Data::raw` instead
 - `AbstractData` use `CommonData` or `details::AbstractData` instead
+- `Node::versionAttrName` use `Node::versionAttributeName` instead
+- `Node::createVersionAttribute` use `Node::writeVersionAttribute` instead
 - `File::isValidH5File`
 
 ### Fixed 

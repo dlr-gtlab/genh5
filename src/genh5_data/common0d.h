@@ -10,7 +10,6 @@
 #define GENH5_DATA_COMMON0D_H
 
 #include "genh5_conversion.h"
-#include "genh5_dataspace.h"
 
 #include "base.h"
 
@@ -30,7 +29,6 @@ public:
     using compound_names = typename base_class::compound_names;
     using size_type      = typename base_class::size_type;
 
-    using template_type         = T;
     using value_type            = conversion_t<T>;
     using buffer_element_type   = buffer_element_t<T>;
     using buffer_type           = buffer_t<T>;
@@ -46,16 +44,16 @@ public:
         : base_class{names}
     { }
     // value type
-    explicit CommonData0D(value_type arg, compound_names names = {}) :
-        base_class{names},
+    // cppcheck-suppress noExplicitConstructor
+    CommonData0D(value_type arg) :
         m_data{std::move(arg)}
     { }
 
     /** conversion constructors **/
     // frwd ref for template type
     template <typename U, traits::if_types_equal<U, T> = true>
-    explicit CommonData0D(U&& arg, compound_names names = {}) :
-        base_class{names}
+    // cppcheck-suppress noExplicitConstructor
+    CommonData0D(U&& arg)
     {
         using GenH5::convert; // ADL
         m_data = convert(std::forward<U>(arg), m_buffer);
@@ -81,10 +79,11 @@ public:
 
     /** deserialize **/
     // by value
+    template <typename U = traits::convert_to_t<T>>
     auto value() const
     {
         using GenH5::convertTo; // ADL
-        return convertTo<T>(m_data);
+        return convertTo<U>(m_data);
     }
 
     // resize data
@@ -99,10 +98,13 @@ public:
     // pointer for writing
     void const* dataWritePtr() const override { return data(); }
 
-    /** for accessing raw data **/
+    /** implicit conversions **/
+    operator traits::convert_to_t<T>() const { return value(); }
+
     operator value_type const&() const { return m_data; }
     operator value_type&() { return m_data; }
 
+    /** for accessing raw data **/
     value_type& raw() { return m_data; }
     value_type const& raw() const { return m_data; }
 
@@ -145,7 +147,7 @@ template <typename... Args>
 inline auto
 makeData0D(Args&&... args)
 {
-    return Data0D<traits::value_t<Args>...>{
+    return Data0D<traits::decay_crv_t<Args>...>{
         std::forward<Args>(args)...
     };
 }

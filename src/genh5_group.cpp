@@ -8,8 +8,6 @@
 
 #include "genh5_group.h"
 #include "genh5_file.h"
-#include "genh5_attribute.h"
-#include "genh5_dataset.h"
 
 #include <QDebug>
 

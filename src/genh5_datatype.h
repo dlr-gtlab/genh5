@@ -226,12 +226,11 @@ struct datatype_impl<Comp<Ts...>>
         CompoundMembers members;
         members.reserve(sizeof...(Ts));
 
-        GenH5::mpl::static_rfor<sizeof...(Ts)>(
-                    [&](auto const idx, auto const ridx){
+        GenH5::mpl::static_for<sizeof...(Ts)>([&](auto const idx){
             members.append({
-                m_typeNames.at(ridx),
+                m_typeNames.at(traits::comp_size<Compound>()-1-idx),
                 offset<idx>(),
-                datatype_impl<std::tuple_element_t<ridx, Comp<Ts...>>>()
+                datatype_impl<traits::rcomp_element_t<idx, Comp<Ts...>>>()
             });
         });
         // members are flipped, not necessary for compound type creation,
@@ -282,7 +281,7 @@ inline DataType
 dataType(CompoundNames<sizeof...(Tother) + 2> memberNames = {}) noexcept(false)
 {
     using T = Comp<T1, T2, Tother...>;
-    return details::datatype_impl<T>(std::move(memberNames));
+    return details::datatype_impl<T>{std::move(memberNames)};
 }
 
 // compound names
@@ -290,14 +289,14 @@ template<typename T>
 inline DataType
 dataType(CompoundNames<traits::comp_size<T>::value> memberNames) noexcept(false)
 {
-    return details::datatype_impl<T>(std::move(memberNames));
+    return details::datatype_impl<T>{std::move(memberNames)};
 }
 
 template<typename T>
 inline DataType
 dataType() noexcept(false)
 {
-    return details::datatype_impl<T>();
+    return details::datatype_impl<T>{};
 }
 
 } // namespace GenH5

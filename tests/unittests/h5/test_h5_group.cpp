@@ -15,6 +15,7 @@
 
 #include "testhelper.h"
 
+#include <QDebug>
 
 /// This is a test fixture that does a init for each test
 class TestH5Group : public testing::Test
@@ -122,4 +123,43 @@ TEST_F(TestH5Group, openAttribute)
 
     EXPECT_NO_THROW(root.openAttribute("my_fancy_attr"));
     EXPECT_TRUE(root.openAttribute("my_fancy_attr").isValid());
+}
+
+TEST_F(TestH5Group, writeDataSet)
+{
+    using GenH5::Data;
+    using GenH5::Data0D;
+    using GenH5::Comp;
+    using GenH5::Array;
+    using GenH5::VarLen;
+    using GenH5::Vector;
+
+    // open the file as a root group
+    auto root = file.root();
+
+    qDebug() << "filepath:" << root.file()->filePath();
+
+    QVector<uint> vec{42u, 12};
+
+    root.writeAttribute("my_attr_1", GenH5::makeCompData(vec));
+    root.writeAttribute("my_attr_2", vec);
+    root.writeAttribute("my_attr_0d_1", GenH5::makeCompData0D(42u));
+    root.writeAttribute0D("my_attr_0d_2", 42ull);
+    root.writeAttribute0D("my_attr_0d_comp", Comp<char, int>{'A', 12});
+    root.writeAttribute0D("my_attr_0d_array", Array<char, 3>{'A', 'B', 'C'});
+    root.writeAttribute0D("my_attr_0d_varlen", VarLen<char>{'A', 'B', 'C'});
+
+    root.writeDataSet("my_dset_1", GenH5::makeCompData(vec));
+    root.writeDataSet("my_dset_2", vec);
+    root.writeDataSet("my_dset_0d_1", GenH5::makeCompData0D(42u));
+    root.writeDataSet0D("my_dset_0d_2", 42ull)
+            .writeAttribute0D("test", "test")
+            .writeAttribute0D("test2", QString{"test"});
+    root.writeDataSet0D("my_dset_0d_comp", Comp<char, int>{'A', 12});
+    root.writeDataSet0D("my_dset_0d_array", Array<char, 3>{'A', 'B', 'C'});
+
+    VarLen<char> vlenOrig{'A', 'B', 'C'};
+    root.writeDataSet0D("my_dset_0d_varlen", vlenOrig);
+    auto vlen = root.readDataSet<VarLen<char>>("my_dset_0d_varlen");
+    EXPECT_EQ(vlen.value(0), vlenOrig);
 }

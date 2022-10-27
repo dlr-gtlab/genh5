@@ -41,18 +41,6 @@ static_for_impl(Lambda&& f, std::index_sequence<Is...>)
     };
 }
 
-template<size_t N, typename Lambda, std::size_t ... Is>
-constexpr void
-static_rfor_impl(Lambda&& f, std::index_sequence<Is...>)
-{
-    struct Idx {};
-    // unpack into init list for "looping" in correct order wo recursion
-    (void)std::initializer_list<Idx> {
-        ((void)f(std::integral_constant<unsigned, Is>(),
-                 std::integral_constant<unsigned, N - Is - 1>()), Idx{})...
-    };
-}
-
 } // namespace details
 
 namespace mpl
@@ -95,22 +83,6 @@ static_for(Lambda&& f)
 {
     details::static_for_impl(std::forward<Lambda>(f),
                              std::make_index_sequence<N>());
-}
-
-/**
- * @brief Calls a method for each n in N. Static for loop for compound types.
- * Can be used to iterate backwards.
- * @param f Function to call for each iteration.
- * @tparam N Number of iterations
- * @tparam Lambda Function to call. Must have two parameters. First for the
- * current index (i.e. n), last the current reversed index (i.e. N - n - 1).
- */
-template<unsigned N, typename Lambda>
-constexpr void
-static_rfor(Lambda&& f)
-{
-    details::static_rfor_impl<N>(std::forward<Lambda>(f),
-                                 std::make_index_sequence<N>());
 }
 
 } // namespace mpl

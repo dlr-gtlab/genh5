@@ -10,7 +10,6 @@
 #define GENH5_DATA_COMMON_H
 
 #include "genh5_conversion.h"
-#include "genh5_dataspace.h"
 #include "genh5_optional.h"
 
 #include "genh5_data/base.h"
@@ -30,7 +29,6 @@ public:
 
     using compound_names = typename base_class::compound_names;
 
-    using template_type         = T;
     using value_type            = conversion_t<T>;
     using buffer_element_type   = buffer_element_t<T>;
     using buffer_type           = buffer_t<T>;
@@ -51,34 +49,37 @@ public:
         : base_class{names}
     { }
     // container type
-    explicit CommonData(container_type data) :
+    // cppcheck-suppress noExplicitConstructor
+    CommonData(container_type data) :
         m_data{std::move(data)}
     { }
     // value type
-    explicit CommonData(value_type arg) :
+    // cppcheck-suppress noExplicitConstructor
+    CommonData(value_type arg) :
         m_data{std::move(arg)}
     { }
     // value type init list
     template<typename U,
              traits::if_types_equal<U, value_type>,
              traits::if_types_differ<U, T>>
-    explicit CommonData(std::initializer_list<U> args) :
+    // cppcheck-suppress noExplicitConstructor
+    CommonData(std::initializer_list<U> args) :
         m_data{std::move(args)}
     { }
 
     /** conversion constructors **/
     // arbitrary container types
     template <typename Container,
-//              traits::if_types_differ<Container, T> = true,
-//              traits::if_types_differ<Container, container_type> = true,
-              traits::if_has_value_type<Container, T> = true>
-    explicit CommonData(Container&& c)
+              traits::if_value_types_equal<Container, T> = true>
+    // cppcheck-suppress noExplicitConstructor
+    CommonData(Container&& c)
     {
         push_back(std::forward<Container>(c));
     }
     // frwd ref for template type
     template <typename U, traits::if_types_equal<U, T> = true>
-    explicit CommonData(U&& arg)
+    // cppcheck-suppress noExplicitConstructor
+    CommonData(U&& arg)
     {
         push_back(std::forward<U>(arg));
     }
@@ -107,9 +108,7 @@ public:
     /** conversion assignments **/
     // arbitrary container types
     template <typename Container,
-//              traits::if_types_differ<Container, T> = true,
-//              traits::if_types_differ<Container, container_type> = true,
-              traits::if_has_value_type<Container, T> = true>
+              traits::if_value_types_equal<Container, T> = true>
     CommonData& operator=(Container&& c)
     {
         m_data.clear();
@@ -139,14 +138,13 @@ public:
     /** conversion push_back **/
     // arbitrary container types
     template <typename Container,
-//              traits::if_types_differ<Container, T> = true,
-//              traits::if_types_differ<Container, container_type> = true,
-              traits::if_has_value_type<Container, T> = true>
+              traits::if_value_types_equal<Container, T> = true>
     void push_back(Container&& c)
     {
         using GenH5::convert; // ADL
-        m_buffer.reserve(static_cast<size_type>(c.size()));
-        m_data.reserve(static_cast<size_type>(c.size()));
+        auto size = static_cast<size_type>(c.size());
+        m_buffer.reserve(size);
+        m_data.reserve(size);
         std::transform(std::cbegin(c), std::cend(c),
                        std::back_inserter(m_data), [&](auto const& value){
             return convert(value, m_buffer);
@@ -160,16 +158,34 @@ public:
         m_data.push_back(convert(std::forward<U>(arg), m_buffer));
     }
 
+    /** set value **/
+    void setValue(size_type i, value_type value)
+    {
+        assert(m_data.size() > i);
+        m_data[i] = std::move(value);
+    }
+
+    template<typename U,
+             traits::if_types_differ<U, value_type> = true,
+             traits::if_types_equal<conversion_t<traits::decay_crv_t<U>>,
+                                    value_type> = true>
+    void setValue(size_type i, U&& value)
+    {
+        using GenH5::convert; // ADL
+        setValue(i, convert(std::forward<U>(value), m_buffer));
+    }
+
     /**
      * @brief Getter for value at idx.
      * @param idx index
      * @return value at idx
      */
+    template <typename U = traits::convert_to_t<T>>
     auto value(size_type idx) const
     {
         assert(idx < size());
         using GenH5::convertTo; // ADL
-        return convertTo<T>(m_data[idx]);
+        return convertTo<U>(m_data[idx]);
     }
 
     /**
@@ -178,9 +194,10 @@ public:
      * @param idxB 2nd index
      * @return value at idx
      */
+    template <typename U = traits::convert_to_t<T>>
     auto value(hsize_t idxA, hsize_t idxB) const
     {
-        return value(idx(m_dims, {idxA, idxB}));
+        return value<U>(idx(m_dims, {idxA, idxB}));
     }
 
     /**
@@ -188,9 +205,10 @@ public:
      * @param idxs list of indicies
      * @return value at idx
      */
+    template <typename U = T>
     auto value(Vector<hsize_t> const& idxs) const
     {
-        return value(idx(m_dims, idxs));
+        return value<U>(idx(m_dims, idxs));
     }
 
     /** values **/
@@ -208,6 +226,13 @@ public:
         return m_dims.isDefault() ? DataSpace::linear(size()) :
                                     DataSpace{m_dims};
     }
+
+    /** dimensions **/
+    Dimensions const& dimensions() const
+    {
+        return m_dims;
+    }
+
     void setDimensions(Dimensions dims) noexcept(false)
     {
         if (prod(dims) > size())
@@ -217,6 +242,7 @@ public:
         }
         m_dims = std::move(dims);
     }
+
     void clearDimensions()
     {
         m_dims.clear();
@@ -230,7 +256,7 @@ public:
         c.reserve(size());
         std::transform(std::cbegin(m_data), std::cend(m_data),
                        std::back_inserter(c), [](auto const& value){
-            return convertTo<T>(value);
+            return convertTo<traits::value_t<Container>>(value);
         });
     }
 
@@ -240,10 +266,26 @@ public:
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
         auto s = static_cast<size_type>(dspace.selectionSize());
+        auto d = this->dataType();
         // convenience for reading array types
-        if (dtype.isArray() && !this->dataType().isArray())
+        // e.g. Data<Array<int, 5>> && Data<int>
+        if (dtype.isArray() && !d.isArray() &&
+            dtype.superType().size() == d.size())
         {
             s *= prod(dtype.arrayDimensions());
+        }
+        // convenience for reading a compound array type
+        // e.g. CompData<Array<int, 5>> && CompData<int>
+        else if (dtype.isCompound() && d.isCompound())
+        {
+            auto tmembers = d.compoundMembers();
+            auto omembers = dtype.compoundMembers();
+            if (omembers.size() == 1 && omembers[0].type.isArray() &&
+                tmembers.size() == 1 && !tmembers[0].type.isArray() &&
+                omembers[0].type.superType().size() == tmembers[0].type.size())
+            {
+                s *= prod(omembers[0].type.arrayDimensions());
+            }
         }
         m_data.resize(s);
         return s <= size();
@@ -264,11 +306,12 @@ public:
         c.reserve(length);
         for (size_type i = 0; i < length; ++i)
         {
-            traits::value_t<Container> vec;
+            using Tvec = traits::value_t<Container>;
+            Tvec vec;
             vec.reserve(n);
             std::transform(cbegin() + i * n, cbegin() + (i + 1) * n,
-                           std::back_inserter(vec), [&](auto const& elem){
-                return convertTo<T>(elem);
+                           std::back_inserter(vec), [&](auto const& value){
+                return convertTo<traits::value_t<Tvec>>(value);
             });
             c.push_back(std::move(vec));
         }
@@ -293,10 +336,13 @@ public:
         return operator[](idx(m_dims, idxs));
     }
 
-    /** for accessing raw data **/
+    /** implicit conversions **/
+    operator Vector<traits::convert_to_t<T>>() const { return values(); }
+
     operator container_type const&() const { return m_data; }
     operator container_type&() { return m_data; }
 
+    /** for accessing raw data **/
     container_type const& raw() const { return m_data; }
     container_type& raw() { return m_data; }
 
@@ -315,6 +361,8 @@ public:
     const_reference front() const { return m_data.front(); }
     reference back() { return m_data.back(); }
     const_reference back() const { return m_data.back(); }
+
+    void remove(size_type i, uint n = 1) { m_data.remove(i, n); }
 
     iterator begin() { return m_data.begin(); }
     const_iterator begin() const noexcept { return m_data.cbegin(); }
