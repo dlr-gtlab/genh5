@@ -9,7 +9,6 @@
 #ifndef GENH5_DATA_COMMON_H
 #define GENH5_DATA_COMMON_H
 
-#include "genh5_conversion.h"
 #include "genh5_optional.h"
 
 #include "genh5_data/base.h"
@@ -235,7 +234,7 @@ public:
 
     void setDimensions(Dimensions dims) noexcept(false)
     {
-        if (prod(dims) > size())
+        if (prod<size_type>(dims) > size())
         {
             throw InvalidArgumentError{"Dimension size does not match "
                                        "data size!"};
@@ -272,7 +271,7 @@ public:
         if (dtype.isArray() && !d.isArray() &&
             dtype.superType().size() == d.size())
         {
-            s *= prod(dtype.arrayDimensions());
+            s *= prod<size_type>(dtype.arrayDimensions());
         }
         // convenience for reading a compound array type
         // e.g. CompData<Array<int, 5>> && CompData<int>
@@ -284,7 +283,7 @@ public:
                 tmembers.size() == 1 && !tmembers[0].type.isArray() &&
                 omembers[0].type.superType().size() == tmembers[0].type.size())
             {
-                s *= prod(omembers[0].type.arrayDimensions());
+                s *= prod<size_type>(omembers[0].type.arrayDimensions());
             }
         }
         m_data.resize(s);
@@ -460,7 +459,7 @@ namespace details
 template<typename... Ts>
 struct data_helper;
 
-template<typename  T>
+template<typename T>
 struct data_helper<T>
 {
     using type = CommonData<T>;

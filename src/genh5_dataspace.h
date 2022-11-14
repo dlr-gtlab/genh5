@@ -45,7 +45,7 @@ public:
     /**
      * @brief DataSpace
      */
-    DataSpace() noexcept;
+    explicit DataSpace() noexcept;
     explicit DataSpace(std::initializer_list<hsize_t> initlist) noexcept(false);
     explicit DataSpace(Dimensions const& dimensions) noexcept(false);
     explicit DataSpace(H5::DataSpace dataspace);

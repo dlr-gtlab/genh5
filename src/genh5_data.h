@@ -11,5 +11,6 @@
 
 #include "genh5_data/comp.h"
 #include "genh5_data/comp0d.h"
+#include "genh5_data/fixedstring0d.h"
 
 #endif // GENH5_DATA_H

@@ -98,7 +98,7 @@ public:
 
     /** unpack **/
     template <typename... Args,
-              traits::if_same_size<sizeof...(Ts), sizeof...(Args)> = true>
+              traits::if_equal<sizeof...(Ts), sizeof...(Args)> = true>
     void unpack(Args&... argsIn) const
     {
         // for iterating more easily over variadic arguments

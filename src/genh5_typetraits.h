@@ -44,7 +44,7 @@ template <size_t idx, typename T>
 using comp_element_t = std::tuple_element_t<idx, T>;
 
 template <size_t idx, typename T, size_t size = std::tuple_size<T>::value>
-using rcomp_element_t = std::tuple_element_t<size-1-idx, T>;
+using rcomp_element_t = std::tuple_element_t<(size - 1 - idx), T>;
 
 // for deducing return type of convert to methods
 template <typename... Ts>
@@ -132,7 +132,11 @@ using if_value_types_equal = std::enable_if_t<
 
 // used to enable template if A == B
 template <size_t A, size_t B>
-using if_same_size = std::enable_if_t<A == B, bool>;
+using if_equal = std::enable_if_t<(A == B), bool>;
+
+// used to enable template if A > B
+template <size_t A, size_t B>
+using if_greater_than = std::enable_if_t<(A > B), bool>;
 
 // used to enable template for signed integral types
 template <typename Tint>
@@ -140,25 +144,15 @@ using if_signed_integral =
             std::enable_if_t<std::is_integral<Tint>::value &&
                              std::is_signed<Tint>::value, bool>;
 
-// used to check if T::template_type exists
-template <typename T>
-using if_has_template_type =
-            std::enable_if_t<has_template_type<decay_crv_t<T>>::value, bool>;
-
 // used to check if T::template_type does not exist
 template <typename T>
 using if_has_not_template_type =
             std::enable_if_t<!has_template_type<decay_crv_t<T>>::value, bool>;
 
-// used to check if U is derived of T
+// used to check if T is not convertible to U
 template <typename T, typename U>
-using if_base_of =
-            std::enable_if_t<std::is_base_of<T, decay_crv_t<U>>::value, bool>;
-
-// used to check if U is not derived of T
-template <typename T, typename U>
-using if_not_base_of =
-            std::enable_if_t<!std::is_base_of<T, decay_crv_t<U>>::value, bool>;
+using if_not_convertible =
+            std::enable_if_t<!std::is_convertible<T, U>::value, bool>;
 
 
 } // namespace traits

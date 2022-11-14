@@ -100,7 +100,7 @@ GenH5::Reference::toGroup(File const& file) const noexcept(false)
         H5::Group group;
         group.dereference(*file.root().toH5Object(), &m_ref);
         // access shared file in root group as the local one may not be the same
-        return {file.root().file(), std::move(group)};
+        return Group{file.root().file(), std::move(group)};
     }
     catch (H5::ReferenceException const& e)
     {
@@ -125,7 +125,7 @@ GenH5::Reference::toDataSet(File const& file) const noexcept(false)
         H5::DataSet dset;
         dset.dereference(*file.root().toH5Object(), &m_ref);
         // access shared file in root group as the local one may not be the same
-        return {file.root().file(), std::move(dset)};
+        return DataSet{file.root().file(), std::move(dset)};
     }
     catch (H5::ReferenceException const& e)
     {
@@ -154,6 +154,6 @@ GenH5::Reference::toAttribute(File const& file) const noexcept(false)
     }
 
     // access shared file in root group as the local one may not be the same
-    return {file.root().file(), id};
+    return Attribute{file.root().file(), id};
 }
 

@@ -146,7 +146,7 @@ GenH5::Node::createAttribute(String const& name,
         {
             auto attr = parent.toH5Object()->createAttribute(
                         name.constData(), dtype.toH5(), dspace.toH5());
-            return {parent.file(), std::move(attr)};
+            return Attribute{parent.file(), std::move(attr)};
         }
         catch (H5::AttributeIException const& e)
         {
@@ -189,7 +189,7 @@ GenH5::Node::openAttribute(String const& name) const noexcept(false)
     try
     {
         auto attr = parent.toH5Object()->openAttribute(name.constData());
-        return {parent.file(), std::move(attr)};
+        return Attribute{parent.file(), std::move(attr)};
     }
     catch (H5::AttributeIException const& e)
     {
@@ -220,7 +220,7 @@ GenH5::Node::openAttribute(String const& path,
     try
     {
         H5::Attribute attr = attrId;
-        return {file(), std::move(attr)};
+        return Attribute{file(), std::move(attr)};
     }
     catch (H5::AttributeIException const& e)
     {

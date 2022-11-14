@@ -150,7 +150,7 @@ TEST_F(TestH5Iteration, findChildObjects)
     // filter groups
     auto rootDGO = root.findChildNodes(GenH5::FindDirectOnly,
                                        GenH5::FilterGroups);
-    EXPECT_EQ(rootDGO.size(), countChildNodes(m_groups, {}));
+    EXPECT_EQ(rootDGO.size(), countChildNodes(m_groups, GenH5::Group{}));
     checkGroups(rootDGO, root);
 
     auto rootRGO = root.findChildNodes(GenH5::FindRecursive,
@@ -161,7 +161,7 @@ TEST_F(TestH5Iteration, findChildObjects)
     // filter datasets
     auto rootDDO = root.findChildNodes(GenH5::FindDirectOnly,
                                        GenH5::FilterDataSets);
-    EXPECT_EQ(rootDDO.size(), countChildNodes(m_dsets, {}));
+    EXPECT_EQ(rootDDO.size(), countChildNodes(m_dsets, GenH5::Group{}));
     checkDsets(rootDDO, root);
 
     auto rootRDO = root.findChildNodes(GenH5::FindRecursive,
@@ -172,7 +172,7 @@ TEST_F(TestH5Iteration, findChildObjects)
     // all objects
     auto rootDAll = root.findChildNodes(GenH5::FindDirectOnly,
                                         GenH5::NoFilter);
-    EXPECT_EQ(rootDAll.size(), countChildNodes(m_groups + m_dsets, {}));
+    EXPECT_EQ(rootDAll.size(), countChildNodes(m_groups + m_dsets, GenH5::Group{}));
     checkNodes(rootDAll, root);
 
     auto rootRAll = root.findChildNodes(GenH5::FindRecursive,

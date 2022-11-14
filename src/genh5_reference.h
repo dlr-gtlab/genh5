@@ -32,7 +32,7 @@ public:
     using Alignment  = decltype (H5R_ref_t::u.align);
     using BufferType = decltype (*H5R_ref_t::u.__data);
 
-    Reference();
+    explicit Reference();
     explicit Reference(H5R_ref_t ref)  noexcept;
     explicit Reference(Alignment data)  noexcept;
     explicit Reference(QByteArray buffer) noexcept(false);

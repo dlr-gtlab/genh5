@@ -9,9 +9,7 @@
 #ifndef GENH5_DATA_COMMON0D_H
 #define GENH5_DATA_COMMON0D_H
 
-#include "genh5_conversion.h"
-
-#include "base.h"
+#include "genh5_data/base.h"
 
 namespace GenH5
 {
@@ -33,10 +31,7 @@ public:
     using buffer_element_type   = buffer_element_t<T>;
     using buffer_type           = buffer_t<T>;
 
-    DataSpace dataSpace() const override
-    {
-        return DataSpace::Scalar;
-    }
+    DataSpace dataSpace() const override { return DataSpace::Scalar; }
 
     /** general constructors **/
     // types names only
@@ -132,7 +127,7 @@ namespace details
 template<typename... Ts>
 struct data_0d_helper;
 
-template<typename  T>
+template<typename T>
 struct data_0d_helper<T>
 {
     using type = CommonData0D<T>;

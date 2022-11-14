@@ -54,6 +54,14 @@ struct GENH5_EXPORT Version
      * @return current version struct
      */
     static Version current();
+
+    /**
+     * @brief Returns the version subrelease/additional info used at compile
+     * time of this library
+     * @return Current version subrelease
+     */
+    static const char* subrelease();
+
     /**
      * @brief Returns the HDF5 library version used at compile time of this
      * library
@@ -61,6 +69,17 @@ struct GENH5_EXPORT Version
      */
     static Version hdf5();
 
+    /**
+     * @brief Returns the HDF5 library version subrelease used at compile time
+     * of this library
+     * @return HDf5 version subrelease
+     */
+    static const char* subreleaseHdf5();
+
+    /**
+     * @brief Transforms the version to struct to an integer
+     * @return version as int
+     */
     constexpr int toInt() const { return major << 16 | minor << 8 | patch; }
 };
 

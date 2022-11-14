@@ -59,7 +59,7 @@ public:
     static DataType compound(size_t dataSize,
                              CompoundMembers const& members) noexcept(false);
 
-    DataType();
+    explicit DataType();
     explicit DataType(H5::DataType type);
 
     /**
@@ -151,7 +151,7 @@ template <size_t N>
 inline CompoundNames<N>
 getTypeNames(DataType const& dtype) noexcept(false)
 {
-    auto members = dtype.compoundMembers();
+    auto const members = dtype.compoundMembers();
 
     CompoundNames<N> names{};
 
@@ -303,14 +303,14 @@ dataType() noexcept(false)
 
 // operators
 GENH5_EXPORT bool operator==(GenH5::DataType const& first,
-                            GenH5::DataType const& other);
+                             GenH5::DataType const& other);
 GENH5_EXPORT bool operator!=(GenH5::DataType const& first,
-                            GenH5::DataType const& other);
+                             GenH5::DataType const& other);
 
 GENH5_EXPORT bool operator==(GenH5::CompoundMember const& first,
-                            GenH5::CompoundMember const& other);
+                             GenH5::CompoundMember const& other);
 GENH5_EXPORT bool operator!=(GenH5::CompoundMember const& first,
-                            GenH5::CompoundMember const& other);
+                             GenH5::CompoundMember const& other);
 
 #define GENH5_DECLARE_DATATYPE(NATIVE_TYPE, H5_TYPE) \
     template <> \

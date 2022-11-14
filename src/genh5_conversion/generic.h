@@ -159,7 +159,7 @@ convertTo(Comp<Ts...> const& tuple)
     traits::convert_to_t<Ttarget> conv;
 
     mpl::static_for<sizeof...(Ts)>([&](auto const idx){
-        using T = std::tuple_element_t<idx, Ttarget>;
+        using T = traits::comp_element_t<idx, Ttarget>;
         get<idx>(conv) = convertTo<T>(rget<idx>(tuple));
     });
     return conv;
