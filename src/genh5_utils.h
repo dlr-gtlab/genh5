@@ -157,7 +157,7 @@ makeArraysFromList(Container&& container) noexcept(false)
 }
 
 template <typename Container,
-          typename R = Vector<traits::value_t<Container>>>
+          typename R = VarLen<traits::value_t<Container>>>
 inline auto
 makeVarLen(Container&& container)
 {

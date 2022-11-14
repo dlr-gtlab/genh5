@@ -50,12 +50,12 @@ public:
 //#endif
 
     /**
-     * @brief hdf5 file suffix not including dot
+     * @brief A default hdf5 file suffix not including dot
      * @return file suffix
      */
     static String fileSuffix() noexcept;
     /**
-     * @brief hdf5 file suffix including dot
+     * @brief same as fileSuffix including dot
      * @return file suffix
      */
     static String dotFileSuffix() noexcept;
@@ -63,7 +63,7 @@ public:
     /**
      * @brief File
      */
-    File();
+    explicit File();
     explicit File(H5::H5File file);
     explicit File(String path, FileAccessFlags flags = ReadWrite);
 

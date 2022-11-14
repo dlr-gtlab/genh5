@@ -26,8 +26,8 @@ public:
     /**
      * @brief Attribute
      */
-    Attribute();
-    Attribute(std::shared_ptr<File> file, H5::Attribute attr);
+    explicit Attribute();
+    explicit Attribute(std::shared_ptr<File> file, H5::Attribute attr);
 
     /**
      * @brief allows access of the base hdf5 object

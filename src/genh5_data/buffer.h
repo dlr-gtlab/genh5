@@ -98,9 +98,11 @@ private:
     static int m_ref;
 };
 
+#ifndef GENH5_NO_STATIC_BUFFER
 /// static buffer init
 template <typename T>
 buffer_t<T> StaticBuffer<T>::m_buffer{};
+#endif
 
 /// static ref count init
 template <typename T>
@@ -144,8 +146,8 @@ struct apply_to_buffer_impl<value_type, Comp<Ts...>>
     {
         mpl::static_for<sizeof...(Ts)>([&](const auto idx)
         {
-            using Tsrc = std::tuple_element_t<idx, value_type>;
-            using Tbuffer = std::tuple_element_t<idx, buffer_type>;
+            using Tsrc = traits::comp_element_t<idx, value_type>;
+            using Tbuffer = traits::comp_element_t<idx, buffer_type>;
 
             apply_to_buffer_impl<Tsrc, Tbuffer>::apply(
                         get<idx>(buffer), std::forward<Lambda>(lambda));

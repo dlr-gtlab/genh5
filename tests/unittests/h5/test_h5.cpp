@@ -31,6 +31,7 @@ TEST_F(TestH5, verionMacros)
                        << v.major << "-" << v.minor << "-" << v.patch;
 
     EXPECT_TRUE(GENH5_VERSION == GenH5::Version::current());
+    EXPECT_STREQ(GENH5_VERSION_ADDITIONAL, GenH5::Version::subrelease());
 }
 
 TEST_F(TestH5, hdf5Version)

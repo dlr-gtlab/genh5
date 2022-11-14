@@ -57,12 +57,14 @@ public:
     // pointer for writing
     virtual void const* dataWritePtr() const = 0;
 
+    template <size_t N = traits::comp_size<T>::value,
+              traits::if_greater_than<N, 0> = true>
     static DataType dataType(compound_names names) noexcept(false)
     {
         return GenH5::dataType<T>(std::move(names));
     }
 
-    DataType dataType() const noexcept(false)
+    virtual DataType dataType() const noexcept(false)
     {
         return GenH5::dataType<T>(m_typeNames);
     }
@@ -75,6 +77,8 @@ public:
     }
 
     // set compound type names
+    template <size_t N = traits::comp_size<T>::value,
+              traits::if_greater_than<N, 0> = true>
     void setTypeNames(compound_names names)
     {
         m_typeNames = std::move(names);

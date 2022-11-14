@@ -27,8 +27,8 @@ public:
     /**
      * @brief DataSet
      */
-    DataSet();
-    DataSet(std::shared_ptr<File> file, H5::DataSet dset);
+    explicit DataSet();
+    explicit DataSet(std::shared_ptr<File> file, H5::DataSet dset);
 
     /**
      * @brief allows access of the base hdf5 object
@@ -122,6 +122,53 @@ public:
     bool read(details::AbstractData<T>& data,
               DataSpace const& fileSpace,
               Optional<DataType> dtype = {}) noexcept(false);
+
+    /*
+     *  WRITE ATTRIBUTE
+     */
+
+    /**
+     * @brief Delegates the function call to Node::writeAttribute
+     * @param name Name of attribute
+     * @param data Data to write
+     * @return This
+     */
+    template <typename T>
+    DataSet const& writeAttribute(String const& name, T&& data
+                                  ) const noexcept(false)
+    {
+        Node::writeAttribute(name, std::forward<T>(data));
+        return *this;
+    }
+
+    /**
+     * @brief Delegates the function call to Node::writeAttribute0D
+     * @param name Name of attribute
+     * @param data 0D Data to write
+     * @return This
+     */
+    template <typename Container,
+              traits::if_has_not_template_type<Container> = true>
+    DataSet const& writeAttribute0D(String const& name, Container&& data
+                                    ) const noexcept(false)
+    {
+        Node::writeAttribute0D(name, std::forward<Container>(data));
+        return *this;
+    }
+
+    /**
+     * @brief Delegates the function call to Node::writeVersionAttribute
+     * @param string Attribute name
+     * @param version Version to write
+     * @return This
+     */
+    DataSet const& writeVersionAttribute(String const& string = versionAttributeName(),
+                                         Version version = Version::current()
+                                         ) const noexcept(false)
+    {
+        Node::writeVersionAttribute(string, version);
+        return *this;
+    }
 
 protected:
 

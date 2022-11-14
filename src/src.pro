@@ -28,6 +28,10 @@ CONFIG += plugin
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
 # disable deprecated symbols
 DEFINES += H5_NO_DEPRECATED_SYMBOLS
+# GenH5 specific
+#DEFINES += GENH5_NO_DEPRECATED_SYMBOLS
+#DEFINES += GENH5_NO_BUFFER_RESERVING
+#DEFINES += GENH5_NO_STATIC_BUFFER
 
 win32 {
     DEFINES += GENH5_DLL
@@ -66,6 +70,7 @@ HEADERS += \
     genh5_data/common0d.h \
     genh5_data/comp.h \
     genh5_data/comp0d.h \
+    genh5_data/fixedstring0d.h \
     genh5_dataset.h \
     genh5_datasetcproperties.h \
     genh5_dataspace.h \

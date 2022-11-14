@@ -272,7 +272,7 @@ protected:
     /**
      * @brief GenH5Leaf
      */
-    Node(std::shared_ptr<File> file = {}) noexcept;
+    explicit Node(std::shared_ptr<File> file = {}) noexcept;
 
     /**
      * @brief returns the hdf5 object as a h5object

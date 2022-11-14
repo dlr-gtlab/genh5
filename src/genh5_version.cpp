@@ -15,8 +15,20 @@ GenH5::Version::current()
     return {GENH5_VERSION_MAJOR, GENH5_VERSION_MINOR, GENH5_VERSION_PATCH};
 }
 
+const char*
+GenH5::Version::subrelease()
+{
+    return GENH5_VERSION_ADDITIONAL;
+}
+
 GenH5::Version
 GenH5::Version::hdf5()
 {
     return {H5_VERS_MAJOR, H5_VERS_MINOR, H5_VERS_RELEASE};
+}
+
+const char*
+GenH5::Version::subreleaseHdf5()
+{
+    return H5_VERS_SUBRELEASE;
 }

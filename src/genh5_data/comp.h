@@ -75,7 +75,7 @@ public:
 
     /** constructor **/
     template <typename... Containers,
-              traits::if_same_size<sizeof...(Ts), sizeof...(Containers)> = true>
+              traits::if_equal<sizeof...(Ts), sizeof...(Containers)> = true>
     // cppcheck-suppress noExplicitConstructor
     CompDataImpl(Containers&&... containers) noexcept(false)
     {
@@ -115,7 +115,7 @@ public:
 
     // value type arguments
     template <typename... Args,
-              traits::if_types_equal<Comp<std::decay_t<Args>...>,
+              traits::if_types_equal<Comp<traits::decay_crv_t<Args>...>,
                                      conversion_t<RComp<Ts...>>> = true>
     void push_back(Args&&... args) noexcept(false)
     {
@@ -143,7 +143,7 @@ public:
     /** append **/
     // frwd arguemnts to push_back
     template <typename... Args,
-              traits::if_same_size<sizeof...(Ts), sizeof...(Args)> = true>
+              traits::if_equal<sizeof...(Ts), sizeof...(Args)> = true>
     void append(Args&&... args) { push_back(std::forward<Args>(args)...); }
 
     /** set value **/
@@ -196,7 +196,7 @@ public:
 
     /** unpack **/
     template <typename... Args,
-              traits::if_same_size<sizeof...(Ts), sizeof...(Args)> = true>
+              traits::if_equal<sizeof...(Ts), sizeof...(Args)> = true>
     void unpack(size_type idx, Args&... argsIn) const
     {
         auto& ref = *this; // for lambda capture
@@ -211,7 +211,7 @@ public:
     }
 
     template <typename... Containers,
-              traits::if_same_size<sizeof...(Ts), sizeof...(Containers)> = true>
+              traits::if_equal<sizeof...(Ts), sizeof...(Containers)> = true>
     void unpack(Containers&... containersIn) const
     {
         // for iterating more easily over variadic arguments
@@ -268,7 +268,7 @@ public:
     }
 
     template <typename... Containers,
-              traits::if_same_size<sizeof...(Ts), sizeof...(Containers)> = true>
+              traits::if_equal<sizeof...(Ts), sizeof...(Containers)> = true>
     [[deprecated("Use CompData<T>::unpack instead")]]
     void deserialize(Containers&... containersIn) const
     {

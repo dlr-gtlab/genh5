@@ -95,7 +95,7 @@ GenH5::Group::createGroup(String const& name) const noexcept(false)
         try
         {
             H5::Group group = parent.toH5().createGroup(name.constData());
-            return {parent.file(), std::move(group)};
+            return Group{parent.file(), std::move(group)};
         }
         catch (H5::GroupIException const& e)
         {
@@ -125,7 +125,7 @@ GenH5::Group::openGroup(String const& name) const noexcept(false)
     try
     {
         H5::Group group = parent.toH5().openGroup(name.constData());
-        return {parent.file(), std::move(group)};
+        return Group{parent.file(), std::move(group)};
     }
     catch (H5::GroupIException const& e)
     {
@@ -166,7 +166,7 @@ GenH5::Group::createDataset(String const& name,
                                                            dtype.toH5(),
                                                            dspace.toH5(),
                                                            properties->toH5());
-            return {parent.file(), std::move(dset)};
+            return DataSet{parent.file(), std::move(dset)};
         }
         catch (H5::DataSetIException const& e)
         {
@@ -212,7 +212,7 @@ GenH5::Group::openDataset(String const& name) const noexcept(false)
     try
     {
         H5::DataSet dset = parent.toH5().openDataSet(name.constData());
-        return {parent.file(), std::move(dset)};
+        return DataSet{parent.file(), std::move(dset)};
     }
     catch (H5::DataSetIException const& e)
     {

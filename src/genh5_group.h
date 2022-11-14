@@ -56,9 +56,9 @@ public:
     /**
      * @brief Group
      */
-    Group();
+    explicit Group();
     explicit Group(File const& file);
-    Group(std::shared_ptr<File> file, H5::Group group);
+    explicit Group(std::shared_ptr<File> file, H5::Group group);
 
     /**
      * @brief allows access of the base hdf5 object
@@ -141,8 +141,8 @@ public:
     template <typename Container,
               typename if_container = traits::value_t<Container>,
               traits::if_has_not_template_type<Container> = true>
-    Group const& writeDataSet(String const& name, Container&& data
-                              ) const noexcept(false);
+    DataSet writeDataSet(String const& name, Container&& data
+                         ) const noexcept(false);
 
     /**
      * @brief Overload.
@@ -151,9 +151,9 @@ public:
      * @return This
      */
     template <typename T>
-    Group const& writeDataSet(String const& name,
-                              details::AbstractData<T> const& data
-                              ) const noexcept(false);
+    DataSet writeDataSet(String const& name,
+                         details::AbstractData<T> const& data
+                         ) const noexcept(false);
 
     /**
      * @brief High level method for creating and writing to a dataset.
@@ -164,8 +164,8 @@ public:
      */
     template <typename Container,
               traits::if_has_not_template_type<Container> = true>
-    Group const& writeDataSet0D(String const& name, Container&& data
-                                ) const noexcept(false);
+    DataSet writeDataSet0D(String const& name, Container&& data
+                           ) const noexcept(false);
 
     /**
      * @brief High level method for opening and reading data from a dataset.
@@ -180,13 +180,28 @@ public:
      */
 
     /**
+     * @brief Delegates the function call to Node::writeVersionAttribute
+     * @param string Attribute name
+     * @param version Version to write
+     * @return This
+     */
+    Group const& writeVersionAttribute(String const& string = versionAttributeName(),
+                                       Version version = Version::current()
+                                       ) const noexcept(false)
+    {
+        Node::writeVersionAttribute(string, version);
+        return *this;
+    }
+
+    /**
      * @brief Delegates the function call to Node::writeAttribute
      * @param name Name of attribute
      * @param data Data to write
      * @return This
      */
     template <typename T>
-    Group const& writeAttribute(String const& name, T&& data) const noexcept(false)
+    Group const& writeAttribute(String const& name, T&& data
+                                ) const noexcept(false)
     {
         Node::writeAttribute(name, std::forward<T>(data));
         return *this;
@@ -200,7 +215,8 @@ public:
      */
     template <typename Container,
               traits::if_has_not_template_type<Container> = true>
-    Group const& writeAttribute0D(String const& name, Container&& data) const noexcept(false)
+    Group const& writeAttribute0D(String const& name, Container&& data
+                                  ) const noexcept(false)
     {
         Node::writeAttribute0D(name, std::forward<Container>(data));
         return *this;
@@ -270,26 +286,26 @@ namespace details
 {
 
 template <typename Object, typename... Ts>
-inline Object const&
+inline DataSet
 writeDataSetHelper(Object const& obj,
                    String const& name,
                    details::AbstractData<Ts...> const& data) noexcept(false)
 {
-    auto attr = obj.createDataset(name, data.dataType(), data.dataSpace());
+    auto dset = obj.createDataset(name, data.dataType(), data.dataSpace());
 
-    if (!attr.write(data))
+    if (!dset.write(data))
     {
         throw GenH5::AttributeException{"Failed to write data to dataset!"};
     }
 
-    return obj;
+    return dset;
 }
 
 } // namespace details
 
 template <typename Container, typename if_container,
           traits::if_has_not_template_type<Container>>
-inline Group const&
+inline DataSet
 Group::writeDataSet(String const& name,
                     Container&& data) const noexcept(false)
 {
@@ -298,7 +314,7 @@ Group::writeDataSet(String const& name,
 }
 
 template <typename T>
-inline Group const&
+inline DataSet
 Group::writeDataSet(String const& name,
                     details::AbstractData<T> const& data) const noexcept(false)
 {
@@ -306,7 +322,7 @@ Group::writeDataSet(String const& name,
 }
 
 template <typename Container, traits::if_has_not_template_type<Container>>
-inline Group const&
+inline DataSet
 Group::writeDataSet0D(String const& name,
                       Container&& data) const noexcept(false)
 {

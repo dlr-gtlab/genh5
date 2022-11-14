@@ -84,7 +84,7 @@ protected:
     /**
      * @brief Location
      */
-    Location(std::shared_ptr<File> file = {}) noexcept;
+    explicit Location(std::shared_ptr<File> file = {}) noexcept;
 
     // shared file instance
     std::shared_ptr<File> m_file{};

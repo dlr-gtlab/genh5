@@ -74,7 +74,7 @@ protected:
     /**
      * @brief Object
      */
-    Object() = default;
+    explicit Object() = default;
 };
 
 } // namespace GenH5

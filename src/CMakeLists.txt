@@ -42,6 +42,7 @@ set(headers
     genh5_data/comp0d.h
     genh5_data/common.h
     genh5_data/common0d.h
+    genh5_data/fixedstring0d.h
     genh5_dataset.h
     genh5_datasetcproperties.h
     genh5_dataspace.h
