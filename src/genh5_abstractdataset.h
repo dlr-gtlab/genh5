@@ -98,7 +98,7 @@ protected:
     /**
      * @brief AbstractDataSet
      */
-    explicit AbstractDataSet();
+    AbstractDataSet();
 
     AbstractDataSet(AbstractDataSet const& other) = default;
     AbstractDataSet(AbstractDataSet&& other) = default;

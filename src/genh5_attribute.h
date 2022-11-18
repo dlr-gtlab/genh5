@@ -26,7 +26,7 @@ public:
     /**
      * @brief Attribute
      */
-    explicit Attribute();
+    Attribute();
     explicit Attribute(std::shared_ptr<File> file, H5::Attribute attr);
 
     /**

@@ -27,7 +27,7 @@ public:
     /**
      * @brief DataSet
      */
-    explicit DataSet();
+    DataSet();
     explicit DataSet(std::shared_ptr<File> file, H5::DataSet dset);
 
     /**

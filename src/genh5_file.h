@@ -63,7 +63,7 @@ public:
     /**
      * @brief File
      */
-    explicit File();
+    File();
     explicit File(H5::H5File file);
     explicit File(String path, FileAccessFlags flags = ReadWrite);
 

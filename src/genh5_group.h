@@ -56,7 +56,7 @@ public:
     /**
      * @brief Group
      */
-    explicit Group();
+    Group();
     explicit Group(File const& file);
     explicit Group(std::shared_ptr<File> file, H5::Group group);
 

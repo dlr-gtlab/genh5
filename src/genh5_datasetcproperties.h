@@ -29,7 +29,7 @@ public:
         return DataSetCProperties{autoChunk(dataspace), compression};
     }
 
-    explicit DataSetCProperties() noexcept;
+    DataSetCProperties() noexcept;
     explicit DataSetCProperties(H5::DSetCreatPropList properties);
     explicit DataSetCProperties(Dimensions const& chunkDimensions,
                                 int compression = 0) noexcept(false);

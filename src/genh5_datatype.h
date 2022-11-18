@@ -59,7 +59,7 @@ public:
     static DataType compound(size_t dataSize,
                              CompoundMembers const& members) noexcept(false);
 
-    explicit DataType();
+    DataType();
     explicit DataType(H5::DataType type);
 
     /**
