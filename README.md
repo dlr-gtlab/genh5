@@ -86,3 +86,48 @@ GenH5::Reference ref = attr.toReference();
 // dereference
 GenH5::Attribute attr = ref.toAttribute(file);
 ```
+
+## Build
+
+### Using CMake
+
+Configure and build.
+
+```bash
+mkdir build && cd build
+cmake -Dhdf5_DIR=<path_to_hd5_install>/share/cmake/hdf5 -DQt5_DIR=<path_to_qt5>/lib/cmake/Qt5 ..
+cmake --build . 
+```
+
+to install 
+
+```bash
+cmake --build . --target install
+```
+
+### Using CMake with Conan
+
+Conan is a c++ dependency manager that simplifies the build process with third-party dependencies.
+
+```bash
+mkdir build && cd build
+conan install ..
+cmake ..
+cmake --build .
+```
+
+The `conan install` downloads qt5 and hdf5 and sets the paths to cmake accordingly.
+
+## Release
+
+### Bump2version
+
+Since the version number is scattered all around the code in different files, increasing the version number has been automated.
+
+To do so, call e.g.
+
+```
+bump2version minor
+```
+
+which creates a new minor release and also makes a new commit (other options are `major` or `patch`).
