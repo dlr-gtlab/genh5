@@ -49,20 +49,34 @@ GenH5::DataType::DataType() = default;
 GenH5::DataType
 GenH5::DataType::string(size_t size, bool useUtf8) noexcept(false)
 {
-    auto dtype = DataType{H5::StrType{H5::PredType::C_S1, size}};
-    if (useUtf8)
+    try
     {
-        H5Tset_cset(dtype.id(), H5T_CSET_UTF8);
+        auto dtype = DataType{H5::StrType{H5::PredType::C_S1, size}};
+        if (useUtf8)
+        {
+            H5Tset_cset(dtype.id(), H5T_CSET_UTF8);
+        }
+        return dtype;
     }
-    return dtype;
+    catch (H5::Exception const& e)
+    {
+        throw DataTypeException{e.getCDetailMsg()};
+    }
 }
 
 GenH5::DataType
 GenH5::DataType::array(DataType const& type,
                     Dimensions const& dims) noexcept(false)
 {
-    return DataType{H5::ArrayType{type.toH5(), dims.length(),
-                                  dims.constData()}};
+    try
+    {
+        return DataType{H5::ArrayType{type.toH5(), dims.length(),
+                                      dims.constData()}};
+    }
+    catch (H5::Exception const& e)
+    {
+        throw DataTypeException{e.getCDetailMsg()};
+    }
 }
 
 GenH5::DataType
@@ -74,7 +88,14 @@ GenH5::DataType::array(DataType const& type, hsize_t length) noexcept(false)
 GenH5::DataType
 GenH5::DataType::varLen(DataType const& type) noexcept(false)
 {
-    return DataType{H5::VarLenType{type.toH5()}};
+    try
+    {
+        return DataType{H5::VarLenType{type.toH5()}};
+    }
+    catch (H5::Exception const& e)
+    {
+        throw DataTypeException{e.getCDetailMsg()};
+    }
 }
 
 GenH5::DataType
@@ -133,6 +154,24 @@ GenH5::DataType::id() const noexcept
 }
 
 bool
+GenH5::DataType::isInt() const noexcept
+{
+    return type() == Type::H5T_INTEGER;
+}
+
+bool
+GenH5::DataType::isFloat() const noexcept
+{
+    return type() == Type::H5T_FLOAT;
+}
+
+bool
+GenH5::DataType::isString() const noexcept
+{
+    return type() == Type::H5T_STRING;
+}
+
+bool
 GenH5::DataType::isArray() const noexcept
 {
     return type() == Type::H5T_ARRAY;
@@ -153,14 +192,16 @@ GenH5::DataType::isVarLen() const noexcept
 bool
 GenH5::DataType::isVarString() const noexcept
 {
-    return H5Tis_variable_str(id());
+    return isString() && H5Tis_variable_str(id());
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 H5::DataType const&
 GenH5::DataType::toH5() const  noexcept
 {
     return m_datatype;
 }
+#endif
 
 size_t
 GenH5::DataType::size() const noexcept
@@ -323,27 +364,91 @@ GenH5::DataType::toString() const
 bool
 operator==(GenH5::DataType const& first, GenH5::DataType const& other)
 {
-    return first.id() == other.id() || (
-               first.type() == other.type() &&
-               first.size() == other.size());
+    // same id -> nothing to do here
+    if (first.id() == other.id())
+    {
+        return true;
+    }
 
-//    try
-//    {
-//        // check isValid to elimante "not a datatype" error from hdf5
-//        return first.id() == other.id() || (first.isValid() &&
-//                                            other.isValid() &&
-//                                            first.toH5() == other.toH5());
-//    }
-//    catch (H5::DataTypeIException const& /*e*/)
-//    {
-//        qWarning() << "HDF5: Datatype comparisson failed! (invalid data type)";
-//        return false;
-//    }
-//    catch (H5::Exception const& /*e*/)
-//    {
-//        qCritical() << "HDF5: [EXCEPTION] GenH5::DataType:operator== failed!";
-//        return false;
-//    }
+    H5T_class_t const classType = first.type();
+
+    // class types differ -> exit
+    if (classType != other.type())
+    {
+        return false;
+    }
+
+    bool const isSameSize = first.size() == other.size();
+
+    // some indepth checking
+    switch (classType)
+    {
+    case H5T_ENUM:
+        // TODO: Check enum values and names
+        return isSameSize &&
+               H5Tget_nmembers(first.id()) == H5Tget_nmembers(other.id());
+    case H5T_INTEGER: // not checking endianess etc.
+    case H5T_FLOAT: // not checking precision etc.
+        return isSameSize;
+    case H5T_STRING:
+        return isSameSize &&
+               first.isVarString() == other.isVarString();
+    case H5T_VLEN:
+        if (isSameSize)
+        {
+            auto const fSuper = first.superType();
+            auto const oSuper = other.superType();
+            return fSuper == oSuper;
+        }
+        break;
+    case H5T_ARRAY:
+        if (isSameSize)
+        {
+            auto const fDims = first.arrayDimensions();
+            auto const oDims = other.arrayDimensions();
+            auto const fSuper = first.superType();
+            auto const oSuper = other.superType();
+            return fDims == oDims && fSuper == oSuper;
+        }
+        break;
+    case H5T_COMPOUND:
+        if (isSameSize)
+        {
+            auto const fMembers = first.compoundMembers();
+            auto const oMembers = other.compoundMembers();
+            int size = fMembers.size();
+            if (size == oMembers.size())
+            {
+                for (int i = 0; i < size; ++i)
+                {
+                    if (fMembers[i] != oMembers[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        break;
+    case H5T_OPAQUE:
+        if (isSameSize)
+        {
+            char* fTag = H5Tget_tag(first.id());
+            char* oTag = H5Tget_tag(other.id());
+            bool const isSameTag = fTag == oTag;
+            free(fTag);
+            free(oTag);
+            return isSameSize && isSameTag;
+        }
+        break;
+    case H5T_BITFIELD:
+    case H5T_TIME:
+    case H5T_REFERENCE:
+    default:
+        return isSameSize;
+    }
+
+    return false;
 }
 
 bool
@@ -355,9 +460,9 @@ operator!=(GenH5::DataType const& first, GenH5::DataType const& other)
 bool
 operator==(GenH5::CompoundMember const& first, GenH5::CompoundMember const& other)
 {
-    return first.name == other.name &&
-           first.type == other.type &&
-           first.offset == other.offset;
+    return first.offset == other.offset &&
+           first.name == other.name &&
+           first.type == other.type;
 }
 bool
 operator!=(GenH5::CompoundMember const& first, GenH5::CompoundMember const& other)

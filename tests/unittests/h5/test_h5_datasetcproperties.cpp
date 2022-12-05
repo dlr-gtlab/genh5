@@ -62,9 +62,19 @@ TEST_F(TestH5DataSetCProperties, compression)
     EXPECT_FALSE(propChunked.isDeflated());
     EXPECT_TRUE(propCompressed.isDeflated());
 
+    qDebug() << "### EXPECTING ERROR: Filter not in the pipeline";
     EXPECT_EQ(propDefault.deflation(), 0);
+    qDebug() << "### END";
+    qDebug() << "### EXPECTING ERROR: Filter not in the pipeline";
     EXPECT_EQ(propChunked.deflation(), 0);
+    qDebug() << "### END";
     EXPECT_EQ(propCompressed.deflation(), 9);
+}
+
+TEST_F(TestH5DataSetCProperties, hasDeflateFilter)
+{
+    bool isAvail = H5Zfilter_avail(H5Z_FILTER_DEFLATE);
+//    EXPECT_TRUE(isAvail);
 }
 
 TEST_F(TestH5DataSetCProperties, createDatasetOptionalParam)
@@ -78,7 +88,7 @@ TEST_F(TestH5DataSetCProperties, createDatasetOptionalParam)
                                            GenH5::DataSpace::linear(10),
                                            GenH5::DataSetCProperties{});
 
-    EXPECT_FALSE(dset1.properties().isChunked());
+    EXPECT_FALSE(dset1.cProperties().isChunked());
 
     // optional is default -> by default dset will be chunked
     auto dset2 = file.root().createDataset(
@@ -87,5 +97,5 @@ TEST_F(TestH5DataSetCProperties, createDatasetOptionalParam)
                                 GenH5::DataSpace::linear(10),
                                 GenH5::Optional<GenH5::DataSetCProperties>{});
 
-    EXPECT_TRUE(dset2.properties().isChunked());
+    EXPECT_TRUE(dset2.cProperties().isChunked());
 }

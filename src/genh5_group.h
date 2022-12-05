@@ -60,11 +60,14 @@ public:
     explicit Group(File const& file);
     explicit Group(std::shared_ptr<File> file, H5::Group group);
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
+    [[deprecated("use id() instead")]]
     H5::Group const& toH5() const noexcept;
+#endif
 
     /**
      * @brief id or handle of the hdf5 resource
@@ -174,6 +177,14 @@ public:
      */
     template <typename T1, typename... Ts>
     Data<T1, Ts...> readDataSet(String const& name) noexcept(false);
+
+    /**
+     * @brief High level method for opening and reading 0d data from a dataset.
+     * @param name Name of the dataset
+     * @return Data read
+     */
+    template <typename T1, typename... Ts>
+    Data0D<T1, Ts...> readDataSet0D(String const& name) noexcept(false);
 
     /*
      *  WRITE ATTRIBUTE
@@ -285,9 +296,9 @@ private:
 namespace details
 {
 
-template <typename Object, typename... Ts>
+template <typename... Ts>
 inline DataSet
-writeDataSetHelper(Object const& obj,
+writeDataSetHelper(Group const& obj,
                    String const& name,
                    details::AbstractData<Ts...> const& data) noexcept(false)
 {
@@ -295,10 +306,29 @@ writeDataSetHelper(Object const& obj,
 
     if (!dset.write(data))
     {
-        throw GenH5::AttributeException{"Failed to write data to dataset!"};
+        throw GenH5::DataSetException{"GenH5: DataSet: "
+                                      "Failed to write data to dataset!"};
     }
 
     return dset;
+}
+
+template <typename Tdata, typename... Ts>
+inline Tdata
+readDataSetHelper(Group const& obj, String const& name) noexcept(false)
+{
+    auto dset = obj.openDataset(name);
+
+    Tdata data;
+    data.setTypeNames(dset.dataType());
+
+    if (!dset.read(data))
+    {
+        throw GenH5::DataSetException{"GenH5: DataSet: "
+                                      "Failed to read data from dataset!"};
+    }
+
+    return data;
 }
 
 } // namespace details
@@ -334,17 +364,14 @@ template <typename T1, typename... Ts>
 inline Data<T1, Ts...>
 Group::readDataSet(String const& name) noexcept(false)
 {
-    auto dset = openDataset(name);
+    return details::readDataSetHelper<Data<T1, Ts...>>(*this, name);
+}
 
-    Data<T1, Ts...> data;
-    data.setTypeNames(dset.dataType());
-
-    if (!dset.read(data))
-    {
-        throw GenH5::DataSetException{"Failed to read data from dataset!"};
-    }
-
-    return data;
+template <typename T1, typename... Ts>
+inline Data0D<T1, Ts...>
+Group::readDataSet0D(String const& name) noexcept(false)
+{
+    return details::readDataSetHelper<Data0D<T1, Ts...>>(*this, name);
 }
 
 } // namespace GenH5

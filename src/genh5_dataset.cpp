@@ -50,11 +50,13 @@ GenH5::DataSet::cProperties() const noexcept(false)
     }
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 H5::DataSet const&
 GenH5::DataSet::toH5() const noexcept
 {
     return m_dataset;
 }
+#endif
 
 bool
 GenH5::DataSet::doWrite(void const* data, DataType const& dtype) const

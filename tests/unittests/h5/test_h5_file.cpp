@@ -99,9 +99,11 @@ TEST_F(TestH5File, creation)
                  GenH5::FileException);
     ASSERT_FALSE(QFileInfo::exists(filePath));
 
+    qDebug() << "### EXPECTING ERROR: unable to open file";
     EXPECT_THROW(GenH5::File(filePath, { GenH5::Open | GenH5::ReadWrite }),
                  GenH5::FileException);
     ASSERT_FALSE(QFileInfo::exists(filePath));
+    qDebug() << "### END";
 
     // create new file
     file = GenH5::File(filePath, GenH5::Create);

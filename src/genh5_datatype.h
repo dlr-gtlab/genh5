@@ -62,11 +62,14 @@ public:
     DataType();
     explicit DataType(H5::DataType type);
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
+    [[deprecated("use id() instead")]]
     H5::DataType const& toH5() const noexcept;
+#endif
 
     /**
      * @brief size
@@ -85,6 +88,24 @@ public:
      * @return id
      */
     hid_t id() const noexcept override;
+
+    /**
+     * @brief whether this datatype is of an int type.
+     * @return true if is array type
+     */
+    bool isInt() const noexcept;
+
+    /**
+     * @brief whether this datatype is of an floating point type.
+     * @return true if is array type
+     */
+    bool isFloat() const noexcept;
+
+    /**
+     * @brief  whether this datatype is a variable length string.
+     * @return true if is var string
+     */
+    bool isString() const noexcept;
 
     /**
      * @brief whether this datatype is a fixed sized array.
@@ -193,7 +214,7 @@ struct datatype_impl<T[N]>
     datatype_impl(CompoundNames<0> = {}) {}
     operator DataType() const
     {
-        return GenH5::DataType::array(datatype_impl<T>(), N);
+        return datatype_impl<Array<T, N>>();
     }
 };
 
@@ -254,10 +275,9 @@ private:
                reinterpret_cast<size_t>(&m_t);
     }
 
-    /// generate compound member names if missing
     void generateDefaultNames()
     {
-        for (size_t i = 0; i < m_typeNames.size(); ++i)
+        for (size_t i = 0; i < sizeof...(Ts); ++i)
         {
             if (m_typeNames[i].isEmpty())
             {
@@ -302,11 +322,27 @@ dataType() noexcept(false)
 } // namespace GenH5
 
 // operators
+/**
+ * @brief operator == Compares two datatypes. Returns true if the two types
+ * are similar to each other (e.g. same size, class type, super type, members
+ * etc.). Some properties are not compared entirely (e.g. precision of floating
+ * point types, endianess, signedness, enum values etc).
+ * @param first First
+ * @param other Other
+ * @return are types mostly equal
+ */
 GENH5_EXPORT bool operator==(GenH5::DataType const& first,
                              GenH5::DataType const& other);
 GENH5_EXPORT bool operator!=(GenH5::DataType const& first,
                              GenH5::DataType const& other);
 
+/**
+ * @brief operator == Compares two compound members. Returns true if the two
+ * types are exactly the same (e.g. same type, same offset, same name).
+ * @param first First
+ * @param other Other
+ * @return equal
+ */
 GENH5_EXPORT bool operator==(GenH5::CompoundMember const& first,
                              GenH5::CompoundMember const& other);
 GENH5_EXPORT bool operator!=(GenH5::CompoundMember const& first,
@@ -350,7 +386,7 @@ GENH5_DECLARE_DATATYPE(GenH5::Version, DataType::Version);
 
 // fixed string
 template <size_t N>
-struct GenH5::details::datatype_impl<char[N]> {
+struct GenH5::details::datatype_impl<GenH5::Array<char, N>> {
     datatype_impl(CompoundNames<0> = {}) {}
     operator GenH5::DataType() const { return GenH5::DataType::string(N); }
 };

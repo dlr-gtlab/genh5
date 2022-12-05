@@ -48,7 +48,10 @@ TEST_F(TestH5Group, isValid)
     // create another nested sub group
     GenH5::Group subGroup = group.createGroup("testB");
     EXPECT_TRUE(subGroup.isValid());
+}
 
+TEST_F(TestH5Group, invalid)
+{
     EXPECT_THROW(file.root().createGroup("test/testC"), GenH5::GroupException);
 }
 
@@ -61,7 +64,10 @@ TEST_F(TestH5Group, deleteLink)
     // delete group
     group.deleteLink();
     EXPECT_FALSE(file.root().exists(QByteArrayLiteral("test")));
+}
 
+TEST_F(TestH5Group, deleteLinkInvalid)
+{
     // cannot delete root group
     EXPECT_THROW(file.root().deleteLink(), GenH5::LocationException);
 }
@@ -78,8 +84,10 @@ TEST_F(TestH5Group, openGroup)
 
     EXPECT_THROW(GenH5::Group{}.openGroup("my_fancy_group"),
                  GenH5::GroupException);
+    qDebug() << "### EXPECTING ERROR: unable to open group";
     EXPECT_THROW(root.openGroup("my_fancy_group"),
                  GenH5::GroupException);
+    qDebug() << "### END";
 
     EXPECT_TRUE(root.createGroup("my_fancy_group").isValid());
 
@@ -95,8 +103,10 @@ TEST_F(TestH5Group, openDataSet)
 
     EXPECT_THROW(GenH5::Group{}.openDataset("my_fancy_dset"),
                  GenH5::DataSetException);
+    qDebug() << "### EXPECTING ERROR: unable to open dataset";
     EXPECT_THROW(root.openDataset("my_fancy_dset"),
                  GenH5::DataSetException);
+    qDebug() << "### END";
 
     EXPECT_TRUE(root.createDataset("my_fancy_dset",
                                    GenH5::DataType::Int,
@@ -114,8 +124,14 @@ TEST_F(TestH5Group, openAttribute)
 
     EXPECT_THROW(GenH5::Group{}.openAttribute("my_fancy_attr"),
                  GenH5::AttributeException);
-    EXPECT_THROW(root.openAttribute("my_fancy_attr"),
+    qDebug() << "### EXPECTING ERROR: unable to open attribute";
+    EXPECT_THROW(root.openAttribute("my_fancy_attr").isValid(),
                  GenH5::AttributeException);
+    qDebug() << "### END";
+    qDebug() << "### EXPECTING ERROR: not a datatype";
+    EXPECT_THROW(root.createAttribute("my_fancy_attr_2", {}, {}).isValid(),
+                 GenH5::AttributeException);
+    qDebug() << "### END";
 
     EXPECT_TRUE(root.createAttribute("my_fancy_attr",
                                      GenH5::DataType::Int,

@@ -18,7 +18,7 @@ GenH5::DataSetCProperties::DataSetCProperties() noexcept:
     m_properties(H5::DSetCreatPropList::DEFAULT)
 { }
 
-GenH5::DataSetCProperties::DataSetCProperties(H5::DSetCreatPropList properties) :
+GenH5::DataSetCProperties::DataSetCProperties(H5::DSetCreatPropList properties):
     m_properties{std::move(properties)}
 { }
 
@@ -76,6 +76,12 @@ GenH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions
 }
 
 #ifndef GENH5_NO_DEPRECATED_SYMBOLS
+H5::DSetCreatPropList const&
+GenH5::DataSetCProperties::toH5() const noexcept
+{
+    return m_properties;
+}
+
 void
 GenH5::DataSetCProperties::setCompression(int level) noexcept(false)
 {
@@ -171,12 +177,6 @@ GenH5::DataSetCProperties::chunkDimensions() const noexcept
     Dimensions dims(H5Pget_chunk(id(), 0, nullptr));
     H5Pget_chunk(id(), dims.size(), dims.data());
     return dims;
-}
-
-H5::DSetCreatPropList const&
-GenH5::DataSetCProperties::toH5() const noexcept
-{
-    return m_properties;
 }
 
 #if 0

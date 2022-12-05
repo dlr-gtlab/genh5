@@ -58,11 +58,13 @@ GenH5::Attribute::toH5Location() const noexcept
     return &m_attribute;
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 H5::Attribute const&
 GenH5::Attribute::toH5() const noexcept
 {
     return m_attribute;
 }
+#endif
 
 bool
 GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const

@@ -29,11 +29,14 @@ public:
     Attribute();
     explicit Attribute(std::shared_ptr<File> file, H5::Attribute attr);
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
     /**
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
+    [[deprecated("use id() instead")]]
     H5::Attribute const& toH5() const noexcept;
+#endif
 
     /**
      * @brief id or handle of the hdf5 resource

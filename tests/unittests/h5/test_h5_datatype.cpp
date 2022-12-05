@@ -39,27 +39,35 @@ TEST_F(TestH5DataType, predefinedTypes)
 {
     // all predefined types should be valid
     EXPECT_TRUE(GenH5::DataType::VarString.isValid());
+    EXPECT_TRUE(GenH5::DataType::VarString.isString());
     EXPECT_TRUE(GenH5::DataType::VarString.isVarString());
-    EXPECT_TRUE(GenH5::DataType::VarString.type() == H5T_STRING);
 
     EXPECT_TRUE(GenH5::DataType::Version.isValid());
     EXPECT_TRUE(GenH5::DataType::Version.isCompound());
     EXPECT_EQ(GenH5::DataType::Version.compoundMembers().size(), 3);
 
     EXPECT_TRUE(GenH5::DataType::Bool.isValid());
+    EXPECT_TRUE(GenH5::DataType::Bool.isInt());
     EXPECT_TRUE(GenH5::DataType::Char.isValid());
+    EXPECT_TRUE(GenH5::DataType::Char.isInt());
 
     EXPECT_TRUE(GenH5::DataType::Int.isValid());
+    EXPECT_TRUE(GenH5::DataType::Int.isInt());
     EXPECT_TRUE(GenH5::DataType::Long.isValid());
+    EXPECT_TRUE(GenH5::DataType::Long.isInt());
     EXPECT_TRUE(GenH5::DataType::LLong.isValid());
+    EXPECT_TRUE(GenH5::DataType::LLong.isInt());
     EXPECT_TRUE(GenH5::DataType::UInt.isValid());
+    EXPECT_TRUE(GenH5::DataType::UInt.isInt());
     EXPECT_TRUE(GenH5::DataType::ULong.isValid());
+    EXPECT_TRUE(GenH5::DataType::ULong.isInt());
     EXPECT_TRUE(GenH5::DataType::ULLong.isValid());
-    EXPECT_TRUE(GenH5::DataType::Int.type() == H5T_INTEGER);
+    EXPECT_TRUE(GenH5::DataType::ULLong.isInt());
 
     EXPECT_TRUE(GenH5::DataType::Float.isValid());
+    EXPECT_TRUE(GenH5::DataType::Float.isFloat());
     EXPECT_TRUE(GenH5::DataType::Double.isValid());
-    EXPECT_TRUE(GenH5::DataType::Float.type() == H5T_FLOAT);
+    EXPECT_TRUE(GenH5::DataType::Double.isFloat());
 }
 
 TEST_F(TestH5DataType, template_defaultDataTypes) // somewhat redundant
@@ -69,17 +77,31 @@ TEST_F(TestH5DataType, template_defaultDataTypes) // somewhat redundant
 
     EXPECT_TRUE(GenH5::dataType<char>().isValid());
     EXPECT_TRUE(GenH5::dataType<char*>().isValid());
+    EXPECT_TRUE(GenH5::dataType<char*>().isVarString());
     EXPECT_TRUE(GenH5::dataType<char const*>().isValid());
+    EXPECT_TRUE(GenH5::dataType<char const*>().isVarString());
+
+    EXPECT_TRUE(GenH5::dataType<char[5]>().isValid());
+    EXPECT_TRUE(GenH5::dataType<char[5]>().isString());
+    EXPECT_FALSE(GenH5::dataType<char[5]>().isVarString());
 
     EXPECT_TRUE(GenH5::dataType<int>().isValid());
+    EXPECT_TRUE(GenH5::dataType<int>().isInt());
     EXPECT_TRUE(GenH5::dataType<long int>().isValid());
+    EXPECT_TRUE(GenH5::dataType<long int>().isInt());
     EXPECT_TRUE(GenH5::dataType<long long int>().isValid());
+    EXPECT_TRUE(GenH5::dataType<long long int>().isInt());
     EXPECT_TRUE(GenH5::dataType<unsigned int>().isValid());
+    EXPECT_TRUE(GenH5::dataType<unsigned int>().isInt());
     EXPECT_TRUE(GenH5::dataType<unsigned long int>().isValid());
+    EXPECT_TRUE(GenH5::dataType<unsigned long int>().isInt());
     EXPECT_TRUE(GenH5::dataType<unsigned long long int>().isValid());
+    EXPECT_TRUE(GenH5::dataType<unsigned long long int>().isInt());
 
     EXPECT_TRUE(GenH5::dataType<float>().isValid());
+    EXPECT_TRUE(GenH5::dataType<float>().isFloat());
     EXPECT_TRUE(GenH5::dataType<double>().isValid());
+    EXPECT_TRUE(GenH5::dataType<double>().isFloat());
 
     EXPECT_TRUE(GenH5::dataType<GenH5::Version>().isValid());
     EXPECT_TRUE(GenH5::dataType<GenH5::Version>().isCompound());
@@ -125,7 +147,7 @@ TEST_F(TestH5DataType, template_customDataTypes)
     EXPECT_TRUE((type.size() == GenH5::dataType<int, int>().size()));
     EXPECT_TRUE((type.type() == GenH5::dataType<int, int>().type()));
     // memory layout is equal to compound type of two ints
-    EXPECT_TRUE((GenH5::dataType<QPoint>() == GenH5::dataType<int, int>()));
+    EXPECT_TRUE((GenH5::dataType<QPoint>() == GenH5::dataType<int, int>({"xp", "yp"})));
 }
 
 TEST_F(TestH5DataType, invalid)
@@ -153,10 +175,10 @@ TEST_F(TestH5DataType, arrayInvalid)
 {
     GenH5::Dimensions dims{10, 2};
     EXPECT_THROW(GenH5::DataType::array(GenH5::DataType{}, dims),
-                 H5::DataTypeIException);
+                 GenH5::DataTypeException);
 
     EXPECT_THROW(GenH5::DataType::array(GenH5::DataType::Bool, {}),
-                 H5::DataTypeIException);
+                 GenH5::DataTypeException);
 }
 
 TEST_F(TestH5DataType, varLen)
@@ -171,9 +193,14 @@ TEST_F(TestH5DataType, varLen)
     EXPECT_TRUE(vStrType.isValid());
     EXPECT_TRUE(vStrType.isVarString());
     EXPECT_FALSE(vStrType.isVarLen());
-
-    EXPECT_THROW(GenH5::DataType::varLen(dtypeEmpty), H5::DataTypeIException);
 }
+
+TEST_F(TestH5DataType, varLenInvalid)
+{
+    EXPECT_THROW(GenH5::DataType::varLen(dtypeEmpty),
+                 GenH5::DataTypeException);
+}
+
 struct MyData
 {
     int a;
@@ -190,7 +217,7 @@ TEST_F(TestH5DataType, compound)
     auto type = GenH5::DataType::compound(sizeof (MyData), members);
 
     EXPECT_TRUE(type.isValid());
-    EXPECT_TRUE(type == (GenH5::dataType<int, double>()));
+    EXPECT_TRUE(type == (GenH5::dataType<int, double>({"a", "b"})));
 
     EXPECT_TRUE(type.isCompound());
     EXPECT_EQ(type.size(), sizeof(MyData));
@@ -216,13 +243,13 @@ TEST_F(TestH5DataType, compoundInvalid)
     }), GenH5::DataTypeException);
 
     // invalid member
-    EXPECT_THROW(GenH5::DataType::compound(0, {
+    EXPECT_THROW(GenH5::DataType::compound(sizeof (MyData), {
         {"type 1", offsetof(MyData, a), GenH5::DataType::Int},
         {"type 2", offsetof(MyData, b), GenH5::DataType{}}
     }), GenH5::DataTypeException);
 
     // invalid member name
-    EXPECT_THROW(GenH5::DataType::compound(0, {
+    EXPECT_THROW(GenH5::DataType::compound(sizeof (MyData), {
         {"type 1", offsetof(MyData, a), GenH5::DataType::Int},
         {{}, offsetof(MyData, b), GenH5::DataType::Double}
     }), GenH5::DataTypeException);
@@ -427,6 +454,53 @@ TEST_F(TestH5DataType, equal)
     EXPECT_TRUE(dtypeInt == dtypeInt);
     EXPECT_TRUE(dtypeDouble == dtypeDouble);
     EXPECT_TRUE(dtypeString == dtypeString);
+}
+
+TEST_F(TestH5DataType, equal_2)
+{
+    using GenH5::dataType;
+    using GenH5::VarLen;
+    using GenH5::Array;
+    using GenH5::Comp;
+
+    // ints
+    // does not check signedness
+    EXPECT_TRUE(dataType<int>() == dataType<unsigned>());
+    EXPECT_TRUE(dataType<int>() != dataType<bool>());
+    EXPECT_TRUE(dataType<int>() != dataType<char>());
+    EXPECT_TRUE(dataType<char>() == dataType<bool>()); // are int types as well
+    bool intEQlong = sizeof(int) == sizeof(long);
+    EXPECT_EQ(dataType<int>() == dataType<long>(), intEQlong);
+    EXPECT_EQ(dataType<int>() == dataType<unsigned long>(), intEQlong);
+    bool intEQllong = sizeof(int) == sizeof(long long);
+    EXPECT_EQ(dataType<int>() == dataType<long long>(), intEQllong);
+    EXPECT_EQ(dataType<int>() == dataType<unsigned long long>(), intEQllong);
+
+    // floats
+    EXPECT_TRUE(dataType<double>() != dataType<float>());
+
+    // strings
+    EXPECT_TRUE(dataType<char[5]>() == GenH5::DataType::string(5));
+    EXPECT_TRUE((dataType<char[5]>() == dataType<Array<char, 5>>()));
+    EXPECT_TRUE((dataType<Array<char, 5>>()).isString());
+    EXPECT_TRUE(dataType<char[6]>() != GenH5::DataType::string(5));
+    EXPECT_TRUE(dataType<char[6]>() != GenH5::DataType::VarString);
+    EXPECT_TRUE(dataType<char*>() == GenH5::DataType::VarString);
+
+    // arrays
+    EXPECT_TRUE(dataType<int[42]>() == GenH5::DataType::array(GenH5::DataType::Int, 42));
+    EXPECT_TRUE(dataType<int[42]>() != GenH5::DataType::array(GenH5::DataType::Double, 42));
+    EXPECT_TRUE(dataType<int[42]>() != GenH5::DataType::array(GenH5::DataType::Int, {24, 2}));
+
+    // varlen
+    EXPECT_TRUE(dataType<VarLen<double>>() != dataType<VarLen<float>>());
+    EXPECT_TRUE(dataType<VarLen<size_t>>() == dataType<VarLen<size_t>>());
+
+    // compound
+    EXPECT_TRUE(dataType<Comp<double>>() == dataType<Comp<double>>());
+    EXPECT_TRUE(dataType<Comp<double>>() != dataType<Comp<double>>({"my_type_name"}));
+    EXPECT_TRUE(dataType<Comp<double>>({"my_type_name"}) != dataType<Comp<float>>({"my_type_name"}));
+    EXPECT_TRUE((dataType<double, int, VarLen<int>>() != dataType<VarLen<int>, int, double>()));
 }
 
 TEST_F(TestH5DataType, equalToH5cpp)

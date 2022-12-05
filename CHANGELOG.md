@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unrelease]
+## [Unreleased]
+### Added
+- Methods for reading 0D Data from a dataset or attribute (see `Node::readAttribute0D` and `Group::readDataSet0D`)
+- Added a few getter methods for checking if a datatype is an int, float or string
+
+### Fixed
+- `DataType::array` and `DataType::varlen` will no longer throw `H5::Exception` - #38
+- `operator==` for `DataType` will now check recursively if the datatypes are equal. Fixed multiple false positves. - #39
+- Read/Write methods of `AbstractDataSet` will now use the correct type when reading or writing data. - #39
+- `dataType<Array<char, N>()` is now a fixed string datatpye of length N and the same as `dataType<char[N]>()`
+
+### Deprecated
+- `toH5` methods that return H5Cpp classes
 
 ## [2.2.0] - 2022-11-18
 ### Changed
@@ -29,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `idx` utils function and overloads for `Data::operator[]`, `Data::at` and `Data::value` to access multidimensional data more easily. 
    The desired data dimensions must be set prior using `Data::setDimensions`. - #23
 - `CompData0D::setValue` and `Data::setValue` methods - #31
-- `Methods for iterating over and finding child nodes and attributes - #24
+- Methods for iterating over and finding child nodes and attributes - #24
 - High level methods for writing and reading datasets and attributes in one call - #27
 
 ### Deprecated 

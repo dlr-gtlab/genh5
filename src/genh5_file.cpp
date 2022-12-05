@@ -185,8 +185,10 @@ GenH5::File::close()
     }
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 H5::H5File const&
 GenH5::File::toH5() const noexcept
 {
     return m_file;
 }
+#endif
