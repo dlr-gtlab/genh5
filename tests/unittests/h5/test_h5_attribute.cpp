@@ -47,8 +47,10 @@ TEST_F(TestH5Attribute, info)
     EXPECT_NO_THROW(info.toAttribute(dataset).isValid());
     EXPECT_NO_THROW(info.toAttribute(group, "dataset").isValid());
 
+    qDebug() << "### EXPECTING ERROR: attribute not found";
     EXPECT_THROW(info.toAttribute(group, "invalid").isValid(),
                  GenH5::AttributeException);
+    qDebug() << "### END";
 }
 
 TEST_F(TestH5Attribute, deleteLink)

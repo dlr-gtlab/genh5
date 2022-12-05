@@ -20,7 +20,7 @@ A dataspace defines the layout of the data inside a dataset or an attribute. A d
   It can either be instantiated using the `GenH5::DataSpace::linear` method or the `GenH5::DataSpace{n}`. 
   The method `GenH5::DataSpace::dimensions` will return the 1D dimension vector respectively.
 
-- A **Multidimensional** dataspace a ND data layout and can be constructed using a dimension vector. 
+- A **Multidimensional** dataspace has a ND data layout and can be constructed using a dimension vector. 
   `GenH5::DataSpace::dimensions` will return the dimension vector respectively.
   
 The size (i.e. the total number of elements stored) can be retrieved using the `GenH5::DataSpace::size` method. 
@@ -36,7 +36,7 @@ A data selection may be created using the function `GenH5::makeSelection` or by 
 The selection itself will be stored in a dataspace, which can be accessed using `GenH5::DataSpaceSelection::space`. 
 Once the selection has been committed, the total number of selected items can be retrieved using `GenH5::DataSpace::selectionSize`.
 
-As a first argument, helper class is expecting the original dataspace (i.e. the dataspace defining the whole data layout).
+The helper class takes as a first argument the original dataspace (i.e. the dataspace defining the whole data layout).
 If the selection count was not specified, the whole dataspace will be selected. 
 By default the offset will be set to `0`, while the stride and block dimensions will be set to `1`.
 If the number of dimensions of a selection property does not match the number of dimensions of the dataspace, each missing dimension will be filled up using its default value.
@@ -51,9 +51,9 @@ Consider a dataspace with the dimensions `6 x 10`. The code to select every seco
 GenH5::DataSpace space{6, 10};
 
 auto selection = GenH5::makeSelection(space, 
-                                      {5, 5},  // select 5 x 5 elements 
-                                      {1},     // same as {1, 0}, skips the first dimension 
-                                      {1, 2}); // select every second element in the second dimension
+                                      {5, 5},  // count:  select 5 x 5 elements 
+                                      {1},     // offset: skips the first dimension (same as {1, 0})
+                                      {1, 2}); // stride: select every second element in the second dimension
 
 selection.space().selectionSize();             // == 5 x 5
 ```

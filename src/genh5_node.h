@@ -145,6 +145,15 @@ public:
     template <typename T1, typename... Ts>
     Data<T1, Ts...> readAttribute(String const& name) const noexcept(false);
 
+    /**
+     * @brief High level method for opening and reading 0d data from an
+     * attribute.
+     * @param name Name of the attribute
+     * @return Data read
+     */
+    template <typename T1, typename... Ts>
+    Data0D<T1, Ts...> readAttribute0D(String const& name) const noexcept(false);
+
     /*
      *  VERSION ATTRIBUTE
      */
@@ -367,9 +376,9 @@ struct GENH5_EXPORT AttributeInfo
 namespace details
 {
 
-template <typename Object, typename... Ts>
-inline Object const&
-writeAttributeHelper(Object const& obj,
+template <typename... Ts>
+inline Node const&
+writeAttributeHelper(Node const& obj,
                      String const& name,
                      details::AbstractData<Ts...> const& data) noexcept(false)
 {
@@ -381,6 +390,23 @@ writeAttributeHelper(Object const& obj,
     }
 
     return obj;
+}
+
+template <typename Tdata, typename... Ts>
+inline Tdata
+readAttributeHelper(Node const& obj, String const& name) noexcept(false)
+{
+    auto attr = obj.openAttribute(name);
+
+    Tdata data;
+    data.setTypeNames(attr.dataType());
+
+    if (!attr.read(data))
+    {
+        throw GenH5::AttributeException{"Failed to read data from attribute!"};
+    }
+
+    return data;
 }
 
 } // namespace details
@@ -416,17 +442,14 @@ template <typename T1, typename... Ts>
 inline Data<T1, Ts...>
 Node::readAttribute(String const& name) const noexcept(false)
 {
-    auto attr = openAttribute(name);
+    return details::readAttributeHelper<Data<T1, Ts...>>(*this, name);
+}
 
-    Data<T1, Ts...> data;
-    data.setTypeNames(attr.dataType());
-
-    if (!attr.read(data))
-    {
-        throw GenH5::AttributeException{"Failed to read data from attribute!"};
-    }
-
-    return data;
+template <typename T1, typename... Ts>
+inline Data0D<T1, Ts...>
+Node::readAttribute0D(String const& name) const noexcept(false)
+{
+    return details::readAttributeHelper<Data0D<T1, Ts...>>(*this, name);
 }
 
 } // namespace GenH5

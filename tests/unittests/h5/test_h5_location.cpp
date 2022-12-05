@@ -138,7 +138,7 @@ TEST_F(TestH5Location, fileRefCount)
         // group _root will be deleted here -> ref count will be decremented
     }
 
-    qDebug() << "### EXPECTEING ERROR: Id not found";
+    qDebug() << "### EXPECTING ERROR: Id not found";
     // file is no longer accessed
     // id cant be found -> returns -1
     EXPECT_EQ(H5Iget_ref(id), -1);

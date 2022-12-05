@@ -169,7 +169,7 @@ TEST_F(TestH5Reference, referenceAttributeAlign)
     auto align =  attribute.toReference().alignment();
 
     // dereference does not work for attributes when using alignment data
-    qDebug() << "### EXPECTEING ERROR: Bad value";
+    qDebug() << "### EXPECTING ERROR: Bad value";
     EXPECT_THROW(GenH5::Reference(align).toAttribute(file),
                  GenH5::ReferenceException);
     qDebug() << "### END";

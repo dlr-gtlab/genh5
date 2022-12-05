@@ -67,11 +67,13 @@ GenH5::Group::toH5Object() const noexcept
     return &m_group;
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 H5::Group const&
 GenH5::Group::toH5() const noexcept
 {
     return m_group;
 }
+#endif
 
 void
 GenH5::Group::close()

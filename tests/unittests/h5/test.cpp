@@ -14,6 +14,42 @@ class Tests : public testing::Test
 
 };
 
+TEST_F(Tests, test)
+{
+    using GenH5::VarLen;
+    using GenH5::Comp;
+    using GenH5::CompData;
+    using GenH5::CompData0D;
+
+    QByteArray filePath = h5TestHelper->tempPath().toUtf8() + "/my_types.h5";
+
+    GenH5::File file{filePath, GenH5::Overwrite};
+
+    file.root().writeDataSet0D(
+                "ints", TestHelper::instance()->linearDataVector(10, -5, 1));
+
+    VarLen<uint> data = file.root().readDataSet0D<VarLen<uint>>("ints");
+
+    qDebug() << "DATA" << data;
+
+    CompData0D<QString, int, float> compData{
+        QString("Hello World"), 42, 12.1f
+    };
+    compData.setTypeNames({"my_string", "my_int", "my_float"});
+
+    file.root().writeDataSet("comp", compData);
+
+    compData = Comp<QString, int, float>{};
+    compData.setTypeNames(GenH5::CompoundNames<3>{});
+
+    file.root().openDataset("comp").read(compData);
+
+    qDebug() << "DATA 1:" << compData.getValue<0>();
+    qDebug() << "DATA 2:" << compData.getValue<1>();
+    qDebug() << "DATA 3:" << compData.getValue<2>();
+
+}
+
 TEST_F(Tests, filterDeflate)
 {
     bool isAvail = H5Zfilter_avail(H5Z_FILTER_DEFLATE);

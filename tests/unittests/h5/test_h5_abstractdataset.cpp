@@ -55,15 +55,15 @@ protected:
     template<typename T, typename TContainer>
     bool testRW(TContainer const& values)
     {
-        static int counter = 0;
+        auto name = typeid(T).name();
         // for easier debugging
-        qDebug() << __FUNCTION__ << counter;
+        qDebug() << __FUNCTION__ << name;
 
         GenH5::Data<T> data{values};
 
         // create new dataset
         auto dset = root.createDataset(QByteArrayLiteral("test_") +
-                                       QByteArray::number(counter++),
+                                       QByteArray(name),
                                        data.dataType(),
                                        data.dataSpace());
         EXPECT_TRUE(dset.dataSpace() == data.dataSpace());
@@ -126,7 +126,7 @@ TEST_F(TestH5AbstractDataSet, write)
     // dtype can be converted and sizes are equal
     EXPECT_TRUE(dataset.write(doubleData.raw()));
     // dtype cannot be converted
-    qDebug() << "### EXPECTEING ERROR: No conversion path";
+    qDebug() << "### EXPECTING ERROR: No conversion path";
     EXPECT_THROW(dataset.write(stringData.raw(), stringData.dataType()),
                  GenH5::DataSetException);
     qDebug() << "### END";
@@ -138,7 +138,7 @@ TEST_F(TestH5AbstractDataSet, write)
     // dtype can be converted
     EXPECT_TRUE(dataset.write(doubleData));
     // dtype cannot be converted
-    qDebug() << "### EXPECTEING ERROR: No conversion path";
+    qDebug() << "### EXPECTING ERROR: No conversion path";
     EXPECT_THROW(dataset.write(stringData), GenH5::DataSetException);
     qDebug() << "### END";
 }
@@ -157,7 +157,7 @@ TEST_F(TestH5AbstractDataSet, read)
     // dtype can be converted and data will be resized
     EXPECT_TRUE(dataset.read(doubleData.raw()));
     // dtype cannot be converted
-    qDebug() << "### EXPECTEING ERROR: No conversion path";
+    qDebug() << "### EXPECTING ERROR: No conversion path";
     EXPECT_THROW(dataset.read(stringData.raw(), stringData.dataType()),
                  GenH5::DataSetException);
     qDebug() << "### END";
@@ -169,7 +169,7 @@ TEST_F(TestH5AbstractDataSet, read)
     // dtype can be converted and data will be resized
     EXPECT_TRUE(dataset.read(doubleData));
     // dtype cannot be converted
-    qDebug() << "### EXPECTEING ERROR: No conversion path";
+    qDebug() << "### EXPECTING ERROR: No conversion path";
     EXPECT_THROW(dataset.read(stringData), GenH5::DataSetException);
     qDebug() << "### END";
 }

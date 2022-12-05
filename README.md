@@ -41,7 +41,7 @@ Writing a list of Integers to a dataset:
 // create simple int data
 GenH5::Data<int> data{ 1, 2, 3, 4 };
 // create the file or overwrite if it already exists
-GenH5::File file{ "my_file.h5", GenH5::Overwrite);
+GenH5::File file{ "my_file.h5", GenH5::Overwrite };
 // access the root group of the file and create a subgroup
 GenH5::Group group = file.root().createGroup("my_group");
 // create simple dataset at '/my_group/my_data'
@@ -53,7 +53,7 @@ dataset.write(data);
 Reading a list of compound datatypes from a dataset (int, QString):
 ```c++
 // open the file
-GenH5::File file{ "my_file.h5"), GenH5::ReadOnly };
+GenH5::File file{ "my_file.h5", GenH5::ReadOnly };
 // create data container
 GenH5::CompData<int, QString> data;
 // set compound type names
@@ -75,7 +75,7 @@ data.unpack(ints, strings);
 Referencing an attribute:
 ```c++
 // create or open the file if it exists
-GenH5::File file{ "my_file.h5", GenH5::ReadWrite);
+GenH5::File file{ "my_file.h5", GenH5::ReadWrite };
 // create data container
 GenH5::Data<float> data{0f};
 // access the root group of the file and create an attribute

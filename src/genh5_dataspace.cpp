@@ -91,11 +91,13 @@ GenH5::DataSpace::selectionSize() const noexcept
     return H5Sget_select_npoints(id());
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 H5::DataSpace const&
 GenH5::DataSpace::toH5() const noexcept
 {
     return m_dataspace;
 }
+#endif
 
 bool
 operator==(GenH5::DataSpace const& first, GenH5::DataSpace const& other)
