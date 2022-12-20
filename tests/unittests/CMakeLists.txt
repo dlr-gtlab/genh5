@@ -18,6 +18,7 @@ add_executable(H5UnitTest
     h5/test_h5_conversion.cpp
     h5/test_h5_data.cpp
     h5/test_h5_data0d.cpp
+    h5/test_h5_data_fixedstring0d.cpp
     h5/test_h5_dataset.cpp
     h5/test_h5_datasetcproperties.cpp
     h5/test_h5_dataspace.cpp

@@ -12,7 +12,6 @@
 
 #include <QCoreApplication>
 #include <QDir>
-#include <QDebug>
 #include <QUuid>
 
 TestHelper*

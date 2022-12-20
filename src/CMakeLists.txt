@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(GenH5 VERSION 2.2.1)
+project(GenH5 VERSION 2.2.2)
 
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)

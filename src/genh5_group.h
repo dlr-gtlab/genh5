@@ -176,7 +176,7 @@ public:
      * @return Data read
      */
     template <typename T1, typename... Ts>
-    Data<T1, Ts...> readDataSet(String const& name) noexcept(false);
+    Data<T1, Ts...> readDataSet(String const& name) const noexcept(false);
 
     /**
      * @brief High level method for opening and reading 0d data from a dataset.
@@ -184,7 +184,7 @@ public:
      * @return Data read
      */
     template <typename T1, typename... Ts>
-    Data0D<T1, Ts...> readDataSet0D(String const& name) noexcept(false);
+    Data0D<T1, Ts...> readDataSet0D(String const& name) const noexcept(false);
 
     /*
      *  WRITE ATTRIBUTE
@@ -362,14 +362,14 @@ Group::writeDataSet0D(String const& name,
 
 template <typename T1, typename... Ts>
 inline Data<T1, Ts...>
-Group::readDataSet(String const& name) noexcept(false)
+Group::readDataSet(String const& name) const noexcept(false)
 {
     return details::readDataSetHelper<Data<T1, Ts...>>(*this, name);
 }
 
 template <typename T1, typename... Ts>
 inline Data0D<T1, Ts...>
-Group::readDataSet0D(String const& name) noexcept(false)
+Group::readDataSet0D(String const& name) const noexcept(false)
 {
     return details::readDataSetHelper<Data0D<T1, Ts...>>(*this, name);
 }

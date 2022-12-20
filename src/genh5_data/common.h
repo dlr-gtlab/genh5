@@ -264,30 +264,39 @@ public:
 
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
-        auto s = static_cast<size_type>(dspace.selectionSize());
-        auto d = this->dataType();
+        auto selection = static_cast<size_type>(dspace.selectionSize());
+        auto dataSize = selection;
+        auto ourDtype = this->dataType();
         // convenience for reading array types
-        // e.g. Data<Array<int, 5>> && Data<int>
-        if (dtype.isArray() && !d.isArray() &&
-            dtype.superType().size() == d.size())
+        // e.g. Reading "Data<Array<int, 5>>" using "Data<int>"
+        if (dtype.isArray() && dtype.superType() == ourDtype)
         {
-            s *= prod<size_type>(dtype.arrayDimensions());
+            dataSize *= prod<size_type>(dtype.arrayDimensions());
         }
         // convenience for reading a compound array type
-        // e.g. CompData<Array<int, 5>> && CompData<int>
-        else if (dtype.isCompound() && d.isCompound())
+        // e.g. Reading "CompData<Array<int, 5>>" using "Data<int>"
+        else if (dtype.isCompound())
         {
-            auto tmembers = d.compoundMembers();
-            auto omembers = dtype.compoundMembers();
-            if (omembers.size() == 1 && omembers[0].type.isArray() &&
-                tmembers.size() == 1 && !tmembers[0].type.isArray() &&
-                omembers[0].type.superType().size() == tmembers[0].type.size())
+            auto dmembers = dtype.compoundMembers();
+            if (dmembers.size() == 1 &&
+                dmembers.front().type.isArray() &&
+                dmembers.front().type.superType() == ourDtype)
             {
-                s *= prod<size_type>(omembers[0].type.arrayDimensions());
+                dataSize *= prod<size_type>(dmembers[0].type.arrayDimensions());
             }
         }
-        m_data.resize(s);
-        return s <= size();
+
+        // resize data
+        m_data.resize(dataSize);
+
+        // set data dimensions from dataspace
+        if (dspace.size() == selection)
+        {
+            setDimensions(dspace.dimensions());
+        }
+
+        // make sure our data size is actually big enough
+        return selection * dtype.size() <= size() * ourDtype.size();
     }
 
     /** split data into sub ranges of size n **/
@@ -413,7 +422,7 @@ public:
     const_reference last() const { return back(); }
 
     /** append **/
-    // frwd arguemnts to push_back
+    // frwd arguments to push_back
     template <typename U>
     void append(U&& arg) { push_back(std::forward<U>(arg)); }
 
