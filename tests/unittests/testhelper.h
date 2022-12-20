@@ -11,9 +11,23 @@
 
 #define h5TestHelper (TestHelper::instance())
 
+#include <QDebug>
 #include <QVector>
 #include <QRandomGenerator>
 #include "genh5_utils.h"
+
+template<typename... Ts>
+QDebug operator<<(QDebug s, std::tuple<Ts...> const& tuple)
+{
+    QDebugStateSaver saver(s);
+    s.nospace() << "tuple(";
+    GenH5::mpl::static_for<sizeof...(Ts)-1>([&](auto const idx){
+        s << std::get<idx>(tuple) << ", ";
+    });
+    s << std::get<sizeof...(Ts)-1>(tuple);
+    s << ")";
+    return s;
+}
 
 class QDir;
 class QString;

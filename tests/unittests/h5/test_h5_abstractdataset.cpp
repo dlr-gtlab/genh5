@@ -377,13 +377,13 @@ TEST_F(TestH5AbstractDataSet, RWcompoundArrayAsSimple)
     EXPECT_TRUE(dset.write(data));
 
     // read array dataset as is were a list of strings
-    GenH5::CompData<QString> data2;
+    GenH5::Data<QString> data2;
     dset.read(data2, data.dataType());
 
     ASSERT_EQ(data2.size(), data.size() * 3);
 
     // split list at every third entry
-    Vector<Vector<Comp<QString>>> list = data2.split(3);
+    Vector<Vector<QString>> list = data2.split(3);
     EXPECT_EQ(list.size(), data.size());
 }
 

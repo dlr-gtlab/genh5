@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed
+- Fixed some edge cases in which reading data would proceed, eventhough the data was not properly resized and had too few elements - #41
+- A single compound array type like `Array<int, 5>` can now be read using its super type (here `int`) - #41
+
+### Changed
+- The data dimensions of `CommonData` will be set according to the dataset that is beeing read (via the `resize` method) - #44
+- `Group::readDataSet(0D)` is now `const`
+
 ## [2.2.1] - 2022-12-05
 ### Added
 - Methods for reading 0D Data from a dataset or attribute (see `Node::readAttribute0D` and `Group::readDataSet0D`)
@@ -20,14 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.0] - 2022-11-18
 ### Changed
-- `Data::setTypenames` will be deactivated for non-cmpound types - #35
+- `Data::setTypeNames` will be deactivated for non-compound types - #35
 
 ### Added
 - `FixedString0D` for fixed strings - #34
 - Added static methods for accessing subrelease in `Version` struct
 
 ## [2.1.0] - 2022-10-27
-### Changed 
+### Changed
 - `Location::type` was moved to `Object::type`
 - Updated type traits
 
@@ -56,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Attribute::doRead` will now throw a `GenH5::Exception`
 
 ## [2.0.0 - 2022-06-28]
-### Changed 
+### Changed
 - Changed namespace to `GenH5` - #14
 - Wrapper now uses exceptions - #11
 
@@ -71,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - methods that use `QString`. Use `toUtf8()` instead - #14
 
 ## [1.0.3] - 2022-04-13
-### Changed 
+### Changed
 - moved to c++14 - #4
 - updated prefix naming sceme to GtH5 - #5
 - improved const correctness, minor interface changes - #4

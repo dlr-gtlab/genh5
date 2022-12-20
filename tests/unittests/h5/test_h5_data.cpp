@@ -646,13 +646,50 @@ TEST_F(TestH5Data, compound_deserialize)
                            std::cbegin(csOut)));
 }
 
-TEST_F(TestH5Data, resize)
+TEST_F(TestH5Data, resize_setDimensions)
+{
+    auto dtype = GenH5::dataType<int>();
+    GenH5::Data<int> data;
+    ASSERT_EQ(data.size(), 0);
+
+    // resize with null space
+    data.resize(GenH5::DataSpace::Null, dtype);
+    EXPECT_EQ(data.size(), 0);
+    EXPECT_EQ(data.dimensions(), GenH5::Dimensions{});
+
+    data.clear();
+    ASSERT_EQ(data.size(), 0);
+
+    // resize with scalar space
+    data.resize(GenH5::DataSpace::Scalar, dtype);
+    EXPECT_EQ(data.size(), 1);
+    EXPECT_EQ(data.dimensions(), GenH5::Dimensions{});
+
+    data.clear();
+    ASSERT_EQ(data.size(), 0);
+
+    // resize with linear space
+    data.resize(GenH5::DataSpace::linear(42), dtype);
+    EXPECT_EQ(data.size(), 42);
+    EXPECT_EQ(data.dimensions(), GenH5::Dimensions{42});
+
+    data.clear();
+    ASSERT_EQ(data.size(), 0);
+
+    // resize with 2D space
+    data.resize(GenH5::DataSpace{42, 12}, dtype);
+    EXPECT_EQ(data.size(), 42 * 12);
+    EXPECT_EQ(data.dimensions(), (GenH5::Dimensions{42, 12}));
+}
+
+TEST_F(TestH5Data, resize_array)
 {
     constexpr hsize_t spaceLength = 10;
     constexpr hsize_t arrLength = 5;
 
     // for simple types
     auto space = GenH5::DataSpace::linear(spaceLength);
+    auto space2D = GenH5::DataSpace{5, 2};
     auto superType = GenH5::dataType<int>();
     auto arryType = GenH5::dataType<GenH5::Array<int, arrLength>>();
 
@@ -669,22 +706,37 @@ TEST_F(TestH5Data, resize)
     data.resize(space, arryType);
     EXPECT_EQ(data.size(), spaceLength * arrLength);
 
+    data.clear();
+    ASSERT_EQ(data.size(), 0);
+
+    // resize using 2d space * array length
+    data.resize(space2D, arryType);
+    EXPECT_EQ(data.size(), spaceLength * arrLength);
+    EXPECT_EQ(data.dimensions(), (GenH5::Dimensions{5, 2}));
+}
+
+TEST_F(TestH5Data, resize_arrayCompound)
+{
+    constexpr hsize_t spaceLength = 10;
+    constexpr hsize_t arrLength = 5;
+
     // for compound types
-    auto csuperType = GenH5::dataType<GenH5::Comp<int>>();
-    auto carryType = GenH5::dataType<GenH5::Comp<GenH5::Array<int, arrLength>>>();
+    auto space = GenH5::DataSpace::linear(spaceLength);
+    auto superType = GenH5::dataType<GenH5::Comp<int>>();
+    auto arryType = GenH5::dataType<GenH5::Comp<GenH5::Array<int, arrLength>>>();
 
-    GenH5::CompData<int> cdata;
-    ASSERT_EQ(cdata.size(), 0);
+    GenH5::Data<int> data;
+    ASSERT_EQ(data.size(), 0);
     // resize using space length
-    cdata.resize(space, csuperType);
-    EXPECT_EQ(cdata.size(), spaceLength);
+    data.resize(space, superType);
+    EXPECT_EQ(data.size(), spaceLength);
 
-    cdata.clear();
-    ASSERT_EQ(cdata.size(), 0);
+    data.clear();
+    ASSERT_EQ(data.size(), 0);
 
     // resize using space * array length
-    cdata.resize(space, carryType);
-    EXPECT_EQ(cdata.size(), spaceLength * arrLength);
+    data.resize(space, arryType);
+    EXPECT_EQ(data.size(), spaceLength * arrLength);
 }
 
 TEST_F(TestH5Data, valueIdx)
