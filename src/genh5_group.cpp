@@ -140,11 +140,22 @@ GenH5::Group::openGroup(String const& name) const noexcept(false)
     }
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 GenH5::DataSet
 GenH5::Group::createDataset(String const& name,
-                           DataType const& dtype,
-                           DataSpace const& dspace,
-                           Optional<DataSetCProperties> properties) const
+                            DataType const& dtype,
+                            DataSpace const& dspace,
+                            Optional<DataSetCProperties> properties) const
+{
+    return createDataSet(name, dtype, dspace, std::move(properties));
+}
+#endif
+
+GenH5::DataSet
+GenH5::Group::createDataSet(String const& name,
+                            DataType const& dtype,
+                            DataSpace const& dspace,
+                            Optional<DataSetCProperties> properties) const
 {
     auto const& parent = *this;
 
@@ -176,13 +187,13 @@ GenH5::Group::createDataset(String const& name,
         }
         catch (H5::Exception const& e)
         {
-            qCritical() << "HDF5: [EXCEPTION] Group::createDataset";
+            qCritical() << "HDF5: [EXCEPTION] Group::createDataSet";
             throw DataSetException{e.getCDetailMsg()};
         }
     }
 
     // open existing dataset
-    auto dset = openDataset(name);
+    auto dset = openDataSet(name);
 
     // check if datatype is equal
     if (dset.dataType() == dtype)
@@ -198,11 +209,19 @@ GenH5::Group::createDataset(String const& name,
     qWarning() << "HDF5: Invalid memory layout! Overwriting dataset! -" << name;
     dset.deleteLink();
 
-    return createDataset(name, dtype, dspace, std::move(properties));
+    return createDataSet(name, dtype, dspace, std::move(properties));
 }
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
 GenH5::DataSet
 GenH5::Group::openDataset(String const& name) const noexcept(false)
+{
+    return openDataSet(name);
+}
+#endif
+
+GenH5::DataSet
+GenH5::Group::openDataSet(String const& name) const noexcept(false)
 {
     auto const& parent = *this;
 
@@ -226,7 +245,7 @@ GenH5::Group::openDataset(String const& name) const noexcept(false)
     }
     catch (H5::Exception const& e)
     {
-        qCritical() << "HDF5: [EXCEPTION] Group::openDataset";
+        qCritical() << "HDF5: [EXCEPTION] Group::openDataSet";
         throw DataSetException{e.getCDetailMsg()};
     }
 }

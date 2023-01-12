@@ -325,7 +325,7 @@ struct GENH5_EXPORT NodeInfo
 
     /**
      * @brief Constructs a dataset object from the node location.
-     * Must be Dataset to succeed.
+     * Must be a Dataset to succeed.
      * @param parent Parent object
      * @return Dataset
      */
