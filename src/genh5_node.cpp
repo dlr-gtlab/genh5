@@ -71,7 +71,7 @@ private:
 GenH5::DataSet
 GenH5::NodeInfo::toDataSet(Group const& parent) const noexcept(false)
 {
-    return parent.openDataset(path);
+    return parent.openDataSet(path);
 }
 
 GenH5::Group
@@ -85,7 +85,7 @@ GenH5::NodeInfo::toNode(GenH5::Group const& parent) const noexcept(false)
 {
     if (isDataSet())
     {
-        return std::make_unique<DataSet>(parent.openDataset(path));
+        return std::make_unique<DataSet>(parent.openDataSet(path));
     }
     return std::make_unique<Group>(parent.openGroup(path));
 }

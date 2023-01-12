@@ -107,6 +107,15 @@ public:
      * CREATE/OPEN DATASET
      */
 
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
+    [[deprecated("use createDataSet instead")]]
+    DataSet createDataset(String const& name,
+                          DataType const& dtype,
+                          DataSpace const& dspace,
+                          Optional<DataSetCProperties> cProps = {}
+                          ) const noexcept(false);
+#endif
+
     /**
      * @brief Creates a dataset. The dataset has no values set. If the
      * dataset already exists, its datatype and dataspace are checked. If they
@@ -118,18 +127,23 @@ public:
      * chunked but not compressed.
      * @return Dataset
      */
-    DataSet createDataset(String const& name,
+    DataSet createDataSet(String const& name,
                           DataType const& dtype,
                           DataSpace const& dspace,
                           Optional<DataSetCProperties> cProps = {}
                           ) const noexcept(false);
+
+#ifndef GENH5_NO_DEPRECATED_SYMBOLS
+    [[deprecated("use openDataSet instead")]]
+    DataSet openDataset(String const& name) const noexcept(false);
+#endif
 
     /**
      * @brief Opens the dataset specified.
      * @param name Name of the dataset
      * @return
      */
-    DataSet openDataset(String const& name) const noexcept(false);
+    DataSet openDataSet(String const& name) const noexcept(false);
 
     /*
      *  READ/WRITE DATASET
@@ -302,7 +316,7 @@ writeDataSetHelper(Group const& obj,
                    String const& name,
                    details::AbstractData<Ts...> const& data) noexcept(false)
 {
-    auto dset = obj.createDataset(name, data.dataType(), data.dataSpace());
+    auto dset = obj.createDataSet(name, data.dataType(), data.dataSpace());
 
     if (!dset.write(data))
     {
@@ -317,7 +331,7 @@ template <typename Tdata, typename... Ts>
 inline Tdata
 readDataSetHelper(Group const& obj, String const& name) noexcept(false)
 {
-    auto dset = obj.openDataset(name);
+    auto dset = obj.openDataSet(name);
 
     Tdata data;
     data.setTypeNames(dset.dataType());

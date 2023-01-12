@@ -8,10 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed some edge cases in which reading data would proceed, eventhough the data was not properly resized and had too few elements - #41
 - A single compound array type like `Array<int, 5>` can now be read using its super type (here `int`) - #41
+- explicitly deleted usage of static FixedString0D::dataType method
 
 ### Changed
 - The data dimensions of `CommonData` will be set according to the dataset that is beeing read (via the `resize` method) - #44
 - `Group::readDataSet(0D)` is now `const`
+
+### Deprecated
+- `Group::createDataset` use `Group::createDataSet` instead - #46
+- `Group::openDataset` use `Group::openDataSet` instead - #46
 
 ## [2.2.1] - 2022-12-05
 ### Added

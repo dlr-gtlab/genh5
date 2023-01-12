@@ -29,7 +29,7 @@ public:
     using buffer_type    = String;
 
     // compound type not supported
-    static DataType datatype(compound_names names) = delete;
+    static DataType dataType(compound_names names) = delete;
 
     DataSpace dataSpace() const override { return DataSpace::Scalar; }
 
