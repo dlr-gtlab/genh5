@@ -842,6 +842,139 @@ TEST_F(TestH5Data, dataspace)
     EXPECT_EQ(data.dataSpace().nDims(), 2);
 }
 
+static_assert(sizeof(float) < sizeof(double),
+              "A double should be bigger than a float");
+
+TEST_F(TestH5Data, autoresize_smallerType)
+{
+    GenH5::Data<float> data;
+
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::linear(10),
+                            GenH5::dataType<double>()));
+    EXPECT_EQ(data.size(), 10);
+}
+
+TEST_F(TestH5Data, autoresize_arraySmallerType)
+{
+    using GenH5::Array;
+    GenH5::Data<float> data;
+
+    // Autoresize should not succeed as a float is smaller than a double and
+    // we require the same memory footprint
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::linear(10),
+                            GenH5::dataType<Array<double, 5>>()));
+    EXPECT_EQ(data.size(), 10);
+}
+
+TEST_F(TestH5Data, autoresize_arraySameType)
+{
+    using GenH5::Array;
+    GenH5::Data<double> data;
+
+    // Autoresize should succeed
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::linear(10),
+                            GenH5::dataType<Array<double, 5>>()));
+    EXPECT_EQ(data.size(), 50);
+}
+
+TEST_F(TestH5Data, autoresize_arraySameTypeWithSelection)
+{
+    using GenH5::Array;
+    GenH5::Data<double> data;
+
+    // Autoresize should succeed
+    EXPECT_TRUE(data.resize(GenH5::makeSelection(GenH5::DataSpace::linear(100),
+                                                 GenH5::Dimensions{10}),
+                            GenH5::dataType<Array<double, 5>>()));
+    EXPECT_EQ(data.size(), 50);
+}
+
+struct PaddedStruct
+{
+    double a;
+    char padding1[4];
+    int b;
+    char padding2[8];
+};
+
+static_assert(sizeof(PaddedStruct) > sizeof(std::tuple<int, double>),
+              "The custom struct should be bigger than the tuple");
+
+GENH5_DECLARE_DATATYPE_IMPL(PaddedStruct)
+{
+    return GenH5::DataType::compound(sizeof(PaddedStruct), {
+        {"a", offsetof(PaddedStruct, a), GenH5::dataType<double>()},
+        {"b", offsetof(PaddedStruct, b), GenH5::dataType<int>()},
+    });
+}
+
+TEST_F(TestH5Data, autoresize_compSmallerType)
+{
+    GenH5::CompData<double, int> data;
+
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::linear(10),
+                            GenH5::dataType<PaddedStruct>()));
+    EXPECT_EQ(data.size(), 10);
+}
+
+TEST_F(TestH5Data, autoresize_compArraySmallerType)
+{
+    using GenH5::Array;
+    GenH5::CompData<double, int> data;
+
+    // Autoresize should not succeed
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::linear(10),
+                            GenH5::dataType<Array<PaddedStruct, 5>>()));
+    EXPECT_EQ(data.size(), 10);
+}
+
+TEST_F(TestH5Data, autoresize_compArraySameType)
+{
+    using GenH5::Array;
+    GenH5::Data<PaddedStruct> data;
+
+    // Autoresize should succeed
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::linear(10),
+                            GenH5::dataType<Array<PaddedStruct, 5>>()));
+    EXPECT_EQ(data.size(), 50);
+}
+
+TEST_F(TestH5Data, autoresize_compArraySameTypeWithSelection)
+{
+    using GenH5::Array;
+    GenH5::Data<PaddedStruct> data;
+
+    // Autoresize should succeed
+    EXPECT_TRUE(data.resize(GenH5::makeSelection(GenH5::DataSpace::linear(100),
+                                                 GenH5::Dimensions{10}),
+                            GenH5::dataType<Array<PaddedStruct, 5>>()));
+    EXPECT_EQ(data.size(), 50);
+}
+
+/*
+#include "genh5.h"
+
+TEST_F(TestH5Data, autoresize_smallerType2)
+{
+    using GenH5::Array;
+
+    GenH5::Data<float> data;
+
+    GenH5::File file(h5TestHelper->newFilePath(), GenH5::Create);
+
+    qDebug() << "HERE" << file.filePath();
+
+    auto dset = file.root().createDataSet(
+                    "my_name", GenH5::dataType<double>(), GenH5::DataSpace::linear(10));
+
+    ASSERT_TRUE(dset.write(h5TestHelper->linearDataVector(10.0)));
+
+    EXPECT_TRUE(dset.read(data));
+
+    qDebug() << "READ" << data.raw();
+}
+*/
+
 TEST_F(TestH5Data, buffer_reserve)
 {
     using GenH5::details::StaticBuffer;
