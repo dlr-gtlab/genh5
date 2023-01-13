@@ -266,7 +266,10 @@ public:
     {
         auto selection = static_cast<size_type>(dspace.selectionSize());
         auto dataSize = selection;
+
+#ifndef GENH5_NO_DATA_AUTORESIZE
         auto ourDtype = this->dataType();
+
         // convenience for reading array types
         // e.g. Reading "Data<Array<int, 5>>" using "Data<int>"
         if (dtype.isArray() && dtype.superType() == ourDtype)
@@ -285,6 +288,7 @@ public:
                 dataSize *= prod<size_type>(dmembers[0].type.arrayDimensions());
             }
         }
+#endif
 
         // resize data
         m_data.resize(dataSize);
@@ -295,8 +299,17 @@ public:
             setDimensions(dspace.dimensions());
         }
 
-        // make sure our data size is actually big enough
-        return selection * dtype.size() <= size() * ourDtype.size();
+#ifndef GENH5_NO_DATA_AUTORESIZE
+        // check if we have autoresized our data
+        if (dataSize != selection)
+        {
+            // make sure our memory size is actually big enough
+            return selection * dtype.size() <= size() * ourDtype.size();
+        }
+#endif
+
+        // else check if we have alocated enough elements
+        return selection <= size();
     }
 
     /** split data into sub ranges of size n **/
