@@ -50,6 +50,12 @@ public:
      */
     void deleteLink() noexcept(false) override;
 
+    /*
+     * @brief deletes the object tree recursively
+     * (attributes)
+     */
+    void deleteRecursively() noexcept(false);
+
     /**
      * @brief properties used to create this object.
      * @return create properties

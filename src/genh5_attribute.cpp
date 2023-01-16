@@ -121,7 +121,7 @@ GenH5::Attribute::deleteLink() noexcept(false)
 
     // returns error type
     if (H5Adelete_by_name(file()->id(), path().constData(),
-                          name().constData(), H5P_DEFAULT))
+                          name().constData(), H5P_DEFAULT) < 0)
     {
         throw LocationException{"Deleting attribute failed"};
     }

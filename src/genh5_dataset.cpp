@@ -193,7 +193,7 @@ GenH5::DataSet::toH5AbsDataSet() const noexcept
 void
 GenH5::DataSet::deleteLink() noexcept(false)
 {
-    qDebug() << "HDF5: Deleting dataset...";
+    qDebug() << "HDF5: Deleting dataset..." << name();
 
     if (!isValid())
     {
@@ -208,11 +208,24 @@ GenH5::DataSet::deleteLink() noexcept(false)
     resize(dims);
 
     // returns error type
-    if (H5Ldelete(m_file->id(), name().constData(), H5P_DEFAULT))
+    if (H5Ldelete(m_file->id(), path().constData(), H5P_DEFAULT) < 0)
     {
         throw LocationException{"Deleting dataset failed"};
     }
     close();
+}
+
+void
+GenH5::DataSet::deleteRecursively() noexcept(false)
+{
+    // attributes
+    for (auto& attr : findAttributes())
+    {
+        attr.toAttribute(*this).deleteLink();
+    }
+
+    // this
+    deleteLink();
 }
 
 bool

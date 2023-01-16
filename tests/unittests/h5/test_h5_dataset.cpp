@@ -30,13 +30,9 @@ protected:
 
         file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
         ASSERT_TRUE(file.isValid());
-
-        group = file.root().createGroup(QByteArrayLiteral("group"));
-        ASSERT_TRUE(group.isValid());
     }
 
     GenH5::File file;
-    GenH5::Group group;
 
     GenH5::Data<int> intData;
     GenH5::Data<double> doubleData;
@@ -77,8 +73,53 @@ TEST_F(TestH5DataSet, deleteLink)
     EXPECT_FALSE(file.root().exists(QByteArrayLiteral("test")));
 }
 
+TEST_F(TestH5DataSet, deleteLinkNested)
+{
+    qDebug() << file.filePath();
+
+    // create nested groups
+    auto dset = file.root()
+            .createGroup("A")
+            .createGroup("B")
+            .createGroup("C")
+            .createGroup("D")
+            .writeDataSet("my_dset", QVector<uint>(42u));
+
+    EXPECT_TRUE(file.root().exists("A/B/C/D/my_dset"));
+
+    EXPECT_NO_THROW(dset.deleteLink());
+
+    EXPECT_FALSE(file.root().exists("A/B/C/D/my_dset"));
+
+    EXPECT_NO_THROW(file.root().openGroup("A").deleteLink());
+
+    EXPECT_FALSE(file.root().exists("A"));
+}
+
+TEST_F(TestH5DataSet, deleteLinkRecursively)
+{
+    qDebug() << file.filePath();
+
+    // create nested groups
+    file.root()
+            .createGroup("A")
+            .createGroup("B")
+            .createGroup("C")
+            .createGroup("D")
+            .writeDataSet("my_dset", QVector<uint>(42u));
+
+    EXPECT_TRUE(file.root().exists("A/B/C/D/my_dset"));
+
+    EXPECT_NO_THROW(file.root().openGroup("A").deleteRecursively());
+
+    EXPECT_FALSE(file.root().exists("A"));
+}
+
 TEST_F(TestH5DataSet, resize)
 {
+    auto group = file.root().createGroup(QByteArrayLiteral("group"));
+    ASSERT_TRUE(group.isValid());
+
     // create new dataset
     auto dset = group.createDataset(QByteArrayLiteral("test"),
                                     doubleData.dataType(),
@@ -97,6 +138,9 @@ TEST_F(TestH5DataSet, resize)
 
 TEST_F(TestH5DataSet, writeSelection)
 {
+    auto group = file.root().createGroup(QByteArrayLiteral("group"));
+    ASSERT_TRUE(group.isValid());
+
     GenH5::Data<float> data{h5TestHelper->linearDataVector<float>(42, 1)};
     GenH5::DataSpace dspace{2, 3, 7};
     ASSERT_EQ(dspace.size(), data.length());
@@ -129,6 +173,9 @@ TEST_F(TestH5DataSet, writeSelection)
 
 TEST_F(TestH5DataSet, readSelection)
 {
+    auto group = file.root().createGroup(QByteArrayLiteral("group"));
+    ASSERT_TRUE(group.isValid());
+
     GenH5::Data<uint64_t> data{h5TestHelper->linearDataVector<uint64_t>(48, 1)};
     GenH5::DataSpace dspace{4, 12};
     ASSERT_EQ(dspace.size(), data.length());
