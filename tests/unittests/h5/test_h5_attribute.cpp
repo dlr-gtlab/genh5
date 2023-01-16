@@ -72,3 +72,30 @@ TEST_F(TestH5Attribute, deleteLink)
     EXPECT_FALSE(attr.isValid());
     EXPECT_FALSE(file.root().hasAttribute(QByteArrayLiteral("test")));
 }
+
+TEST_F(TestH5Attribute, deleteLinkNested)
+{
+    auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
+
+    qDebug() << file.filePath();
+
+    // create nested groups
+    auto groupD =
+            file.root()
+            .createGroup("A")
+            .createGroup("B")
+            .createGroup("C")
+            .createGroup("D");
+
+    EXPECT_TRUE(file.root().exists("A/B/C/D"));
+
+    auto attr = groupD.createAttribute("my_attr",
+                                       GenH5::dataType<int>(),
+                                       GenH5::DataSpace::linear(10));
+
+    EXPECT_TRUE(groupD.hasAttribute("my_attr"));
+
+    EXPECT_NO_THROW(attr.deleteLink());
+
+    EXPECT_FALSE(groupD.hasAttribute("my_attr"));
+}

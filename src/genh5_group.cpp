@@ -52,13 +52,39 @@ GenH5::Group::id() const noexcept
 
 void
 GenH5::Group::deleteLink() noexcept(false)
-{    
+{
     // returns error type
-    if (H5Ldelete(m_file->id(), name().constData(), H5P_DEFAULT))
+    if (H5Ldelete(m_file->id(), path().constData(), H5P_DEFAULT) < 0)
     {
         throw LocationException{"Deleting group failed"};
     }
     close();
+}
+
+void
+GenH5::Group::deleteRecursively() noexcept(false)
+{
+    // sub groups and datasets
+    for (auto& node : findChildNodes())
+    {
+        if (node.isGroup())
+        {
+            node.toGroup(*this).deleteRecursively();
+        }
+        else if (node.isDataSet())
+        {
+            node.toDataSet(*this).deleteRecursively();
+        }
+    }
+
+    // attributes
+    for (auto& attr : findAttributes())
+    {
+        attr.toAttribute(*this).deleteLink();
+    }
+
+    // this
+    deleteLink();
 }
 
 H5::H5Object const*

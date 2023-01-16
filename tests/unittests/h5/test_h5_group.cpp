@@ -62,8 +62,36 @@ TEST_F(TestH5Group, deleteLink)
     EXPECT_TRUE(file.root().exists(QByteArrayLiteral("test")));
 
     // delete group
-    group.deleteLink();
+    EXPECT_NO_THROW(group.deleteLink());
     EXPECT_FALSE(file.root().exists(QByteArrayLiteral("test")));
+}
+
+TEST_F(TestH5Group, deleteLinkNested)
+{
+    qDebug() << file.filePath();
+
+    // create nested groups
+    auto groupD =
+            file.root()
+            .createGroup("A")
+            .createGroup("B")
+            .createGroup("C")
+            .createGroup("D");
+
+//    auto dset = groupD.writeDataSet0D("dataset", h5TestHelper->linearDataVector(100));
+//    EXPECT_TRUE(file.root().exists("A/B/C/D/dataset"));
+//    dset.deleteLink();
+
+    EXPECT_TRUE(file.root().exists("A/B/C/D"));
+
+//     delete group D
+    EXPECT_NO_THROW(groupD.deleteLink());
+    EXPECT_FALSE(file.root().exists("A/B/C/D/"));
+    EXPECT_TRUE(file.root().exists("A/B/C/"));
+
+    auto groupA = file.root().openGroup("A");
+    EXPECT_NO_THROW(groupA.deleteLink());
+    EXPECT_FALSE(file.root().exists("A"));
 }
 
 TEST_F(TestH5Group, deleteLinkInvalid)

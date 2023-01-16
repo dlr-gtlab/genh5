@@ -80,6 +80,12 @@ public:
      */
     void deleteLink() noexcept(false) override;
 
+    /*
+     * @brief deletes the object tree recursively
+     * (subgroups, datasets and attributes)
+     */
+    void deleteRecursively() noexcept(false);
+
     /**
      * @brief explicitly closes the resource handle
      */
@@ -141,7 +147,7 @@ public:
     /**
      * @brief Opens the dataset specified.
      * @param name Name of the dataset
-     * @return
+     * @return Dataset
      */
     DataSet openDataSet(String const& name) const noexcept(false);
 
@@ -153,7 +159,7 @@ public:
      * @brief High level method for creating and writing to a dataset.
      * @param name Name of the dataset
      * @return data Data to write
-     * @return This
+     * @return Dataset
      */
     template <typename Container,
               typename if_container = traits::value_t<Container>,
@@ -165,7 +171,7 @@ public:
      * @brief Overload.
      * @param name Name of the dataset
      * @return data Data to write
-     * @return This
+     * @return Dataset
      */
     template <typename T>
     DataSet writeDataSet(String const& name,
@@ -177,7 +183,7 @@ public:
      * Cannot be used to write an object of type Data0D.
      * @param name Name of the dataset
      * @return data 0D Data to write
-     * @return This
+     * @return Dataset
      */
     template <typename Container,
               traits::if_has_not_template_type<Container> = true>
