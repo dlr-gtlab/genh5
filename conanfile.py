@@ -7,7 +7,7 @@ required_conan_version = ">=1.45.0"
 
 class GenH5Conan(ConanFile):
     name = "genh5"
-    version = "2.2.3"
+    version = "2.2.4"
     license = "GTlab license"
     url = "https://gitlab.dlr.de/at-twk/gtlab-hdf5-wrapper"
     homepage = "https://gitlab.dlr.de/at-twk/gtlab-hdf5-wrapper"
