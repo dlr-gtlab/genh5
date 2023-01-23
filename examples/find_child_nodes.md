@@ -134,3 +134,5 @@ b.iterateChildNodes([](GenH5::Group& parent, GenH5::NodeInfo const& info) -> her
     return 0; // success
 }, GenH5::FindRecursive);
 ```
+
+> Do not throw exceptions in the iteration functor! The C-library may not be able to cleanup afterwards.

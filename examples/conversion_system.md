@@ -1,7 +1,7 @@
 # Conversion System
 
 This library implements a flexible and generic way of mapping c++ types to HDF5 datatypes and 
-provides a powerful conversion system for converting c++ types to an underlying type, that can be writen to and read from HDF5. 
+provides a powerful conversion system for converting c++ types to an underlying type, that can be written to and read from HDF5. 
 
 ## Motivation
 
@@ -25,10 +25,10 @@ dataset.write(&c, ...);
 For wrtting a `QString`, the procedure is a also little more involved:
 
 HDF5 currently supports ASCII and UTF8 as character sets, however `QString` uses the UTF16 encoding (`wchar`). 
-QString can be converted to UTF8 using the `Qstring::toUtf8` mehtod. 
+`QString` can be converted to UTF8 using the `Qstring::toUtf8` mehtod. 
 The c-string of the resulting `QByteArray` can then be accessed using the `QByteArray::constData` method.
 However the temporary `QByteArray` must be stored in a separate variable, as the c-string will be invalid as soon as the object is deleted. 
-Our snippet will then look like this:
+Our snippet will have to look like this:
 
 ```c++
 QString s = "Hello World";
@@ -38,7 +38,7 @@ char const* c = b.constData(); // access underlying c-string
 dataset.write(&c, ...); 
 ```
 
-These extra steps required stack when writing a list of `std::string` to HDF5, as the underlying strings are not in a contiguous memory layout. 
+These extra steps required accumulate when writing a list of `std::string` to HDF5, as the underlying strings are not in a contiguous memory layout. 
 We would have to append each c-string to a vector of `char*` which then may be written to HDF5.
 However when writing a list of `QString` we do not only have to create a vector of `char*` but also create a separate list for the temporary `QByteArray` to keep the c-strings valid.
 
@@ -50,7 +50,7 @@ We could do with a helper method, to write `std::string`, `QString` and similar 
 
 In HDF5 datatypes can be group to create compound types. 
 In a compound dataset each entry must consist of an data element for each compound member. 
-To read and write data it must have a contiguous memory layout which we can achive by using a helper struct.
+To read and write data it must have a contiguous memory layout, which can be archived by using a helper struct.
 
 For the following example we conside a compound type of a variable string and a floating point value:
 
@@ -82,7 +82,7 @@ data.reserve(length);
 
 for (int i = 0; i < length; ++i)
 {
-	// store temporary utf8 string
+    // store temporary utf8 string
     buffer.append(strings[i].toUtf8());
     data.append(MyData{ 
         buffer[i].data(), 
@@ -93,7 +93,11 @@ for (int i = 0; i < length; ++i)
 
 ### Datatype
 
-- `...`
+The memory layout of the data in a HDF5 dataset or attribute are defined by the HDF5 datatypes. 
+These datatypes must be passed to the hdf5 library when creating a dataset or attribute. 
+
+Say we want to write a vector of integers (`std::vector<int>`). We know that we want the HDF5 datatype representing an integer (`NATIVE_INT`), after all its "engraved" into the c++ type.
+It would be nice if we could use this c++ type directly to refer to the HDF5 type. Like mapping `int` to `NATIVE_INT`.
 
 ## Goals
 
@@ -148,7 +152,7 @@ static_assert(
 
 ### Buffer Types
 
-As noted earlyer some conversion require the buffering of temporary objects. 
+As noted earlier some conversion require the buffering of temporary objects. 
 For this a similar system is used, in which types are mapped to buffer types.
 
 It can be access using `GenH5::buffer_element_t`. 
@@ -160,20 +164,20 @@ Similarly it should be placed at the top of an file, before using the conversion
 ### Conversion
 
 For now we only mapped types to other types. 
-No real conversion has to took place by now. 
+No real conversion has took place by now. 
 
 This library provides the `GenH5::convert` method. 
-Its generally used before writing to a dataset.
-There are multiple overlaods available for each types that is currently supported. 
+Its generally used internall before writing to a dataset.
+There are multiple overloads available for each types that are currently supported. 
 However there is no default conversion for every type available.
 
-If a user-defined type can be implicitly converted to its conversion type use the macro `GENH5_DECLARE_IMPLICIT_CONVERSIONTYPE)` to register a new overload:
+If a user-defined type can be implicitly converted to its conversion type use the macro `GENH5_DECLARE_IMPLICIT_CONVERSION(TYPE)` to register a new overload:
 
 ```c++
 GENH5_DECLARE_IMPLICIT_CONVERSION(MyType)
 ```
 
-However if there is not implcit conversion available use `GENH5_DECLARE_CONVERSION(TYPE_FROM, VALUE_NAME, BUFFER_NAME)`. The macro accepts three arguments:
+However if there is not implicit conversion available use `GENH5_DECLARE_CONVERSION(TYPE_FROM, VALUE_NAME, BUFFER_NAME)`. The macro accepts three arguments:
 1) The type to convert from. It may use qualifiers like `const&`.
 2) The variable name of the value to convert (e.g. `value`).
 3) The variable name of the buffer (e.g. `buffer`). 
