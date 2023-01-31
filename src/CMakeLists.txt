@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(headers
     genh5.h
-    genh5_abtsractdataset.h
+    genh5_abstractdataset.h
     genh5_attribute.h
     genh5_conversion.h
     genh5_conversion/bindings.h
@@ -64,7 +64,7 @@ set(headers
 )
 
 set(sources
-    genh5_abtsractdataset.cpp
+    genh5_abstractdataset.cpp
     genh5_attribute.cpp
     genh5_dataset.cpp
     genh5_datasetcproperties.cpp
