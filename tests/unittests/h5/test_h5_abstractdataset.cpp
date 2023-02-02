@@ -10,7 +10,6 @@
 #include "genh5_dataset.h"
 #include "genh5_file.h"
 #include "genh5_group.h"
-#include "genh5_data.h"
 #include "genh5_attribute.h"
 
 #include "testhelper.h"
@@ -37,7 +36,7 @@ protected:
         root = file.root();
         ASSERT_TRUE(root.isValid());
 
-        dataset = root.createDataset(QByteArrayLiteral("test"),
+        dataset = root.createDataSet(QByteArrayLiteral("test"),
                                      intData.dataType(),
                                      intData.dataSpace());
         ASSERT_TRUE(dataset.isValid());
@@ -62,7 +61,7 @@ protected:
         GenH5::Data<T> data{values};
 
         // create new dataset
-        auto dset = root.createDataset(QByteArrayLiteral("test_") +
+        auto dset = root.createDataSet(QByteArrayLiteral("test_") +
                                        QByteArray(name),
                                        data.dataType(),
                                        data.dataSpace());
@@ -127,8 +126,7 @@ TEST_F(TestH5AbstractDataSet, write)
     EXPECT_TRUE(dataset.write(doubleData.raw()));
     // dtype cannot be converted
     qDebug() << "### EXPECTING ERROR: No conversion path";
-    EXPECT_THROW(dataset.write(stringData.raw(), stringData.dataType()),
-                 GenH5::DataSetException);
+    EXPECT_FALSE(dataset.write(stringData.raw(), stringData.dataType()));
     qDebug() << "### END";
 
     /** using data vector **/
@@ -139,7 +137,7 @@ TEST_F(TestH5AbstractDataSet, write)
     EXPECT_TRUE(dataset.write(doubleData));
     // dtype cannot be converted
     qDebug() << "### EXPECTING ERROR: No conversion path";
-    EXPECT_THROW(dataset.write(stringData), GenH5::DataSetException);
+    EXPECT_FALSE(dataset.write(stringData));
     qDebug() << "### END";
 }
 
@@ -158,8 +156,7 @@ TEST_F(TestH5AbstractDataSet, read)
     EXPECT_TRUE(dataset.read(doubleData.raw()));
     // dtype cannot be converted
     qDebug() << "### EXPECTING ERROR: No conversion path";
-    EXPECT_THROW(dataset.read(stringData.raw(), stringData.dataType()),
-                 GenH5::DataSetException);
+    EXPECT_FALSE(dataset.read(stringData.raw(), stringData.dataType()));
     qDebug() << "### END";
 
     /** using data vector **/
@@ -170,7 +167,7 @@ TEST_F(TestH5AbstractDataSet, read)
     EXPECT_TRUE(dataset.read(doubleData));
     // dtype cannot be converted
     qDebug() << "### EXPECTING ERROR: No conversion path";
-    EXPECT_THROW(dataset.read(stringData), GenH5::DataSetException);
+    EXPECT_FALSE(dataset.read(stringData));
     qDebug() << "### END";
 }
 
@@ -179,7 +176,7 @@ TEST_F(TestH5AbstractDataSet, writeScalar)
     QString d = "hello world";
     GenH5::Data0D<QString> data{d};
 
-    auto dset = root.createDataset("string_scalar",
+    auto dset = root.createDataSet("string_scalar",
                                    data.dataType(),
                                    GenH5::DataSpace::Scalar);
 
@@ -193,7 +190,7 @@ TEST_F(TestH5AbstractDataSet, writeScalar)
 TEST_F(TestH5AbstractDataSet, writeNull)
 {
     GenH5::Data0D<double> data{42.123};
-    auto dset = root.createDataset("double_null",
+    auto dset = root.createDataSet("double_null",
                                    data.dataType(),
                                    GenH5::DataSpace::Null);
 
@@ -245,7 +242,7 @@ TEST_F(TestH5AbstractDataSet, RWstrings1D)
 
 TEST_F(TestH5AbstractDataSet, RWsimple2D)
 {
-    GenH5::DataSet dset = root.createDataset("test_2D",
+    GenH5::DataSet dset = root.createDataSet("test_2D",
                                              doubleData.dataType(),
                                              GenH5::DataSpace({3, 2}));
 
@@ -306,7 +303,7 @@ TEST_F(TestH5AbstractDataSet, RWcomplex)
     auto data = GenH5::makeCompData(origStrs, points);
     data.setTypeNames({"strings", "varlen_poins"});
 
-    auto dset = root.createDataset("string, varlen<point>",
+    auto dset = root.createDataSet("string, varlen<point>",
                                    data.dataType(),
                                    data.dataSpace());
 
@@ -338,7 +335,7 @@ TEST_F(TestH5AbstractDataSet, RWarrayAsSimple)
 
     ASSERT_TRUE(data.dataType().isArray());
 
-    auto dset = root.createDataset("string[3]",
+    auto dset = root.createDataSet("string[3]",
                                    data.dataType(),
                                    data.dataSpace());
 
@@ -370,7 +367,7 @@ TEST_F(TestH5AbstractDataSet, RWcompoundArrayAsSimple)
 
     ASSERT_TRUE(data.dataType().compoundMembers().first().type.isArray());
 
-    auto dset = root.createDataset("comp_string[3]",
+    auto dset = root.createDataSet("comp_string[3]",
                                    data.dataType(),
                                    data.dataSpace());
 
@@ -399,7 +396,7 @@ TEST_F(TestH5AbstractDataSet, h5VarLenWrite)
 
     GenH5::File file(filePath, GenH5::Create);
 
-    auto dset = file.root().createDataset(QByteArray{"vlen_test.h5"},
+    auto dset = file.root().createDataSet(QByteArray{"vlen_test.h5"},
                               GenH5::DataType::varLen(data.dataType()),
                               GenH5::DataSpace::Scalar);
 
@@ -416,7 +413,7 @@ TEST_F(TestH5AbstractDataSet, h5VarLenRead)
 {
     GenH5::File file(filePath, GenH5::Open);
 
-    auto dset = file.root().openDataset(QByteArray{"vlen_test.h5"});
+    auto dset = file.root().openDataSet(QByteArray{"vlen_test.h5"});
 
     ASSERT_TRUE(dset.isValid());
 

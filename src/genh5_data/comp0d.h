@@ -10,7 +10,6 @@
 #define GENH5_DATA_COMP0D_H
 
 #include "genh5_data/common0d.h"
-#include "genh5_exception.h"
 
 namespace GenH5
 {

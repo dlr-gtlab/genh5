@@ -12,7 +12,10 @@
 #include "genh5_file.h"
 #include "genh5_attribute.h"
 
-#include <QDebug>
+#include <QList>
+
+#include "H5Fpublic.h"
+#include "H5Ppublic.h"
 
 GenH5::String
 GenH5::getObjectName(Location const& location) noexcept
@@ -22,7 +25,8 @@ GenH5::getObjectName(Location const& location) noexcept
     // should not be the case
     if (path.isEmpty())
     {
-        qWarning() << "HDF5: Failed to retrieve the location name!";
+        log::ErrStream() << GENH5_MAKE_EXECEPTION_STR()
+                            "Failed to retrieve the location name!";
         return {};
     }
 
@@ -55,14 +59,12 @@ GenH5::getObjectPath(GenH5::Location const& location) noexcept
     return buffer.trimmed().chopped(1);
 }
 
-GenH5::Location::Location(std::shared_ptr<File> file) noexcept :
-    m_file(std::move(file))
-{ }
+GenH5::Location::Location() noexcept = default;
 
 bool
 GenH5::Location::isValid() const noexcept
 {
-    return Object::isValid() && m_file && m_file->isValid();
+    return Object::isValid();
 }
 
 bool
@@ -81,8 +83,7 @@ GenH5::Location::exists(Vector<String> const& path) const noexcept
         subPath.push_back(entry);
         subPath.push_back('/');
 
-//        if (H5Lexists(id(), subPath.constData(), H5P_DEFAULT))
-        if (!toH5Location()->nameExists(subPath))
+        if (H5Lexists(id(), subPath.constData(), H5P_DEFAULT) == 0)
         {
             return false;
         }
@@ -107,4 +108,12 @@ GenH5::String
 GenH5::Location::path() const noexcept
 {
     return getObjectPath(*this);
+}
+
+GenH5::File GenH5::Location::file() const noexcept
+{
+    hid_t f = H5Iget_file_id(id());
+    auto cleanup = finally(H5Fclose, f);
+    Q_UNUSED(cleanup)
+    return File(f);
 }

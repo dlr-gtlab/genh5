@@ -7,23 +7,18 @@
  */
 
 #include "genh5_object.h"
+#include "genh5_idcomponent.h"
 
 using namespace GenH5;
 
 bool
 Object::isValid() const noexcept
 {
-    return H5Iis_valid(id());
+    return isValidId(id());
 }
 
 bool
 Object::isValid(hid_t id) noexcept
 {
-    return H5Iis_valid(id);
-}
-
-GenH5::ObjectType
-GenH5::Object::type() const noexcept
-{
-    return H5Iget_type(id());
+    return isValidId(id);
 }

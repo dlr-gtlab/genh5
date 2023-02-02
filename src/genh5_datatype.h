@@ -9,6 +9,7 @@
 #ifndef GENH5_DATATYPE_H
 #define GENH5_DATATYPE_H
 
+#include "genh5_idcomponent.h"
 #include "genh5_object.h"
 #include "genh5_conversion/type.h"
 #include "genh5_typetraits.h"
@@ -31,21 +32,22 @@ public:
 
     using Type = H5T_class_t;
 
-    static DataType Bool;
-    static DataType Char;
+    static DataType const& Bool;
+    static DataType const& Char;
 
-    static DataType Int;
-    static DataType Long;
-    static DataType LLong;
-    static DataType UInt;
-    static DataType ULong;
-    static DataType ULLong;
+    static DataType const& Int;
+    static DataType const& Long;
+    static DataType const& LLong;
+    static DataType const& UInt;
+    static DataType const& ULong;
+    static DataType const& ULLong;
 
-    static DataType Float;
-    static DataType Double;
+    static DataType const& Float;
+    static DataType const& Double;
 
-    static DataType Version;
-    static DataType VarString;
+    static DataType const& VarString;
+
+    static DataType const& Version;
 
     /// will create an string type with utf8 enabled by default
     static DataType string(size_t size, bool useUtf8 = true) noexcept(false);
@@ -59,17 +61,11 @@ public:
     static DataType compound(size_t dataSize,
                              CompoundMembers const& members) noexcept(false);
 
-    DataType();
-    explicit DataType(H5::DataType type);
+    /// Instantiates a new Datatype and assigns the id without incrementing it
+    static DataType fromId(hid_t id) noexcept;
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief allows access of the base hdf5 object
-     * @return base hdf5 object
-     */
-    [[deprecated("use id() instead")]]
-    H5::DataType const& toH5() const noexcept;
-#endif
+    DataType();
+    explicit DataType(hid_t id);
 
     /**
      * @brief size
@@ -151,10 +147,13 @@ public:
      */
     DataType superType() const noexcept(false);
 
+    /// swaps all members
+    void swap(DataType& other) noexcept;
+
 protected:
 
-    /// hdf5 base instance
-    H5::DataType m_datatype{};
+    /// datatype id
+    IdComponent<H5I_DATATYPE> m_id;
 };
 
 struct CompoundMember
@@ -347,6 +346,12 @@ GENH5_EXPORT bool operator==(GenH5::CompoundMember const& first,
                              GenH5::CompoundMember const& other);
 GENH5_EXPORT bool operator!=(GenH5::CompoundMember const& first,
                              GenH5::CompoundMember const& other);
+
+inline void
+swap(GenH5::DataType& a, GenH5::DataType& b) noexcept
+{
+    a.swap(b);
+}
 
 #define GENH5_DECLARE_DATATYPE(NATIVE_TYPE, H5_TYPE) \
     template <> \

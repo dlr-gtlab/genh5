@@ -9,9 +9,9 @@
 #ifndef GENH5_DATA_BASE_H
 #define GENH5_DATA_BASE_H
 
-#include "genh5_conversion.h"
+#include "genh5_datatype.h"
 #include "genh5_dataspace.h"
-#include "genh5_data/buffer.h"
+#include "genh5_conversion.h"
 
 namespace GenH5
 {

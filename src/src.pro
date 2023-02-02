@@ -23,16 +23,17 @@ QT += core
 
 TEMPLATE = lib
 CONFIG += plugin
+#DEFINES += GENH5_NO_BUFFER_RESERVING
 
-# H5Cpp specific
+# H5C/Cpp specific
 DEFINES += H5_BUILT_AS_DYNAMIC_LIB
-# disable deprecated symbols
 DEFINES += H5_NO_DEPRECATED_SYMBOLS
 # GenH5 specific
 #DEFINES += GENH5_NO_DEPRECATED_SYMBOLS
-#DEFINES += GENH5_NO_BUFFER_RESERVING
+#DEFINES += GENH5_NO_BUFFER_AUTORESERVE
 #DEFINES += GENH5_NO_STATIC_BUFFER
 #DEFINES += GENH5_NO_DATA_AUTORESIZE
+#DEFINES += GENH5_NO_EXCEPTION_ID
 
 win32 {
     DEFINES += GENH5_DLL
@@ -78,13 +79,17 @@ HEADERS += \
     genh5_datatype.h \
     genh5_exception.h \
     genh5_file.h \
+    genh5_globals.h \
     genh5_group.h \
+    genh5_idcomponent.h \
     genh5_location.h \
+    genh5_logging.h \
     genh5_mpl.h \
     genh5_node.h \
     genh5_object.h \
     genh5_exports.h \
     genh5_optional.h \
+    genh5_private.h \
     genh5_reference.h \
     genh5_typedefs.h \
     genh5_typetraits.h \
@@ -100,22 +105,25 @@ SOURCES += \
     genh5_datatype.cpp \
     genh5_file.cpp \
     genh5_group.cpp \
+    genh5_idcomponent.cpp \
     genh5_location.cpp \
+    genh5_logging.cpp \
     genh5_node.cpp \
     genh5_object.cpp \
+    genh5_private.cpp \
     genh5_reference.cpp \
     genh5_utils.cpp \
     genh5_version.cpp
 
 CONFIG(debug, debug|release) {
     win32 {
-        LIBS += -lhdf5_D -lhdf5_cpp_D
+        LIBS += -lhdf5_D
     }
     unix {
-        LIBS += -lhdf5 -lhdf5_cpp
+        LIBS += -lhdf5
     }
 } else {
-    LIBS += -lhdf5 -lhdf5_cpp
+    LIBS += -lhdf5
 }
 
 ######################################################################
@@ -125,6 +133,7 @@ KEEP_INCLUDEPATHS += \
     genh5_data
 
 PRIVATE_INCLUDEPATHS += \
+    genh5_private.h
 
 copyHeaders($$HEADERS, $$KEEP_INCLUDEPATHS, $$PRIVATE_INCLUDEPATHS)
 copyToEnvironmentPath()

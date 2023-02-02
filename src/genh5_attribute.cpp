@@ -10,8 +10,10 @@
 #include "genh5_node.h"
 #include "genh5_file.h"
 #include "genh5_exception.h"
+#include "genh5_private.h"
 
-#include <QDebug>
+#include "H5Ppublic.h"
+#include "H5Apublic.h"
 
 GenH5::String
 GenH5::getAttributeName(Attribute const& attr) noexcept
@@ -41,89 +43,53 @@ GenH5::getAttributeName(Attribute const& attr) noexcept
 
 GenH5::Attribute::Attribute() = default;
 
-GenH5::Attribute::Attribute(std::shared_ptr<File> file, H5::Attribute attr) :
-    Location{std::move(file)},
-    m_attribute(std::move(attr))
-{ }
+GenH5::Attribute::Attribute(hid_t id) :
+    m_id(id)
+{
+    m_id.inc();
+}
 
 hid_t
 GenH5::Attribute::id() const noexcept
 {
-    return m_attribute.getId();
+    return m_id;
 }
-
-H5::H5Location const*
-GenH5::Attribute::toH5Location() const noexcept
-{
-    return &m_attribute;
-}
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-H5::Attribute const&
-GenH5::Attribute::toH5() const noexcept
-{
-    return m_attribute;
-}
-#endif
 
 bool
 GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 {
-    try
-    {
-        m_attribute.write(dtype.toH5(), data);
-        return true;
-    }
-    catch (H5::AttributeIException const& e)
-    {
-        qCritical() << "HDF5: Writing attribute failed! -" << name();
-        throw AttributeException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Writing attribute failed! -"
-                    << name();
-        throw AttributeException{e.getCDetailMsg()};
-    }
+    herr_t err = H5Awrite(m_id, dtype.id(), data);
+
+    return err >= 0;
 }
 
 bool
 GenH5::Attribute::doRead(void* data, DataType const& dtype) const
 {
-    try
-    {
-        m_attribute.read(dtype.toH5(), data);
-        return true;
-    }
-    catch (H5::AttributeIException const& e)
-    {
-        qCritical() << "HDF5: Reading attribute failed! -" << name();
-        throw AttributeException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Reading attribute failed! -"
-                    << name();
-        throw AttributeException{e.getCDetailMsg()};
-    }
+    herr_t err = H5Aread(m_id, dtype.id(), data);
+
+    return err >= 0;
 }
 
 void
 GenH5::Attribute::deleteLink() noexcept(false)
 {
-    qDebug() << "HDF5: Deleting attribute...";
-
     if (!isValid())
     {
-        throw LocationException{"Deleting attribute failed "
-                                "(Invalid attribute)"};
+        throw LocationException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Deleting attribute failed (invalid id)"
+        };
     }
 
     // returns error type
-    if (H5Adelete_by_name(file()->id(), path().constData(),
+    if (H5Adelete_by_name(file().id(), path().constData(),
                           name().constData(), H5P_DEFAULT) < 0)
     {
-        throw LocationException{"Deleting attribute failed"};
+        throw LocationException{
+            GENH5_MAKE_EXECEPTION_STR() "Deleting attribute '" +
+            path().toStdString() + ":" + name().toStdString() + "' failed"
+        };
     }
 
     close();
@@ -138,11 +104,49 @@ GenH5::Attribute::name() const noexcept
 void
 GenH5::Attribute::close()
 {
-    m_attribute.close();
+    m_id.dec();
 }
 
-H5::AbstractDs const&
-GenH5::Attribute::toH5AbsDataSet() const noexcept
+GenH5::DataType
+GenH5::Attribute::dataType() const noexcept(false)
 {
-    return m_attribute;
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to access datatype";
+
+    if (!isValid())
+    {
+        throw DataTypeException{
+            GENH5_MAKE_EXECEPTION_STR() "Accessing datatype failed (invalid id)"
+        };
+    }
+
+    return details::make<DataType, DataTypeException>([id = m_id](){
+        return H5Aget_type(id);
+    }, errMsg);
+}
+
+GenH5::DataSpace
+GenH5::Attribute::dataSpace() const noexcept(false)
+{
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to access dataspace";
+
+    if (!isValid())
+    {
+        throw DataSpaceException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Accessing dataspace failed (invalid id)"
+        };
+    }
+
+    return details::make<DataSpace, DataSpaceException>([id = m_id](){
+        return H5Aget_space(id);
+    }, errMsg);
+}
+
+void
+GenH5::Attribute::swap(Attribute& other) noexcept
+{
+    using std::swap;
+    swap(m_id, other.m_id);
 }

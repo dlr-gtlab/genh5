@@ -11,6 +11,7 @@
 
 #include "genh5_location.h"
 
+#include "H5Rpublic.h"
 
 namespace GenH5
 {

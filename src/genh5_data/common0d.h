@@ -10,6 +10,7 @@
 #define GENH5_DATA_COMMON0D_H
 
 #include "genh5_data/base.h"
+#include "genh5_data/buffer.h"
 
 namespace GenH5
 {

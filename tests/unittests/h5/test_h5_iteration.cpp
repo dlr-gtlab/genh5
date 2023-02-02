@@ -63,7 +63,7 @@ protected:
         auto list = m_groups + m_dsets;
         for (auto const& info : nodes)
         {
-            EXPECT_TRUE(info.isGroup() | info.isDataSet());
+            EXPECT_TRUE(info.isGroup() || info.isDataSet());
             EXPECT_TRUE(list.contains(info.path));
             EXPECT_TRUE(info.toNode(parent)->isValid());
         }
@@ -107,7 +107,7 @@ protected:
         for (auto const& path : qAsConst(m_dsets))
         {
             qDebug() << "creating dataset" << path;
-            EXPECT_TRUE(root.createDataset(path,
+            EXPECT_TRUE(root.createDataSet(path,
                                            GenH5::dataType<int>(),
                                            GenH5::DataSpace{2, 4}).isValid());
         }
@@ -141,7 +141,7 @@ TEST_F(TestH5Iteration, findChildObjects)
     EXPECT_EQ(root.findAttributes().size(), 0);
     EXPECT_EQ(root.findChildNodes().size(), 0);
 
-    EXPECT_TRUE(root.createVersionAttribute());
+    EXPECT_NO_THROW(root.writeVersionAttribute());
     EXPECT_EQ(root.findAttributes().size(), 1);
     EXPECT_EQ(root.findChildNodes().size(), 0);
 
@@ -187,25 +187,25 @@ TEST_F(TestH5Iteration, sample)
 
     // create a sample file structure
     auto a = file.root().createGroup("A");
-    a.createVersionAttribute();
+    a.writeVersionAttribute();
     a.createAttribute("my_value", GenH5::dataType<double>(),
                       GenH5::DataSpace::Scalar);
-    a.createDataset("my_dset", GenH5::dataType<int>(),
+    a.createDataSet("my_dset", GenH5::dataType<int>(),
                     GenH5::DataSpace::Scalar);
 
     auto data = a.createGroup("data");
-    data.createDataset("1", GenH5::dataType<int>(),
+    data.createDataSet("1", GenH5::dataType<int>(),
                        GenH5::DataSpace::linear(10)).
-            createVersionAttribute();
-    data.createDataset("2", GenH5::dataType<double>(),
+            writeVersionAttribute();
+    data.createDataSet("2", GenH5::dataType<double>(),
                        GenH5::DataSpace{5, 10}).
-            createVersionAttribute();
+            writeVersionAttribute();
 
     auto b = file.root().createGroup("B");
-    b.createVersionAttribute();
+    b.writeVersionAttribute();
     b.createAttribute("my_attr", GenH5::dataType<QString>(),
                       GenH5::DataSpace::Scalar);
-    b.createDataset("empty", GenH5::dataType<char>(),
+    b.createDataSet("empty", GenH5::dataType<char>(),
                     GenH5::DataSpace::Null);
     b.createGroup("my_sub_group");
 

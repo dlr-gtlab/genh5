@@ -8,25 +8,43 @@
 
 #include "genh5_datasetcproperties.h"
 #include "genh5_dataspace.h"
+#include "genh5_private.h"
 
-#include <QDebug>
+#include "H5Ppublic.h"
 
-static constexpr auto s_cmax = 9;
-static constexpr auto s_cmin = 0;
+static constexpr int s_cmax = 9u;
+static constexpr int s_cmin = 0u;
 
-GenH5::DataSetCProperties::DataSetCProperties() noexcept:
-    m_properties(H5::DSetCreatPropList::DEFAULT)
-{ }
+GenH5::DataSetCProperties::DataSetCProperties() :
+    m_id(H5Pcreate(H5P_DATASET_CREATE))
+{
+    if (m_id < 0)
+    {
+        throw PropertyListException{
+            GENH5_MAKE_EXECEPTION_STR() "Creating default properties failed"
+        };
+    }
+}
 
-GenH5::DataSetCProperties::DataSetCProperties(H5::DSetCreatPropList properties):
-    m_properties{std::move(properties)}
-{ }
+GenH5::DataSetCProperties::DataSetCProperties(hid_t id) :
+    m_id(id)
+{
+    m_id.inc();
+}
 
 GenH5::DataSetCProperties::DataSetCProperties(Dimensions const& dimensions,
-                                             int compression)
+                                              int compression) :
+    DataSetCProperties() // create default
 {
     setChunkDimensions(dimensions);
     setDeflate(compression);
+}
+
+GenH5::DataSetCProperties GenH5::DataSetCProperties::fromId(hid_t id) noexcept
+{
+    DataSetCProperties d;
+    d.m_id = id;
+    return d;
 }
 
 GenH5::Dimensions
@@ -47,7 +65,7 @@ GenH5::DataSetCProperties::autoChunk(DataSpace const& dataspace) noexcept
 hid_t
 GenH5::DataSetCProperties::id() const noexcept
 {
-    return m_properties.getId();
+    return m_id;
 }
 
 void
@@ -56,54 +74,38 @@ GenH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions
 {
     if (dimensions.isEmpty())
     {
-        throw DataSetException{"Chunking failed (Invalid dimensions)"};
+        throw PropertyListException{
+            GENH5_MAKE_EXECEPTION_STR() "Chunking failed (Invalid dimensions)"
+        };
     }
 
-    try
+    if (H5Pset_chunk(m_id, dimensions.length(), dimensions.data()))
     {
-        m_properties.setChunk(dimensions.length(), dimensions.data());
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] DataSetCProperties::"
-                       "setChunkDimensions";
-        throw DataSetException{e.getCDetailMsg()};
+        throw PropertyListException{
+            GENH5_MAKE_EXECEPTION_STR() "Chunking failed"
+        };
     }
 }
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-H5::DSetCreatPropList const&
-GenH5::DataSetCProperties::toH5() const noexcept
-{
-    return m_properties;
-}
-
-void
-GenH5::DataSetCProperties::setCompression(int level) noexcept(false)
-{
-    return setDeflate(level);
-}
-#endif
 
 void
 GenH5::DataSetCProperties::setDeflate(int level) noexcept(false)
 {
     if (level > s_cmax)
     {
-        qWarning().nospace()
-                << "HDF5: Compression level must be within " << s_cmin
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Compression level must be within "
+                << s_cmin
                 << " and " << s_cmax << "! value: " << level
                 << ", using: " << s_cmax;
         level = s_cmax;
     }
     else if (level < s_cmin)
     {
-        qWarning().nospace()
-                << "HDF5: Compression level must be within " << s_cmin
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Compression level must be within "
+                << s_cmin
                 << " and " << s_cmax << "! value: " << level
                 << ", using: " << s_cmin;
         level = s_cmin;
@@ -116,29 +118,24 @@ GenH5::DataSetCProperties::setDeflate(int level) noexcept(false)
 
     if (!isChunked() && level > s_cmin)
     {
-        throw DataSetException{"Setting deflate compression failed "
-                               "(Dataset must be chunked first)"};
+        throw PropertyListException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Setting deflate compression failed (dataset must be chunked first)"
+        };
     }
 
-    try
+    if (H5Pset_deflate(m_id, static_cast<unsigned>(level)) < 0)
     {
-        m_properties.setDeflate(level);
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] DataSetCProperties::setCompression";
-        throw DataSetException{e.getCDetailMsg()};
+        throw PropertyListException{
+            GENH5_MAKE_EXECEPTION_STR() "Deflating failed"
+        };
     }
 }
 
 bool
 GenH5::DataSetCProperties::isChunked() const noexcept
 {
-    return H5Pget_layout(DataSetCProperties::id()) == H5D_layout_t::H5D_CHUNKED;
+    return H5Pget_layout(m_id) == H5D_layout_t::H5D_CHUNKED;
 }
 
 bool
@@ -147,9 +144,9 @@ GenH5::DataSetCProperties::isDeflated() const noexcept
     uint flags{};
     uint config{};
 
-    return H5Pget_nfilters(id()) &&
-           !H5Pget_filter_by_id(id(), H5Z_FILTER_DEFLATE, &flags,
-                                0, nullptr, 0, nullptr, &config);
+    return H5Pget_nfilters(m_id) &&
+           H5Pget_filter_by_id(m_id, H5Z_FILTER_DEFLATE, &flags,
+                               0, nullptr, 0, nullptr, &config) >= 0;
 }
 
 int
@@ -160,10 +157,10 @@ GenH5::DataSetCProperties::deflation() const noexcept
     uint compression{}; // "compression level" is the first entry in the data
     uint config{};      // filter config - not relevant?
 
-    herr_t err = H5Pget_filter_by_id(id(), H5Z_FILTER_DEFLATE, &flags,
-                                     &len, &compression, 0, nullptr, &config);
+    herr_t err = H5Pget_filter_by_id(m_id, H5Z_FILTER_DEFLATE, &flags, &len,
+                                     &compression, 0, nullptr, &config);
 
-    return err ? 0 : compression;
+    return err < 0 ? 0 : compression;
 }
 
 GenH5::Dimensions
@@ -174,9 +171,16 @@ GenH5::DataSetCProperties::chunkDimensions() const noexcept
         return {};
     }
 
-    Dimensions dims(H5Pget_chunk(id(), 0, nullptr));
-    H5Pget_chunk(id(), dims.size(), dims.data());
+    Dimensions dims(H5Pget_chunk(m_id, 0, nullptr));
+    H5Pget_chunk(m_id, dims.size(), dims.data());
     return dims;
+}
+
+void
+GenH5::DataSetCProperties::swap(DataSetCProperties& other) noexcept
+{
+    using std::swap;
+    swap(m_id, other.m_id);
 }
 
 #if 0

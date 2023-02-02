@@ -12,6 +12,7 @@
 #include "genh5_optional.h"
 
 #include "genh5_data/base.h"
+#include "genh5_data/buffer.h"
 
 namespace GenH5
 {
@@ -236,8 +237,12 @@ public:
     {
         if (prod<size_type>(dims) > size())
         {
-            throw InvalidArgumentError{"Dimension size does not match "
-                                       "data size!"};
+            throw InvalidArgumentError{
+                GENH5_MAKE_EXECEPTION_STR()
+                "Dimension size does not match data size (" +
+                std::to_string(prod<size_type>(dims)) + " vs. " +
+                std::to_string(size()) + ')'
+            };
         }
         m_dims = std::move(dims);
     }
@@ -319,8 +324,11 @@ public:
         using GenH5::convertTo; // ADL
         if (size() % n != 0)
         {
-            throw InvalidArgumentError{"Cannot split data into equally "
-                                       "sized lists! (size % n != 0)"};
+            throw InvalidArgumentError{
+                GENH5_MAKE_EXECEPTION_STR()
+                "Failed to split data into equally sized lists (" +
+                std::to_string(size()) + " % " + std::to_string(n) + " != 0)"
+            };
         }
         size_type length = size() / n;
         Container c;
@@ -350,10 +358,10 @@ public:
     reference operator[](size_type i) { return m_data[i]; }
     const_reference operator[](size_type i) const { return m_data[i]; }
     // ND
-    reference operator[](QVector<hsize_t> const& idxs) {
+    reference operator[](Vector<hsize_t> const& idxs) {
         return operator[](idx(m_dims, idxs));
     }
-    const_reference operator[](QVector<hsize_t> const& idxs) const {
+    const_reference operator[](Vector<hsize_t> const& idxs) const {
         return operator[](idx(m_dims, idxs));
     }
 
@@ -416,10 +424,10 @@ public:
         return at(idx(m_dims, {idxA, idxB}));
     }
     // ND
-    reference at(QVector<hsize_t> const& idxs) {
+    reference at(Vector<hsize_t> const& idxs) {
         return at(idx(m_dims, idxs));
     }
-    const_reference at(QVector<hsize_t> const& idxs) const {
+    const_reference at(Vector<hsize_t> const& idxs) const {
         return at(idx(m_dims, idxs));
     }
 
@@ -443,26 +451,6 @@ public:
     {
         return m_data.mid(pos, len);
     }
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /** access container type **/
-    [[deprecated("Use CommonData<T>::raw instead")]]
-    container_type const& c() const { return raw(); }
-    [[deprecated("Use CommonData<T>::raw instead")]]
-    container_type& c() { return raw(); }
-
-    /** deserialize **/
-    [[deprecated("Use CommonData<T>::value instead")]]
-    auto deserializeIdx(size_type idx) const { return value(idx); }
-
-    template <typename Container = Vector<traits::convert_to_t<T>>>
-    [[deprecated("Use CommonData<T>::values  instead")]]
-    auto deserialize() const { return values<Container>(); }
-
-    template <typename Container>
-    [[deprecated("Use CommonData<T>::unpack instead")]]
-    void deserialize(Container& c) const { return unpack(c); }
-#endif
 
 protected:
 
@@ -488,9 +476,6 @@ struct data_helper<T>
 };
 
 } // namespace details
-
-template<typename T>
-using AbstractData [[deprecated("Use CommonData<T> instead")]] = CommonData<T>;
 
 template<typename... Ts>
 using Data = typename details::data_helper<Ts...>::type;

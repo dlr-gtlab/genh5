@@ -9,6 +9,7 @@
 #ifndef GENH5_H
 #define GENH5_H
 
+#include "genh5_globals.h"
 #include "genh5_version.h"
 #include "genh5_attribute.h"
 #include "genh5_dataset.h"

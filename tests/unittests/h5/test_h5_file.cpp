@@ -34,17 +34,9 @@ TEST_F(TestH5File, isValid)
     GenH5::File file;
     // default file object should be invalid
     EXPECT_FALSE(file.isValid());
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    // file should not exist and therefore not be valid
-    EXPECT_FALSE(GenH5::File::isValidH5File(filePath));
-#endif
     // create a new file
     file = GenH5::File(filePath, GenH5::Create);
     EXPECT_TRUE(file.isValid());
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    // file path should exist and be valid
-    EXPECT_TRUE(GenH5::File::isValidH5File(filePath));
-#endif
 }
 
 TEST_F(TestH5File, root)
@@ -64,7 +56,7 @@ TEST_F(TestH5File, root)
 
     // handles should be different
     EXPECT_NE(file.id(), root.id());
-    EXPECT_EQ(file.id(), root.file()->id());
+    EXPECT_EQ(file.id(), root.file().id());
 }
 
 TEST_F(TestH5File, filePath)

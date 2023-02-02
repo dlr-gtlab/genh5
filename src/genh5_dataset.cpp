@@ -7,95 +7,75 @@
  */
 
 #include "genh5_dataset.h"
+#include "genh5_private.h"
 #include "genh5_reference.h"
 #include "genh5_node.h"
 #include "genh5_file.h"
 
-#include <QDebug>
+#include "H5Dpublic.h"
+#include "H5Ppublic.h"
 
 GenH5::DataSet::DataSet() = default;
 
-GenH5::DataSet::DataSet(std::shared_ptr<File> file, H5::DataSet dset) :
-    Node{std::move(file)},
-    m_dataset{std::move(dset)}
-{ }
+GenH5::DataSet::DataSet(hid_t id) :
+    m_id(id)
+{
+    m_id.inc();
+}
+
+void
+GenH5::DataSet::swap(DataSet& other) noexcept
+{
+    using std::swap;
+    swap(m_id, other.m_id);
+}
 
 hid_t
 GenH5::DataSet::id() const noexcept
 {
-    return m_dataset.getId();
-}
-
-H5::H5Object const*
-GenH5::DataSet::toH5Object() const noexcept
-{
-    return &m_dataset;
+    return m_id;
 }
 
 GenH5::DataSetCProperties
 GenH5::DataSet::cProperties() const noexcept(false)
 {
-    try
-    {
-        return DataSetCProperties{m_dataset.getCreatePlist()};
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] DataSet::cProperties";
-        throw DataSetException{e.getCDetailMsg()};
-    }
-}
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR()
+            "Failed to access dataset creation properties";
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-H5::DataSet const&
-GenH5::DataSet::toH5() const noexcept
-{
-    return m_dataset;
+    if (!isValid())
+    {
+        throw DataSetException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Failed to open cProperties (invalid dataset id)"
+        };
+    }
+
+    return details::make<DataSetCProperties, DataSetException>([id = m_id](){
+        return H5Dget_create_plist(id);
+    }, errMsg);
 }
-#endif
 
 bool
 GenH5::DataSet::doWrite(void const* data, DataType const& dtype) const
 {
-    try
-    {
-        m_dataset.write(data, dtype.toH5());
-        return true;
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        qCritical() << "HDF5: Writing dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Writing dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
+    auto dspace = dataSpace();
+
+    herr_t err = H5Dwrite(m_id, dtype.id(), dspace.id(), dspace.id(),
+                          H5P_DEFAULT, data);
+
+    return err >= 0;
 }
 
 bool
 GenH5::DataSet::doRead(void* data, DataType const& dtype) const
 {
-    try
-    {
-        m_dataset.read(data, dtype.toH5());
-        return true;
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        qCritical() << "HDF5: Reading dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Reading dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
+    auto dspace = dataSpace();
+
+    herr_t err = H5Dread(m_id, dtype.id(), dspace.id(), dspace.id(),
+                         H5P_DEFAULT, data);
+
+    return err >= 0;
 }
 
 bool
@@ -104,17 +84,19 @@ GenH5::DataSet::write(void const* data,
                       DataSpace const& memSpace,
                       Optional<DataType> dtype) const
 {
-    static constexpr auto errMsg = "HDF5: Writing data vector failed!";
-
     auto space = dataSpace();
     if (space.isNull())
     {
-        qCritical() << errMsg << "(Null dataspace)";
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR() "Writing dataset '"
+                << path() << "' failled (null dataspace)";
         return false;
     }
     if (!data)
     {
-        qCritical() << errMsg << "(Data vector is invalid)";
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR() "Writing dataset '"
+                << path() << "' failled (invalid data)";
         return false;
     }
 
@@ -124,21 +106,10 @@ GenH5::DataSet::write(void const* data,
         dtype = type;
     }
 
-    try
-    {
-        m_dataset.write(data, dtype->toH5(), memSpace.toH5(), fileSpace.toH5());
-        return true;
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        qCritical() << "HDF5: Writing dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Writing dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
+    herr_t err = H5Dwrite(m_id, dtype->id(), memSpace.id(), fileSpace.id(),
+                          H5P_DEFAULT, data);
+
+    return err >= 0;
 }
 
 bool
@@ -147,17 +118,19 @@ GenH5::DataSet::read(void* data,
                      DataSpace const& memSpace,
                      Optional<DataType> dtype)
 {
-    static constexpr auto errMsg = "HDF5: Reading data vector failed!";
-
     auto space = dataSpace();
     if (space.isNull())
     {
-        qCritical() << errMsg << "(Null dataspace)";
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR() "Reading dataset '"
+                << path() << "' failled (null dataspace)";
         return false;
     }
     if (!data)
     {
-        qCritical() << errMsg << "(Data vector is invalid)";
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR() "Reading dataset '"
+                << path() << "' failled (invalid data)";
         return false;
     }
 
@@ -167,37 +140,20 @@ GenH5::DataSet::read(void* data,
         dtype = type;
     }
 
-    try
-    {
-        m_dataset.read(data, dtype->toH5(), memSpace.toH5(), fileSpace.toH5());
-        return true;
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        qCritical() << "HDF5: Reading dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Reading dataset failed! -" << name();
-        throw DataSetException{e.getCDetailMsg()};
-    }
-}
+    herr_t err = H5Dread(m_id, dtype->id(), memSpace.id(), fileSpace.id(),
+                         H5P_DEFAULT, data);
 
-H5::AbstractDs const&
-GenH5::DataSet::toH5AbsDataSet() const noexcept
-{
-    return m_dataset;
+    return err >= 0;
 }
 
 void
 GenH5::DataSet::deleteLink() noexcept(false)
 {
-    qDebug() << "HDF5: Deleting dataset..." << name();
-
     if (!isValid())
     {
-        throw LocationException{"Deleting dataset failed (Invalid dataset)"};
+        throw LocationException{
+            GENH5_MAKE_EXECEPTION_STR() "Deleting dataset failed (invalid id)"
+        };
     }
 
     auto m_dataspace = dataSpace();
@@ -205,12 +161,18 @@ GenH5::DataSet::deleteLink() noexcept(false)
     dims.fill(0);
 
     // resize dataset to 0
-    resize(dims);
+    if (cProperties().isChunked())
+    {
+        resize(dims);
+    }
 
     // returns error type
-    if (H5Ldelete(m_file->id(), path().constData(), H5P_DEFAULT) < 0)
+    if (H5Ldelete(file().id(), path().constData(), H5P_DEFAULT) < 0)
     {
-        throw LocationException{"Deleting dataset failed"};
+        throw LocationException{
+            GENH5_MAKE_EXECEPTION_STR() "Deleting dataset '" +
+            path().toStdString() + "' failed"
+        };
     }
     close();
 }
@@ -228,33 +190,75 @@ GenH5::DataSet::deleteRecursively() noexcept(false)
     deleteLink();
 }
 
+GenH5::DataType
+GenH5::DataSet::dataType() const noexcept(false)
+{
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to access datatype";
+
+    if (!isValid())
+    {
+        throw DataTypeException{
+            GENH5_MAKE_EXECEPTION_STR() "Accessing datatype failed (invalid id)"
+        };
+    }
+
+    return details::make<DataType, DataTypeException>([id = m_id](){
+        return H5Dget_type(id);
+    }, errMsg);
+}
+
+GenH5::DataSpace
+GenH5::DataSet::dataSpace() const noexcept(false)
+{
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to access dataspace";
+
+    if (!isValid())
+    {
+        throw DataSpaceException{
+            GENH5_MAKE_EXECEPTION_STR() "Accessing dataspace failed (invalid id)"
+        };
+    }
+
+    return details::make<DataSpace, DataSpaceException>([id = m_id](){
+        return H5Dget_space(id);
+    }, errMsg);
+}
+
 bool
 GenH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
 {
     // dataset must be chunked
-    if (!properties().isChunked())
+    if (!cProperties().isChunked())
     {
-        qCritical() << "HDF5: Resizing dataset failed! (not chunked)";
+        log::ErrStream() << GENH5_MAKE_EXECEPTION_STR()
+                            "Resizing dataset failed! (not chunked)";
         return false;
     }
 
     // nDims must be equal
-    if (dimensions.length() != dataSpace().nDims())
+    auto dspace = dataSpace();
+    if (dimensions.length() != dspace.nDims())
     {
-        qCritical() << "HDF5: Resizing dataset failed! (n-dims mismatch)";
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Resizing dataset failed! (n-dims mismatch: "
+                << dimensions.length() << " vs. " << dspace.nDims() << ")";
         return false;
     }
 
     // check if resizing is necessary
-    if (dimensions != dataSpace().dimensions())
+    herr_t err = 0;
+    if (dimensions != dspace.dimensions())
     {
-        m_dataset.extend(dimensions.constData());
+        err = H5Dset_extent(m_id, dimensions.constData());
     }
-    return true;
+    return err >= 0;
 }
 
 void
 GenH5::DataSet::close()
 {
-    m_dataset.close();
+    m_id.dec();
 }

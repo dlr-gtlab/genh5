@@ -9,9 +9,9 @@
 #ifndef GENH5_UTILS_H
 #define GENH5_UTILS_H
 
+#include "genh5_globals.h"
 #include "genh5_mpl.h"
 #include "genh5_typetraits.h"
-#include "genh5_exports.h"
 #include "genh5_exception.h"
 
 namespace GenH5
@@ -30,7 +30,7 @@ prod(Container const& c)
     return std::accumulate(std::cbegin(c), std::cend(c),
                            Tout(!(std::cbegin(c) == std::cend(c))),
                            [](Tout prod, Tin dim) {
-        return prod * (dim);
+        return prod * dim;
     });
 }
 
@@ -48,8 +48,10 @@ idx(Dimensions const& dims, Vector<hsize_t> const& idxs)
     auto size = dims.size();
     if (size != idxs.size())
     {
-        throw InvalidArgumentError{"Number of Dimensions does not equal "
-                                   "Idx-Vector size!"};
+        throw InvalidArgumentError{
+            GENH5_MAKE_EXECEPTION_STR() "nDims does not equal idx list size (" +
+            std::to_string(size) + " != " + std::to_string(idxs.size()) + ')'
+        };
     }
 
     hsize_t idx = 0;
@@ -68,15 +70,15 @@ idx(Dimensions const& dims, Vector<hsize_t> const& idxs)
 template <size_t idx,
           typename Ttuple,
           size_t size = std::tuple_size<traits::decay_crv_t<Ttuple>>::value>
-inline auto
-rget(Ttuple&& tuple) -> decltype (auto)
+inline decltype(auto)
+rget(Ttuple&& tuple)
 {
     return std::get<size-1-idx>(std::forward<Ttuple>(tuple));
 }
 
 template <size_t idx, typename Ttuple>
-inline auto
-get(Ttuple&& tuple) -> decltype (auto)
+inline decltype(auto)
+get(Ttuple&& tuple)
 {
     return std::get<idx>(std::forward<Ttuple>(tuple));
 }
@@ -139,8 +141,12 @@ makeArraysFromList(Container&& container) noexcept(false)
 {
     if (container.size() % N != 0)
     {
-        throw InvalidArgumentError{"Cannot split container into equally "
-                                   "sized arrays! (size % N != 0)"};
+        throw InvalidArgumentError{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Failed to split container into equally sized arrays (" +
+            std::to_string(container.size()) + " % " +
+            std::to_string(N) + " != 0)"
+        };
     }
     int length = container.size() / N;
     R arrays;
@@ -207,8 +213,12 @@ makeComp(Containers&&... containersIn) noexcept(false)
         auto* container = get<idx>(containers);
         if (size != container->size())
         {
-            throw InvalidArgumentError{"Containers have different number "
-                                       "of elements!"};
+            throw InvalidArgumentError{
+                GENH5_MAKE_EXECEPTION_STR_ID("makeComp")
+                "Input containers have different number of elements (" +
+                std::to_string(size) + " != " +
+                std::to_string(container->size()) + ')'
+            };
         }
 
         int i = 0;
@@ -321,6 +331,111 @@ unpackNested(Nested&& nested, Containers&... containersIn)
     {
         unpack(nested[i], containersIn[i]...);
     }
+}
+
+/**
+ * @brief The Finally class.
+ * Calls a member function on an object in the destructor. Used for cleaning up.
+ */
+template <typename Functor>
+class Finally
+{
+public:
+
+    explicit Finally(Functor func) :
+        m_func{std::move(func)}
+    { }
+
+    // no copy
+    Finally(Finally const&) = delete;
+    Finally& operator=(Finally const&) = delete;
+
+    // move allowed
+    Finally(Finally&& other) :
+        m_func{other.m_func},
+        m_invoked{other.m_invoked}
+    {
+        other.clear();
+    };
+
+    Finally& operator=(Finally&& other)
+    {
+        using std::swap; // ADL
+        Finally tmp{std::move(other)};
+        swap(m_func, tmp.m_func);
+        swap(m_invoked, tmp.m_invoked);
+        return *this;
+    };
+
+    ~Finally() { invoke(); }
+
+    /**
+     * @brief Check if function or object is null
+     * @return
+     */
+    bool isNull() const
+    {
+        return m_invoked;
+    }
+
+    /**
+     * @brief Calls the cleanup function. Object will go invalid.
+     */
+    void exec()
+    {
+        invoke();
+        clear();
+    }
+
+    /**
+     * @brief Clears object
+     */
+    void clear()
+    {
+        m_invoked = true;
+    }
+
+private:
+
+    // actual function to call
+    Functor m_func;
+
+    /// Indicates that method was already
+    /// called
+    bool m_invoked = false;
+
+    /**
+     * @brief Calls the cleanup function.
+     */
+    void invoke()
+    {
+        // call cleanup function
+        if (!isNull()) m_func();
+    }
+};
+
+/**
+ * @brief Makes a finally object from a lambda
+ * @param t object
+ * @param func Function to call on cleanup
+ */
+template<typename Functor, traits::if_not_pointer<Functor> = true>
+GENH5_NODISCARD
+auto finally(Functor func)
+{
+    return Finally<Functor>{std::move(func)};
+}
+
+template<typename R, typename... Args>
+GENH5_NODISCARD
+auto finally(R(*func)(Args...), Args... args)
+{
+    // construct helper lambda
+    return finally(
+        [func, args...](){
+            func(args...);
+        }
+    );
 }
 
 } // namespace GenH5

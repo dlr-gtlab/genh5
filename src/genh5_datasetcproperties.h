@@ -9,8 +9,8 @@
 #ifndef GENH5_DATASETCPROPERTIES_H
 #define GENH5_DATASETCPROPERTIES_H
 
+#include "genh5_idcomponent.h"
 #include "genh5_object.h"
-#include "genh5_utils.h"
 
 namespace GenH5
 {
@@ -21,6 +21,9 @@ class GENH5_EXPORT DataSetCProperties : public Object
 {
 public:
 
+    /// Instantiates a new Datatype and assigns the id without incrementing it
+    static DataSetCProperties fromId(hid_t id) noexcept;
+
     static Dimensions autoChunk(DataSpace const& dataspace) noexcept;
 
     static DataSetCProperties autoChunked(DataSpace const& dataspace,
@@ -29,19 +32,10 @@ public:
         return DataSetCProperties{autoChunk(dataspace), compression};
     }
 
-    DataSetCProperties() noexcept;
-    explicit DataSetCProperties(H5::DSetCreatPropList properties);
+    DataSetCProperties();
+    explicit DataSetCProperties(hid_t id);
     explicit DataSetCProperties(Dimensions const& chunkDimensions,
                                 int compression = 0) noexcept(false);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief allows access of the base hdf5 object
-     * @return base hdf5 object
-     */
-    [[deprecated("use id() instead")]]
-    H5::DSetCreatPropList const& toH5() const noexcept;
-#endif
 
     /**
      * @brief id or handle of the hdf5 resource
@@ -54,16 +48,6 @@ public:
      * @param dimensions chunk dimensions
      */
     void setChunkDimensions(Dimensions const& dimensions) noexcept(false);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief sets the compressions (deflate). Must be within 0-9. Can only
-     * be used once the chunk dimensions are set.
-     * @param level compression level between 0 (none) and 9 (max)
-     */
-    [[deprecated("use setDeflate instead")]]
-    void setCompression(int level) noexcept(false);
-#endif
 
     /**
      * @brief sets the compressions (gzip deflate). Must be within 0-9. Can only
@@ -96,12 +80,21 @@ public:
      */
     Dimensions chunkDimensions() const noexcept;
 
+    /// swaps all members
+    void swap(DataSetCProperties& other) noexcept;
+
 private:
 
-    /// hdf5 base instance
-    H5::DSetCreatPropList m_properties{};
+    /// create properties id
+    IdComponent<H5I_GENPROP_LST> m_id;
 };
 
 } // namespace GenH5
+
+inline void
+swap(GenH5::DataSetCProperties& a, GenH5::DataSetCProperties& b) noexcept
+{
+    a.swap(b);
+}
 
 #endif // GENH5_DATASETCPROPERTIES_H

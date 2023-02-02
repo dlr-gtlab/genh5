@@ -7,12 +7,12 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "genh5_file.h"
 #include "genh5_group.h"
 #include "genh5_dataset.h"
 #include "genh5_attribute.h"
 #include "genh5_reference.h"
-#include "genh5_data.h"
 
 #include "testhelper.h"
 
@@ -33,7 +33,7 @@ protected:
         group = file.root().createGroup(QByteArrayLiteral("group"));
         ASSERT_TRUE(group.isValid());
 
-        dataset = group.createDataset(QByteArrayLiteral("dataset"),
+        dataset = group.createDataSet(QByteArrayLiteral("dataset"),
                                       GenH5::dataType<int>(),
                                       GenH5::DataSpace::Scalar);
         ASSERT_TRUE(dataset.isValid());
@@ -89,10 +89,9 @@ TEST_F(TestH5Reference, referenceGroup)
 
     EXPECT_EQ(grp.path(), group.path());
     EXPECT_EQ(grp.name(), group.name());
-    EXPECT_EQ(grp.file(), group.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceDataset)
@@ -106,10 +105,9 @@ TEST_F(TestH5Reference, referenceDataset)
 
     EXPECT_EQ(dset.path(), dataset.path());
     EXPECT_EQ(dset.name(), dataset.name());
-    EXPECT_EQ(dset.file(), dataset.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceAttribute)
@@ -123,10 +121,9 @@ TEST_F(TestH5Reference, referenceAttribute)
 
     EXPECT_EQ(attr.path(), attribute.path());
     EXPECT_EQ(attr.name(), attribute.name());
-    EXPECT_EQ(attr.file(), attribute.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceGroupAlign)
@@ -140,10 +137,9 @@ TEST_F(TestH5Reference, referenceGroupAlign)
 
     EXPECT_EQ(grp.path(), group.path());
     EXPECT_EQ(grp.name(), group.name());
-    EXPECT_EQ(grp.file(), group.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceDatasetAlign)
@@ -157,10 +153,9 @@ TEST_F(TestH5Reference, referenceDatasetAlign)
 
     EXPECT_EQ(dset.path(), dataset.path());
     EXPECT_EQ(dset.name(), dataset.name());
-    EXPECT_EQ(dset.file(), dataset.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceAttributeAlign)
@@ -174,8 +169,8 @@ TEST_F(TestH5Reference, referenceAttributeAlign)
                  GenH5::ReferenceException);
     qDebug() << "### END";
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceGroupBuffer)
@@ -189,10 +184,9 @@ TEST_F(TestH5Reference, referenceGroupBuffer)
 
     EXPECT_EQ(grp.path(), group.path());
     EXPECT_EQ(grp.name(), group.name());
-    EXPECT_EQ(grp.file(), group.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceDatasetBuffer)
@@ -206,10 +200,9 @@ TEST_F(TestH5Reference, referenceDatasetBuffer)
 
     EXPECT_EQ(dset.path(), dataset.path());
     EXPECT_EQ(dset.name(), dataset.name());
-    EXPECT_EQ(dset.file(), dataset.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceAttributeBuffer)
@@ -223,8 +216,7 @@ TEST_F(TestH5Reference, referenceAttributeBuffer)
 
     EXPECT_EQ(attr.path(), attribute.path());
     EXPECT_EQ(attr.name(), attribute.name());
-    EXPECT_EQ(attr.file(), attribute.file());
 
-    // local file and internal shared file ptr have access
-    EXPECT_EQ(H5Iget_ref(file.id()), 2);
+    // local file has access
+    EXPECT_EQ(H5Iget_ref(file.id()), 1);
 }

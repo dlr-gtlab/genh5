@@ -9,8 +9,11 @@
 #ifndef GENH5_DATASPACE_H
 #define GENH5_DATASPACE_H
 
+#include "genh5_idcomponent.h"
 #include "genh5_object.h"
 #include "genh5_utils.h"
+
+#include "H5Spublic.h"
 
 namespace GenH5
 {
@@ -29,8 +32,9 @@ public:
     template<typename Tout = hsize_t>
     Tout size() const;
 
-    static DataSpace Null;
-    static DataSpace Scalar;
+    static DataSpace const& Null;
+    static DataSpace const& Scalar;
+
     static DataSpace linear(hsize_t length) noexcept(false)
     {
         return DataSpace{Dimensions{length}};
@@ -42,22 +46,17 @@ public:
         return linear(static_cast<hsize_t>(length));
     }
 
+    /// Instantiates a new Datatype and assigns the id without incrementing it
+    static DataSpace fromId(hid_t id);
+
     /**
      * @brief DataSpace
      */
-    DataSpace() noexcept;
+    DataSpace();
+    explicit DataSpace(H5S_class_t type);
+    explicit DataSpace(hid_t id);
     explicit DataSpace(std::initializer_list<hsize_t> initlist) noexcept(false);
     explicit DataSpace(Dimensions const& dimensions) noexcept(false);
-    explicit DataSpace(H5::DataSpace dataspace);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief allows access of the base hdf5 object
-     * @return base hdf5 object
-     */
-    [[deprecated("use id() instead")]]
-    H5::DataSpace const& toH5() const noexcept;
-#endif
 
     /**
      * @brief id or handle of the hdf5 resource
@@ -98,16 +97,19 @@ public:
      */
     hssize_t selectionSize() const noexcept;
 
+    /// swaps all members
+    void swap(DataSpace& other) noexcept;
+
 private:
 
-    /// hdf5 base instance
-    H5::DataSpace m_dataspace;
+    /// dataspace id
+    IdComponent<H5I_DATASPACE> m_id;
 };
 
 /// selection operator
 using SelectionOp = H5S_seloper_t;
 
-class GENH5_EXPORT DataSpaceSelection
+class DataSpaceSelection
 {
 public:
 
@@ -192,7 +194,7 @@ private:
      * accessing dataspace
      * @throws DataSapceExcetpion
      */
-    void commit() noexcept(false);
+    GENH5_EXPORT void commit() noexcept(false);
 
     /**
      * @brief Extends input dimension to dataspace dimension and fills missing
@@ -243,5 +245,10 @@ GENH5_EXPORT bool operator==(GenH5::DataSpace const& first,
                             GenH5::DataSpace const& other);
 GENH5_EXPORT bool operator!=(GenH5::DataSpace const& first,
                             GenH5::DataSpace const& other);
+inline void
+swap(GenH5::DataSpace& a, GenH5::DataSpace& b) noexcept
+{
+    a.swap(b);
+}
 
 #endif // GENH5_DATASPACE_H

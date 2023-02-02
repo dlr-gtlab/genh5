@@ -8,8 +8,9 @@
 
 #include "gtest/gtest.h"
 #include "genh5_datatype.h"
-#include "genh5_conversion.h"
-#include "genh5_exception.h"
+#include "genh5_data.h"
+
+#include "H5Cpp.h"
 
 #include <QPoint>
 #include <QPointF>
@@ -32,8 +33,6 @@ protected:
     // string
     GenH5::DataType dtypeString = GenH5::dataType<QString>();
 };
-
-#include <QDebug>
 
 TEST_F(TestH5DataType, predefinedTypes)
 {
@@ -505,9 +504,10 @@ TEST_F(TestH5DataType, equal_2)
 
 TEST_F(TestH5DataType, equalToH5cpp)
 {
-    EXPECT_TRUE(dtypeEmpty == GenH5::DataType{H5::DataType{}});
-    EXPECT_TRUE(dtypeInt.toH5()    == H5::PredType::NATIVE_INT);
-    EXPECT_TRUE(dtypeDouble.toH5() == H5::PredType::NATIVE_DOUBLE);
-    EXPECT_TRUE(dtypeString.toH5() == H5::StrType(H5::PredType::C_S1,
-                                                  H5T_VARIABLE));
+    EXPECT_TRUE(dtypeInt    == GenH5::DataType{
+                    H5::DataType(H5::PredType::NATIVE_INT).getId()});
+    EXPECT_TRUE(dtypeDouble == GenH5::DataType{
+                    H5::DataType(H5::PredType::NATIVE_DOUBLE).getId()});
+    EXPECT_TRUE(dtypeString == GenH5::DataType{
+                    H5::StrType(H5::PredType::C_S1, H5T_VARIABLE).getId()});
 }

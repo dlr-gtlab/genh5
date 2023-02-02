@@ -11,24 +11,34 @@
 
 #include <stdexcept>
 
+#ifndef GENH5_NO_EXCEPTION_ID
+  #define GENH5_MAKE_EXECEPTION_STR() std::string(__FUNCTION__) + ": "
+  #define GENH5_MAKE_EXECEPTION_STR_ID(ID) "GenH5::" ID ": "
+#else
+  #define GENH5_MAKE_EXECEPTION_STR() "GenH5: "
+  #define GENH5_MAKE_EXECEPTION_STR_ID(ID) "GenH5: "
+#endif
+
 namespace GenH5
 {
 
 /**
  * @brief Exception. Base class for all exceptions of this library
  */
-struct Exception :
+class Exception :
         public std::runtime_error
 {
-    explicit Exception(char const* msg) :
+public:
+
+    explicit Exception(std::string const& msg) :
         std::runtime_error{msg}
-    {}
+    { }
 };
 
 struct InvalidArgumentError :
         public GenH5::Exception
 {
-    explicit InvalidArgumentError(char const* msg) :
+    explicit InvalidArgumentError(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -36,7 +46,7 @@ struct InvalidArgumentError :
 struct AttributeException :
         public GenH5::Exception
 {
-    explicit AttributeException(char const* msg) :
+    explicit AttributeException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -44,7 +54,7 @@ struct AttributeException :
 struct DataSetException :
         public GenH5::Exception
 {
-    explicit DataSetException(char const* msg) :
+    explicit DataSetException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -52,7 +62,7 @@ struct DataSetException :
 struct DataTypeException :
         public GenH5::Exception
 {
-    explicit DataTypeException(char const* msg) :
+    explicit DataTypeException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -60,7 +70,7 @@ struct DataTypeException :
 struct DataSpaceException :
         public GenH5::Exception
 {
-    explicit DataSpaceException(char const* msg) :
+    explicit DataSpaceException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -68,7 +78,7 @@ struct DataSpaceException :
 struct FileException :
         public GenH5::Exception
 {
-    explicit FileException(char const* msg) :
+    explicit FileException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -76,7 +86,7 @@ struct FileException :
 struct GroupException :
         public GenH5::Exception
 {
-    explicit GroupException(char const* msg) :
+    explicit GroupException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -84,7 +94,7 @@ struct GroupException :
 struct LocationException :
         public GenH5::Exception
 {
-    explicit LocationException(char const* msg) :
+    explicit LocationException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };
@@ -92,7 +102,23 @@ struct LocationException :
 struct ReferenceException :
         public GenH5::Exception
 {
-    explicit ReferenceException(char const* msg) :
+    explicit ReferenceException(std::string const& msg) :
+        GenH5::Exception{msg}
+    {}
+};
+
+struct IdComponentException :
+        public GenH5::Exception
+{
+    explicit IdComponentException(std::string const& msg) :
+        GenH5::Exception{msg}
+    {}
+};
+
+struct PropertyListException :
+        public GenH5::Exception
+{
+    explicit PropertyListException(std::string const& msg) :
         GenH5::Exception{msg}
     {}
 };

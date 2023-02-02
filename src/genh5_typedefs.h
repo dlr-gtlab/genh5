@@ -9,12 +9,13 @@
 #ifndef GENH5_TYPES_H
 #define GENH5_TYPES_H
 
-#include "hdf5.h"
 #include "genh5_mpl.h"
 
 #include <tuple>
 #include <array>
 #include <QVector>
+
+#include "H5public.h"
 
 namespace GenH5
 {

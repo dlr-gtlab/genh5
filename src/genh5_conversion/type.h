@@ -11,6 +11,8 @@
 
 #include "genh5_typedefs.h"
 
+#include "H5Tpublic.h"
+
 #define GENH5_DECLARE_CONVERSION_TYPE(NATIVE, CONVERTED) \
     template <> \
     struct GenH5::conversion<NATIVE> : \

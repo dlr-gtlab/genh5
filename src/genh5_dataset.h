@@ -28,16 +28,7 @@ public:
      * @brief DataSet
      */
     DataSet();
-    explicit DataSet(std::shared_ptr<File> file, H5::DataSet dset);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief allows access of the base hdf5 object
-     * @return base hdf5 object
-     */
-    [[deprecated("use id() instead")]]
-    H5::DataSet const& toH5() const noexcept;
-#endif
+    explicit DataSet(hid_t id);
 
     /**
      * @brief id or handle of the hdf5 resource
@@ -54,17 +45,12 @@ public:
      * @brief deletes the object tree recursively
      * (attributes)
      */
-    void deleteRecursively() noexcept(false);
+    void deleteRecursively() noexcept(false) override;
 
     /**
-     * @brief properties used to create this object.
-     * @return create properties
+     * @brief explicitly closes the resource handle
      */
-    [[deprecated("use cProperties() instead")]]
-    DataSetCProperties properties() const noexcept(false)
-    {
-        return cProperties();
-    }
+    void close();
 
     /**
      * @brief properties used to create this object.
@@ -73,17 +59,23 @@ public:
     DataSetCProperties cProperties() const noexcept(false);
 
     /**
+     * @brief dataType of this dataset
+     * @return dataType
+     */
+    DataType dataType() const noexcept(false) override;
+    /**
+     * @brief dataSpace of this dataset
+     * @return dataSpace
+     */
+    DataSpace dataSpace() const noexcept(false) override;
+
+    /**
      * @brief resizes this dataset.
      * @param dimensions new dimensions. Cannot exceed the original dimensions.
      * Number of dimensions must match the current number
      * @return success
      */
     bool resize(Dimensions const& dimensions) noexcept(false) ;
-
-    /**
-     * @brief explicitly closes the resource handle
-     */
-    void close();
 
     using AbstractDataSet::write;
     /**
@@ -180,26 +172,20 @@ public:
         return *this;
     }
 
-protected:
+    /// swaps all members
+    void swap(DataSet& other) noexcept;
 
-    /// Returns the abstract hdf5 dataset
-    H5::AbstractDs const& toH5AbsDataSet() const noexcept override;
+protected:
 
     /// write implementation
     bool doWrite(void const* data, DataType const& dtype) const override;
     /// read implementation
     bool doRead(void* data, DataType const& dtype) const override;
 
-    /**
-     * @brief returns the hdf5 object as a h5object
-     * @return h5object
-     */
-    H5::H5Object const* toH5Object() const noexcept override;
-
 private:
 
-    /// hdf5 base instance
-    H5::DataSet m_dataset{};
+    /// dataset id
+    IdComponent<H5I_DATASET> m_id;
 
     friend class Reference;
 };
@@ -215,7 +201,11 @@ DataSet::write(Vector<T> const& data,
 
     if (data.size() < selected)
     {
-        debugWriteError(data.size());
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Writing data failed! (too few data elements: "
+                << data.size() << " vs. "
+                << selected << " selected elements)";
         return false;
     }
 
@@ -238,7 +228,11 @@ DataSet::write(details::AbstractData<T>& data,
 
     if (data.size() < selected)
     {
-        debugWriteError(data.size(), fileSpace);
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Writing data failed! (too few data elements: "
+                << data.size() << " vs. "
+                << selected << " selected elements)";
         return false;
     }
 
@@ -275,7 +269,11 @@ DataSet::read(details::AbstractData<T>& data,
 {
     if (!data.resize(fileSpace, dtype.isDefault() ? dataType() : *dtype))
     {
-        debugReadError(data.size(), fileSpace);
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Reading data failed! (data container is too small: "
+                << data.size() << " vs. "
+                << fileSpace.selectionSize() << " selected elements)";
         return false;
     }
 
@@ -289,6 +287,12 @@ DataSet::read(details::AbstractData<T>& data,
 }
 
 } // namespace GenH5
+
+inline void
+swap(GenH5::DataSet& a, GenH5::DataSet& b) noexcept
+{
+    a.swap(b);
+}
 
 
 #endif // GENH5_DATASET_H

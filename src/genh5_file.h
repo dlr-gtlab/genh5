@@ -38,17 +38,6 @@ class GENH5_EXPORT File : public Object
 {
 public:
 
-//#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief returns whether the file is a valid hdf5 file. Does not check if
-     * file is corrupted
-     * @param filePath file path
-     * @return whether the file is a valid hdf5 file
-     */
-    [[deprecated]]
-    static bool isValidH5File(String const& filePath) noexcept(false);
-//#endif
-
     /**
      * @brief A default hdf5 file suffix not including dot
      * @return file suffix
@@ -64,17 +53,8 @@ public:
      * @brief File
      */
     File();
-    explicit File(H5::H5File file);
+    explicit File(hid_t id);
     explicit File(String path, FileAccessFlags flags = ReadWrite);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief allows access of the base hdf5 object.
-     * @return base hdf5 object
-     */
-    [[deprecated("use id() instead")]]
-    H5::H5File const& toH5() const noexcept;
-#endif
 
     /**
      * @brief id or handle of the hdf5 resource.
@@ -87,7 +67,8 @@ public:
      * be valid as long as this object is valid.
      * @return root group of the file
      */
-    Group root() const noexcept(false);
+    Group& root() noexcept(false);
+    Group const& root() const noexcept(false);
 
     /**
      * @brief fileName including file suffix.
@@ -112,16 +93,25 @@ public:
      */
     void close();
 
+    /// swaps all members
+    void swap(File& other) noexcept;
+
 private:
 
-    /// hdf5 base instance
-    H5::H5File m_file{};
-    /// cashes the associated root group
+    /// file id
+    IdComponent<H5I_FILE> m_id;
+    /// caches the associated root group
     mutable Group m_root{};
 };
 
 GENH5_EXPORT GenH5::String getFileName(File const& file) noexcept;
 
 } // namespace GenH5
+
+inline void
+swap(GenH5::File& a, GenH5::File& b) noexcept
+{
+    a.swap(b);
+}
 
 #endif // GENH5_FILE_H

@@ -10,10 +10,8 @@
 #define GENH5_VERSION_H
 
 #include "genh5_exports.h"
-#include <utility>
 
-#define GENH5_TO_STR_HELPER(x) #x
-#define GENH5_TO_STR(x) GENH5_TO_STR_HELPER(x)
+#include <utility>
 
 #define GENH5_VERSION_MAJOR 2
 #define GENH5_VERSION_MINOR 2
@@ -34,7 +32,7 @@
 namespace GenH5
 {
 
-struct GENH5_EXPORT Version
+struct Version
 {
     int major{}, minor{}, patch{};
 
@@ -53,28 +51,28 @@ struct GENH5_EXPORT Version
      * @brief Returns the version used at compile time of this library
      * @return current version struct
      */
-    static Version current();
+    GENH5_EXPORT static Version current();
 
     /**
      * @brief Returns the version subrelease/additional info used at compile
      * time of this library
      * @return Current version subrelease
      */
-    static const char* subrelease();
+    GENH5_EXPORT static const char* subrelease();
 
     /**
      * @brief Returns the HDF5 library version used at compile time of this
      * library
      * @return HDF5 version struct
      */
-    static Version hdf5();
+    GENH5_EXPORT static Version hdf5();
 
     /**
      * @brief Returns the HDF5 library version subrelease used at compile time
      * of this library
      * @return HDf5 version subrelease
      */
-    static const char* subreleaseHdf5();
+    GENH5_EXPORT static const char* subreleaseHdf5();
 
     /**
      * @brief Transforms the version to struct to an integer

@@ -12,8 +12,6 @@
 #include "genh5_conversion/buffer.h"
 #include "genh5_utils.h"
 
-//#include <QDebug>
-
 namespace GenH5
 {
 
@@ -70,7 +68,7 @@ public:
      */
     void reserve(size_type size)
     {
-#ifndef GENH5_NO_BUFFER_RESERVING
+#ifndef GENH5_NO_BUFFER_AUTORESERVE
         applyToBuffer<T>(m_buffer, [=](auto& buffer){
             buffer.reserve(static_cast<int>(buffer.size() + size));
         });

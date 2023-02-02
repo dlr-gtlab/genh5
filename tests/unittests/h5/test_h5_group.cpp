@@ -129,19 +129,19 @@ TEST_F(TestH5Group, openDataSet)
     GenH5::Group root = GenH5::Group(file);
     EXPECT_TRUE(root.isValid());
 
-    EXPECT_THROW(GenH5::Group{}.openDataset("my_fancy_dset"),
+    EXPECT_THROW(GenH5::Group{}.openDataSet("my_fancy_dset"),
                  GenH5::DataSetException);
     qDebug() << "### EXPECTING ERROR: unable to open dataset";
-    EXPECT_THROW(root.openDataset("my_fancy_dset"),
+    EXPECT_THROW(root.openDataSet("my_fancy_dset"),
                  GenH5::DataSetException);
     qDebug() << "### END";
 
-    EXPECT_TRUE(root.createDataset("my_fancy_dset",
+    EXPECT_TRUE(root.createDataSet("my_fancy_dset",
                                    GenH5::DataType::Int,
                                    GenH5::DataSpace::Scalar).isValid());
 
-    EXPECT_NO_THROW(root.openDataset("my_fancy_dset"));
-    EXPECT_TRUE(root.openDataset("my_fancy_dset").isValid());
+    EXPECT_NO_THROW(root.openDataSet("my_fancy_dset"));
+    EXPECT_TRUE(root.openDataSet("my_fancy_dset").isValid());
 }
 
 TEST_F(TestH5Group, openAttribute)
@@ -181,7 +181,7 @@ TEST_F(TestH5Group, writeDataSet)
     // open the file as a root group
     auto root = file.root();
 
-    qDebug() << "filepath:" << root.file()->filePath();
+    qDebug() << "filepath:" << root.file().filePath();
 
     QVector<uint> vec{42u, 12};
 

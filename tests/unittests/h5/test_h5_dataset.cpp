@@ -10,7 +10,6 @@
 #include "genh5_dataset.h"
 #include "genh5_group.h"
 #include "genh5_file.h"
-#include "genh5_data.h"
 
 #include "testhelper.h"
 
@@ -47,7 +46,7 @@ TEST_F(TestH5DataSet, isValid)
     EXPECT_THROW(dset.cProperties(), GenH5::DataSetException);
 
     // valid dataset
-    dset = file.root().createDataset(QByteArrayLiteral("test"),
+    dset = file.root().createDataSet(QByteArrayLiteral("test"),
                                      intData.dataType(),
                                      intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
@@ -61,7 +60,7 @@ TEST_F(TestH5DataSet, deleteLink)
     EXPECT_FALSE(dset.isValid());
 
     // create valid dataset
-    dset = file.root().createDataset(QByteArrayLiteral("test"),
+    dset = file.root().createDataSet(QByteArrayLiteral("test"),
                                      intData.dataType(),
                                      intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
@@ -121,7 +120,7 @@ TEST_F(TestH5DataSet, resize)
     ASSERT_TRUE(group.isValid());
 
     // create new dataset
-    auto dset = group.createDataset(QByteArrayLiteral("test"),
+    auto dset = group.createDataSet(QByteArrayLiteral("test"),
                                     doubleData.dataType(),
                                     doubleData.dataSpace());
 
@@ -146,7 +145,7 @@ TEST_F(TestH5DataSet, writeSelection)
     ASSERT_EQ(dspace.size(), data.length());
 
     // create new dataset
-    GenH5::DataSet dset = group.createDataset("test_selection",
+    GenH5::DataSet dset = group.createDataSet("test_selection",
                                               data.dataType(),
                                               dspace);
 
@@ -181,7 +180,7 @@ TEST_F(TestH5DataSet, readSelection)
     ASSERT_EQ(dspace.size(), data.length());
 
     // create new dataset
-    GenH5::DataSet dset = group.createDataset(QByteArrayLiteral("test_selec"),
+    GenH5::DataSet dset = group.createDataSet(QByteArrayLiteral("test_selec"),
                                              data.dataType(),
                                              dspace);
 
@@ -231,7 +230,7 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
 
         GenH5::DataSpace dspace{row, col};
 
-        auto dset = file.root().createDataset(QByteArray{"test_2d"},
+        auto dset = file.root().createDataSet(QByteArray{"test_2d"},
                                               data.dataType(),
                                               dspace);
         ASSERT_TRUE(dset.isValid());

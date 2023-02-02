@@ -21,8 +21,7 @@ namespace details
 
 template <typename Tdata, typename Tbuffer, typename... Args, typename Lambda>
 inline void
-multiAppendHelper(Tdata& data, Tbuffer& buffer,
-                  Lambda&& lambda, Args&&... argsIn)
+pushBackHelper(Tdata& data, Tbuffer& buffer, Lambda&& lambda, Args&&... argsIn)
 {
     auto args = std::make_tuple(&argsIn...);
     auto size = static_cast<int>(get<0>(args)->size());
@@ -31,7 +30,10 @@ multiAppendHelper(Tdata& data, Tbuffer& buffer,
         if (size != get<idx>(args)->size())
         {
             throw InvalidArgumentError{
-                "Arguments have different number of " "elements!"
+                GENH5_MAKE_EXECEPTION_STR_ID("CompData::push_back")
+                "Arguments have different number of elements (" +
+                std::to_string(size) + " != " +
+                std::to_string(get<idx>(args)->size()) + ')'
             };
         }
     });
@@ -89,7 +91,7 @@ public:
               traits::if_types_equal<T, conversion_t<RComp<Ts...>>> = true>
     void push_back(Containers&&... containers) noexcept(false)
     {
-        multiAppendHelper(base_class::m_data, base_class::m_buffer,
+        pushBackHelper(base_class::m_data, base_class::m_buffer,
                           [](auto const& tuple, auto& /*buffer*/){
             return reverseComp(tuple);
         },
@@ -106,7 +108,7 @@ public:
     {
         using GenH5::convert; // ADL
 
-        multiAppendHelper(base_class::m_data, base_class::m_buffer,
+        pushBackHelper(base_class::m_data, base_class::m_buffer,
                           [](auto const& tuple, auto& buffer){
             return convert(tuple, buffer);
         },
@@ -255,26 +257,6 @@ public:
         });
         return c;
     }
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /** deserialize **/
-    using base_class::deserialize;
-    using base_class::deserializeIdx;
-
-    [[deprecated("Use CompData<T>::unpack instead")]]
-    void deserializeIdx(size_type idx, Ts&... argsIn) const
-    {
-        return unpack(idx, argsIn...);
-    }
-
-    template <typename... Containers,
-              traits::if_equal<sizeof...(Ts), sizeof...(Containers)> = true>
-    [[deprecated("Use CompData<T>::unpack instead")]]
-    void deserialize(Containers&... containersIn) const
-    {
-        return unpack(containersIn...);
-    }
-#endif
 };
 
 template<typename... Ts>

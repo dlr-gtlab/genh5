@@ -10,10 +10,9 @@
 #define GENH5_LOCATION_H
 
 #include "genh5_object.h"
-#include "genh5_utils.h"
+#include "genh5_typedefs.h"
 
 #include <memory>
-
 
 namespace GenH5
 {
@@ -29,6 +28,7 @@ class GENH5_EXPORT Location : public Object
 {
 public:
 
+    using Object::isValid;
     /**
      * @brief returns whether the object id is valid and can be used for further
      * actions. Call this after instantion to verify the resource allocation.
@@ -74,26 +74,17 @@ public:
     Reference toReference() const noexcept(false);
 
     /**
-     * @brief pointer to the shared file instance of this object
+     * @brief File object
      * @return file
      */
-    std::shared_ptr<File> const& file() const noexcept;
+    File file() const noexcept;
 
 protected:
 
     /**
      * @brief Location
      */
-    explicit Location(std::shared_ptr<File> file = {}) noexcept;
-
-    // shared file instance
-    std::shared_ptr<File> m_file{};
-
-    /**
-     * @brief returns the hdf5 object as a h5location.
-     * @return h5location
-     */
-    virtual H5::H5Location const* toH5Location() const noexcept = 0;
+    explicit Location() noexcept;
 };
 
 /**
@@ -112,10 +103,6 @@ GENH5_EXPORT String getObjectPath(Location const& location) noexcept;
 
 } // namespace GenH5
 
-inline std::shared_ptr<GenH5::File> const&
-GenH5::Location::file() const noexcept
-{
-    return m_file;
-}
+
 
 #endif // GENH5_LOCATION_H
