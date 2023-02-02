@@ -130,4 +130,4 @@ To do so, call e.g.
 bump2version minor
 ```
 
-which creates a new minor release and also makes a new commit (other options are `major` or `patch`).
+which creates a new minor release (other options are `major` or `patch`).
