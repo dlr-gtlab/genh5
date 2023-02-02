@@ -48,14 +48,18 @@ set(headers
     genh5_dataspace.h
     genh5_datatype.h
     genh5_exception.h
+    genh5_exports.h
     genh5_file.h
     genh5_group.h
+    genh5_globals.h
+    genh5_idcomponent.h
     genh5_location.h
+    genh5_logging.h
     genh5_mpl.h
     genh5_node.h
     genh5_object.h
-    genh5_exports.h
     genh5_optional.h
+    genh5_private.h
     genh5_reference.h
     genh5_typedefs.h
     genh5_typetraits.h
@@ -72,9 +76,12 @@ set(sources
     genh5_datatype.cpp
     genh5_file.cpp
     genh5_group.cpp
+    genh5_idcomponent.cpp
     genh5_location.cpp
+    genh5_logging.cpp
     genh5_node.cpp
     genh5_object.cpp
+    genh5_private.cpp
     genh5_reference.cpp
     genh5_utils.cpp
     genh5_version.cpp
@@ -91,11 +98,11 @@ else()
     target_compile_definitions(GenH5 PUBLIC GENH5_STATIC)
 endif()
 
-if (TARGET hdf5::hdf5_cpp AND NOT TARGET hdf5_cpp-shared)
-  add_library(hdf5_cpp-shared ALIAS hdf5::hdf5_cpp)
+if (TARGET hdf5::hdf5 AND NOT TARGET hdf5-shared)
+  add_library(hdf5-shared ALIAS hdf5::hdf5)
 endif()
 
-target_link_libraries(GenH5 PUBLIC Qt5::Core hdf5_cpp-shared)
+target_link_libraries(GenH5 PUBLIC Qt5::Core hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>

@@ -7,6 +7,7 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "genh5_optional.h"
 
 /// This is a test fixture that does a init for each test

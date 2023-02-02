@@ -39,6 +39,9 @@ TEST_F(TestH5Utils, prod)
     EXPECT_EQ((GenH5::prod(QVector<int>{ 42, 0, 2 })), 0);
 
     EXPECT_EQ((GenH5::prod<std::initializer_list<float>>({})), 0);
+
+    GenH5::Dimensions count{4, 6};
+    EXPECT_EQ(GenH5::prod<int>(count), 24);
 }
 
 TEST_F(TestH5Utils, idx)
@@ -289,7 +292,6 @@ TEST_F(TestH5Utils, makeArraysFromListInvalid)
                       "My Test String";
 
     ASSERT_NE(strs.size() % N, 0);
-
     EXPECT_THROW(GenH5::makeArraysFromList<11>(strs),
                  GenH5::InvalidArgumentError);
 }

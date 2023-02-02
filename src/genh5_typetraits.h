@@ -144,6 +144,10 @@ using if_signed_integral =
             std::enable_if_t<std::is_integral<Tint>::value &&
                              std::is_signed<Tint>::value, bool>;
 
+template <typename T>
+using if_not_pointer =
+            std::enable_if_t<!std::is_pointer<T>::value, bool>;
+
 // used to check if T::template_type does not exist
 template <typename T>
 using if_has_not_template_type =

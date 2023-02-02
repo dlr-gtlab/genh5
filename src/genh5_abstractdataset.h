@@ -10,6 +10,7 @@
 #define GENH5_ABSTRACTDATASET_H
 
 #include "genh5_exports.h"
+#include "genh5_logging.h"
 #include "genh5_data/base.h"
 #include "genh5_optional.h"
 
@@ -29,12 +30,12 @@ public:
      * @brief dataType of this dataset
      * @return dataType
      */
-    DataType dataType() const noexcept(false);
+    virtual DataType dataType() const noexcept(false) = 0;
     /**
      * @brief dataSpace of this dataset
      * @return dataSpace
      */
-    DataSpace dataSpace() const noexcept(false);
+    virtual DataSpace dataSpace() const noexcept(false) = 0;
 
     /**
      * @brief writes data to dataset
@@ -71,12 +72,6 @@ public:
 protected:
 
     /**
-     * @brief Returns the abstract hdf5 dataset
-     * @return Abstract dset
-     */
-    virtual H5::AbstractDs const& toH5AbsDataSet() const noexcept = 0;
-
-    /**
      * @brief Method for the write implementation
      * @param data Data buffer to write
      * @return success
@@ -89,11 +84,6 @@ protected:
      * @return success
      */
     virtual bool doRead(void* data, DataType const& dtype) const = 0;
-
-    void debugWriteError(size_t length,
-                         Optional<DataSpace> const& space = {}) const;
-    void debugReadError(size_t length,
-                        Optional<DataSpace> const& space = {}) const;
 
     /**
      * @brief AbstractDataSet
@@ -111,9 +101,14 @@ inline bool
 AbstractDataSet::write(Vector<T> const& data,
                        Optional<DataType> dtype) const noexcept(false)
 {
-    if (data.size() < dataSpace().selectionSize())
+    auto dspace = dataSpace();
+    if (data.size() < dspace.selectionSize())
     {
-        debugWriteError(data.size());
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Writing data failed! (too few data elements: "
+                << data.size() << " vs. "
+                << dspace.selectionSize() << " selected elements)";
         return false;
     }
 
@@ -125,9 +120,14 @@ inline bool
 AbstractDataSet::write(details::AbstractData<T> const& data,
                        Optional<DataType> dtype) const noexcept(false)
 {
-    if (data.size() < dataSpace().selectionSize())
+    auto dspace = dataSpace();
+    if (data.size() < dspace.selectionSize())
     {
-        debugWriteError(data.size());
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Writing data failed! (too few data elements: "
+                << data.size() << " vs. "
+                << dspace.selectionSize() << " selected elements)";
         return false;
     }
 
@@ -153,9 +153,14 @@ inline bool
 AbstractDataSet::read(details::AbstractData<T>& data,
                       Optional<DataType> dtype) const noexcept(false)
 {
-    if (!data.resize(dataSpace(), dtype.isDefault() ? dataType() : *dtype))
+    auto dspace = dataSpace();
+    if (!data.resize(dspace, dtype.isDefault() ? dataType() : *dtype))
     {
-        debugReadError(data.size());
+        log::ErrStream()
+                << GENH5_MAKE_EXECEPTION_STR()
+                   "Reading data failed! (data container is too small: "
+                << data.size() << " vs. "
+                << dspace.selectionSize() << " selected elements)";
         return false;
     }
 

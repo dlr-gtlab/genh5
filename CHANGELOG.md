@@ -5,6 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `IdComponent` for managing the lifetime of an object id handle
+- `IdComponentException`
+- Implemented a basic logging interface for forwarding error messages to custom output sinks - #12
+
+### Changed
+- Internal refactoring, due to removed HDF5 C++ API dependencie
+- Predefined DataTypes (`Bool`, `Double` etc.) and DataSpaces (`Scalar`, `Null`) are now `static const&`
+- `Location::file` no longer returns a shared ptr but a local `File` object. Refactored constructors of derived classes - #45
+- Better Exceptions strings - #50
+
+### Removed
+- `Object::type` use `GenH5::classType` instead
+- `Data::deserialize`, `Data::deserializeIdx`, `Data::c`
+- `AbstractData`
+- `File::isValidH5File`
+- `Node::versionAttrName`, `Node::createVersionAttribute`
+- `Group::createDataset`, `Group::openDataset`
+- `DataSet::properties`
+- `DataSetCProperties::setCompression`
+- `toH5` methods and constructors, that use the HDF5 C++ API
+
 ## [2.2.4] - 2023-01-16
 ### Added
 - Method for deleting a node recursively

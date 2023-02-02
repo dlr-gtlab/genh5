@@ -9,7 +9,6 @@
 #include "gtest/gtest.h"
 
 #include "genh5_attribute.h"
-#include "genh5_data.h"
 #include "genh5_dataset.h"
 #include "genh5_file.h"
 
@@ -23,7 +22,7 @@ TEST_F(TestH5Attribute, info)
     GenH5::Data<int> intData{1, 2, 3, 4, 5};
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
     auto group = file.root().createGroup(QByteArrayLiteral("group"));
-    auto dataset = group.createDataset(QByteArrayLiteral("dataset"),
+    auto dataset = group.createDataSet(QByteArrayLiteral("dataset"),
                                   intData.dataType(),
                                   intData.dataSpace());
 

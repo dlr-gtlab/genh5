@@ -7,73 +7,87 @@
  */
 
 #include "genh5_dataspace.h"
+#include "genh5_private.h"
 
-#include <QDebug>
+static const GenH5::DataSpace s_null = GenH5::DataSpace::fromId(H5Screate(H5S_NULL));
+static const GenH5::DataSpace s_scalar = GenH5::DataSpace::fromId(H5Screate(H5S_SCALAR));
+
+GenH5::DataSpace const& GenH5::DataSpace::Null = s_null;
+GenH5::DataSpace const& GenH5::DataSpace::Scalar = s_scalar;
 
 GenH5::DataSpace
-GenH5::DataSpace::Null{H5::DataSpace{H5S_NULL}};
-GenH5::DataSpace
-GenH5::DataSpace::Scalar{H5::DataSpace{H5S_SCALAR}};
-
-GenH5::DataSpace::DataSpace() noexcept
-    : m_dataspace{H5::DataSpace{H5S_NULL}}
-{};
-
-GenH5::DataSpace::DataSpace(Dimensions const& dimensions) noexcept(false)
+GenH5::DataSpace::fromId(hid_t id)
 {
-    try
+    DataSpace d;
+    d.m_id = id;
+    return d;
+}
+
+GenH5::DataSpace::DataSpace() :
+    DataSpace(H5Screate(H5S_NULL))
+{ }
+
+GenH5::DataSpace::DataSpace(H5S_class_t type) :
+    m_id(H5Screate(type))
+{
+    if (m_id < 0)
     {
-        m_dataspace = H5::DataSpace(dimensions.size(),
-                                    dimensions.constData());
+        throw DataSpaceException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to create dataspace by type"
+        };
     }
-    catch (H5::DataSpaceIException const& e)
+}
+
+GenH5::DataSpace::DataSpace(hid_t id) :
+    m_id(id)
+{
+    m_id.inc();
+}
+
+GenH5::DataSpace::DataSpace(Dimensions const& dimensions) noexcept(false) :
+    m_id(H5Screate_simple(dimensions.size(), dimensions.constData(), nullptr))
+{
+    if (m_id < 0)
     {
-        throw DataSpaceException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] DataSpace::DataSpace";
-        throw DataSpaceException{e.getCDetailMsg()};
+        throw DataSpaceException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to create simple dataspace"
+        };
     }
 }
 
 GenH5::DataSpace::DataSpace(std::initializer_list<hsize_t> initlist
-                           ) noexcept(false) :
+                            ) noexcept(false) :
     DataSpace{Dimensions{initlist}}
-{ }
-
-GenH5::DataSpace::DataSpace(H5::DataSpace dataspace):
-    m_dataspace{std::move(dataspace)}
 { }
 
 hid_t
 GenH5::DataSpace::id() const noexcept
 {
-    return m_dataspace.getId();
+    return m_id;
 }
 
 int
 GenH5::DataSpace::nDims() const noexcept
 {
-    return H5Sget_simple_extent_ndims(id());
+    return H5Sget_simple_extent_ndims(m_id);
 }
 
 bool
 GenH5::DataSpace::isScalar() const noexcept
 {
-    return H5Sget_simple_extent_ndims(id()) == 0 && selectionSize() == 1;
+    return nDims() == 0 && selectionSize() == 1;
 }
 
 bool
 GenH5::DataSpace::isNull() const noexcept
 {
-    return H5Sget_simple_extent_ndims(id()) == 0 && selectionSize() == 0;
+    return nDims() == 0 && selectionSize() == 0;
 }
 
 GenH5::Dimensions
 GenH5::DataSpace::dimensions() const noexcept
 {
-    auto size = H5Sget_simple_extent_ndims(id());
+    auto size = nDims();
     if (size < 0)
     {
         return {};
@@ -81,23 +95,22 @@ GenH5::DataSpace::dimensions() const noexcept
 
     Dimensions dims;
     dims.resize(size);
-    H5Sget_simple_extent_dims(id(), dims.data(), nullptr);
+    H5Sget_simple_extent_dims(m_id, dims.data(), nullptr);
     return dims;
 }
 
 hssize_t
 GenH5::DataSpace::selectionSize() const noexcept
 {
-    return H5Sget_select_npoints(id());
+    return H5Sget_select_npoints(m_id);
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-H5::DataSpace const&
-GenH5::DataSpace::toH5() const noexcept
+void
+GenH5::DataSpace::swap(DataSpace& other) noexcept
 {
-    return m_dataspace;
+    using std::swap;
+    swap(m_id, other.m_id);
 }
-#endif
 
 bool
 operator==(GenH5::DataSpace const& first, GenH5::DataSpace const& other)
@@ -147,8 +160,10 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
     auto dims = m_space.dimensions();
     if (!m_space.isValid() || dims.empty())
     {
-        throw DataSpaceException{"Selecting hyperslap failed "
-                                 "(Invalid dataspace)"};
+        throw DataSpaceException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Selecting hyperslap failed (invalid dataspace)"
+        };
     }
     if (m_count.empty())
     {
@@ -159,20 +174,15 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
     testSelection(m_stride, dims, 1);
     testSelection(m_block, dims, 1);
 
-    auto const& hspace = m_space.toH5();
-    try
+    herr_t err = H5Sselect_hyperslab(m_space.id(), m_op,
+                                     m_offset.constData(), m_stride.constData(),
+                                     m_count.constData(), m_block.constData());
+
+    if (err < 0)
     {
-        hspace.selectHyperslab(m_op, m_count.constData(), m_offset.constData(),
-                               m_stride.constData(), m_block.constData());
-    }
-    catch (H5::DataSpaceIException const& e)
-    {
-        throw DataSpaceException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] DataSpaceSelection::commit";
-        throw DataSpaceException{e.getCDetailMsg()};
+        throw DataSpaceException{
+            GENH5_MAKE_EXECEPTION_STR() "Selecting hyperslap failed"
+        };
     }
 }
 
@@ -193,7 +203,9 @@ GenH5::DataSpaceSelection::testSelection(Dimensions& dim,
     // succeess if size == ndims
     if (size != ndims)
     {
-        throw DataSpaceException{"Selecting hyperslap failed "
-                                 "(Dimensions out of range)"};
+        throw DataSpaceException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Selecting hyperslap failed (dimensions out of range)"
+        };
     }
 }

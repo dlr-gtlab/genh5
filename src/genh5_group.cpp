@@ -8,55 +8,56 @@
 
 #include "genh5_group.h"
 #include "genh5_file.h"
+#include "genh5_private.h"
 
-#include <QDebug>
-
+#include "H5Gpublic.h"
+#include "H5Ppublic.h"
 
 GenH5::Group::Group() = default;
 
-GenH5::Group::Group(const File& file) :
-    Node{nullptr}
+GenH5::Group::Group(const File& file)
 {
     if (!file.isValid())
     {
-        throw GroupException{"Opening root group failed! (Invalid file)"};
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Opening root group failed (invalid file)"
+        };
     }
 
-    m_file = std::make_shared<File>(file);
+    m_id = H5Gopen(file.id(), "/", H5P_DEFAULT);
 
-    try
+    if (m_id < 0)
     {
-        m_group = file.toH5().openGroup(QByteArrayLiteral("/").constData());
-    }
-    catch (H5::GroupIException const& e)
-    {
-        throw GroupException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Group::Group";
-        throw GroupException{e.getCDetailMsg()};
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to open root group (path: )" +
+            file.filePath().toStdString() + ")"
+        };
     }
 }
 
-GenH5::Group::Group(std::shared_ptr<File> file, H5::Group group) :
-    Node{std::move(file)},
-    m_group{std::move(group)}
-{ }
+GenH5::Group::Group(hid_t id) :
+    m_id(id)
+{
+    m_id.inc();
+}
 
 hid_t
 GenH5::Group::id() const noexcept
 {
-    return m_group.getId();
+    return m_id;
 }
 
 void
 GenH5::Group::deleteLink() noexcept(false)
 {
     // returns error type
-    if (H5Ldelete(m_file->id(), path().constData(), H5P_DEFAULT) < 0)
+    if (H5Ldelete(file().id(), path().constData(), H5P_DEFAULT) < 0)
     {
-        throw LocationException{"Deleting group failed"};
+        throw LocationException{
+            GENH5_MAKE_EXECEPTION_STR() "Deleting group '" +
+            path().toStdString() + "' failed"
+        };
     }
     close();
 }
@@ -87,53 +88,40 @@ GenH5::Group::deleteRecursively() noexcept(false)
     deleteLink();
 }
 
-H5::H5Object const*
-GenH5::Group::toH5Object() const noexcept
-{
-    return &m_group;
-}
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-H5::Group const&
-GenH5::Group::toH5() const noexcept
-{
-    return m_group;
-}
-#endif
-
 void
 GenH5::Group::close()
 {
-    m_group.close();
+    m_id.dec();
 }
 
 GenH5::Group
 GenH5::Group::createGroup(String const& name) const noexcept(false)
 {
-    auto const& parent = *this;
-
-    if (!parent.isValid())
+    if (!isValid())
     {
-        throw GroupException{"Creating group failed (Invalid parent"};
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR() "Creating group '" +
+            name.toStdString() + "' failed (invalid parent)"
+        };
     }
 
     // create new group
-    if (!parent.exists(name))
+    if (!exists(name))
     {
-        try
+        hid_t group = H5Gcreate(m_id, name.constData(),
+                                H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        if (group < 0)
         {
-            H5::Group group = parent.toH5().createGroup(name.constData());
-            return Group{parent.file(), std::move(group)};
+            throw GroupException{
+                GENH5_MAKE_EXECEPTION_STR() "Failed to create group '" +
+                name.toStdString() + '\''
+            };
         }
-        catch (H5::GroupIException const& e)
-        {
-            throw GroupException{e.getCDetailMsg()};
-        }
-        catch (H5::Exception const& e)
-        {
-            qCritical() << "HDF5: [EXCEPTION] Group::createGroup";
-            throw GroupException{e.getCDetailMsg()};
-        }
+
+        auto cleanup = finally(H5Gclose, group);
+        Q_UNUSED(cleanup)
+
+        return Group{group};
     }
 
     // open existing group
@@ -143,39 +131,28 @@ GenH5::Group::createGroup(String const& name) const noexcept(false)
 GenH5::Group
 GenH5::Group::openGroup(String const& name) const noexcept(false)
 {
-    auto const& parent = *this;
-
-    if (!parent.isValid())
+    if (!isValid())
     {
-        throw GroupException{"Opening group failed (Invalid parent"};
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR() "Opening group '" +
+            name.toStdString() + "' failed (invalid parent)"
+        };
     }
 
-    try
+    hid_t group = H5Gopen(m_id, name.constData(), H5P_DEFAULT);
+    if (group < 0)
     {
-        H5::Group group = parent.toH5().openGroup(name.constData());
-        return Group{parent.file(), std::move(group)};
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to open group '" +
+            name.toStdString() + '\''
+        };
     }
-    catch (H5::GroupIException const& e)
-    {
-        throw GroupException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Group::openGroup";
-        throw GroupException{e.getCDetailMsg()};
-    }
+
+    auto cleanup = finally(H5Gclose, group);
+    Q_UNUSED(cleanup)
+
+    return Group{group};
 }
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-GenH5::DataSet
-GenH5::Group::createDataset(String const& name,
-                            DataType const& dtype,
-                            DataSpace const& dspace,
-                            Optional<DataSetCProperties> properties) const
-{
-    return createDataSet(name, dtype, dspace, std::move(properties));
-}
-#endif
 
 GenH5::DataSet
 GenH5::Group::createDataSet(String const& name,
@@ -183,11 +160,12 @@ GenH5::Group::createDataSet(String const& name,
                             DataSpace const& dspace,
                             Optional<DataSetCProperties> properties) const
 {
-    auto const& parent = *this;
-
-    if (!parent.isValid())
+    if (!isValid())
     {
-        throw DataSetException{"Opening dataset failed (Invalid parent"};
+        throw DataSetException{
+            GENH5_MAKE_EXECEPTION_STR() "Creating dataset '" +
+            name.toStdString() + "' failed (invalid parent)"
+        };
     }
 
     // chunk dataset by default
@@ -197,25 +175,22 @@ GenH5::Group::createDataSet(String const& name,
     }
 
     // create new dataset
-    if (!parent.exists(name))
+    if (!exists(name))
     {
-        try
+        hid_t dset = H5Dcreate(m_id, name.constData(), dtype.id(), dspace.id(),
+                               H5P_DEFAULT, properties->id(), H5P_DEFAULT);
+        if (dset < 0)
         {
-            H5::DataSet dset = parent.toH5().createDataSet(name.constData(),
-                                                           dtype.toH5(),
-                                                           dspace.toH5(),
-                                                           properties->toH5());
-            return DataSet{parent.file(), std::move(dset)};
+            throw DataSetException{
+                GENH5_MAKE_EXECEPTION_STR() "Failed to create dataset '" +
+                name.toStdString() + '\''
+            };
         }
-        catch (H5::DataSetIException const& e)
-        {
-            throw DataSetException{e.getCDetailMsg()};
-        }
-        catch (H5::Exception const& e)
-        {
-            qCritical() << "HDF5: [EXCEPTION] Group::createDataSet";
-            throw DataSetException{e.getCDetailMsg()};
-        }
+
+        auto cleanup = finally(H5Dclose, dset);
+        Q_UNUSED(cleanup)
+
+        return DataSet{dset};
     }
 
     // open existing dataset
@@ -224,7 +199,7 @@ GenH5::Group::createDataSet(String const& name,
     // check if datatype is equal
     if (dset.dataType() == dtype)
     {
-        // check if dataspace is equal or resize dataset
+        // check if dataspace is equal or resizing succeded
         if (dset.dataSpace() == dspace || dset.resize(dspace.dimensions()))
         {
             return dset;
@@ -232,48 +207,37 @@ GenH5::Group::createDataSet(String const& name,
     }
 
     // dataset cannot be resized and must be deleted
-    qWarning() << "HDF5: Invalid memory layout! Overwriting dataset! -" << name;
+    log::ErrStream() << GENH5_MAKE_EXECEPTION_STR()
+                        "Invalid memory layout, overwriting dataset: " << name;
     dset.deleteLink();
 
     return createDataSet(name, dtype, dspace, std::move(properties));
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-GenH5::DataSet
-GenH5::Group::openDataset(String const& name) const noexcept(false)
-{
-    return openDataSet(name);
-}
-#endif
-
 GenH5::DataSet
 GenH5::Group::openDataSet(String const& name) const noexcept(false)
 {
-    auto const& parent = *this;
-
-    if (!parent.isValid())
+    if (!isValid())
     {
-        throw DataSetException{"Opening dataset failed (Invalid parent)"};
+        throw DataSetException{
+            GENH5_MAKE_EXECEPTION_STR() "Opening dataset '" +
+            name.toStdString() + "' failed (invalid parent)"
+        };
     }
 
-    try
+    hid_t dset = H5Dopen(m_id, name.constData(), H5P_DEFAULT);
+    if (dset < 0)
     {
-        H5::DataSet dset = parent.toH5().openDataSet(name.constData());
-        return DataSet{parent.file(), std::move(dset)};
+        throw DataSetException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to open dataset '" +
+            name.toStdString() + '\''
+        };
     }
-    catch (H5::DataSetIException const& e)
-    {
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::GroupIException const& e)
-    {
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Group::openDataSet";
-        throw DataSetException{e.getCDetailMsg()};
-    }
+
+    auto cleanup = finally(H5Dclose, dset);
+    Q_UNUSED(cleanup)
+
+    return DataSet{dset};
 }
 
 namespace GenH5
@@ -324,7 +288,6 @@ accumulateNodes(hid_t groupId, char const* nodeName,
     {
         return 0;
     }
-//    qDebug() << "NODE" << nodeName;
     *data->nodes << std::move(info);
     return 0;
 }
@@ -355,7 +318,6 @@ foreachNode(hid_t groupId, char const* nodeName,
     {
         return 0;
     }
-//    qDebug() << "NODE" << nodeName;
     return (*data->f)(*data->parent, info);
 }
 
@@ -378,11 +340,11 @@ GenH5::Group::findChildNodes(IterationType iterType,
     if (iterType == FindDirectOnly)
     {
         hsize_t idx = 0;
-        H5Literate(id(), h5index, h5order, &idx, alg::accumulateNodes, &data);
+        H5Literate(m_id, h5index, h5order, &idx, alg::accumulateNodes, &data);
     }
     else
     {
-        H5Lvisit(id(), h5index, h5order, alg::accumulateNodes, &data);
+        H5Lvisit(m_id, h5index, h5order, alg::accumulateNodes, &data);
     }
 
     return nodes;
@@ -406,12 +368,12 @@ GenH5::Group::iterateChildNodes(NodeIterationFunction iterFunction,
     if (iterType == FindDirectOnly)
     {
         hsize_t idx = 0;
-        error = H5Literate(id(), h5index, h5order, &idx,
+        error = H5Literate(m_id, h5index, h5order, &idx,
                            alg::foreachNode, &data);
     }
     else
     {
-        error = H5Lvisit(id(), h5index, h5order,
+        error = H5Lvisit(m_id, h5index, h5order,
                          alg::foreachNode, &data);
     }
 
@@ -422,9 +384,19 @@ GenH5::NodeInfo
 GenH5::Group::nodeInfo(String path) const noexcept(false)
 {
     H5L_info_t info{};
-    if (H5Lget_info(id(), path.constData(), &info, H5P_DEFAULT))
+    if (H5Lget_info(m_id, path.constData(), &info, H5P_DEFAULT))
     {
-        throw GroupException{"Failed to retrieve node info"};
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to retrieve node info for '" +
+            path.toStdString() + '\''
+        };
     }
-    return alg::getNodeInfo(id(), path.constData(), &info);
+    return alg::getNodeInfo(m_id, path.constData(), &info);
+}
+
+void
+GenH5::Group::swap(Group& other) noexcept
+{
+    using std::swap;
+    swap(m_id, other.m_id);
 }

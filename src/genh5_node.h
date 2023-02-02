@@ -59,12 +59,14 @@ class GENH5_EXPORT Node : public Location
 {
 public:
 
+    virtual void deleteRecursively() noexcept(false) = 0;
+
     /**
      * @brief returns whether the attribute exists at this node
      * @param name of the attribute
      * @return whether attibuet exists
      */
-    bool hasAttribute(String const& name) const;
+    bool hasAttribute(String const& name) const noexcept;
 
     /*
      * CREATE/OPEN ATTRIBUTE
@@ -159,10 +161,6 @@ public:
      */
 
     // version attribute
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    [[deprecated("use Node::versionAttributeName instead")]]
-    static String versionAttrName();
-#endif
     /**
      * @brief Returns the default name of a version attribute
      * @return Default name
@@ -176,11 +174,6 @@ public:
      * @return Does the version attribute exist
      */
     bool hasVersionAttribute(String const& string = versionAttributeName()) const;
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    [[deprecated("use Node::writeVersionAttribute instead")]]
-    bool createVersionAttribute() const noexcept(false);
-#endif
 
     /**
      * @brief Creates a attribute containing the version specified.
@@ -279,21 +272,9 @@ public:
 protected:
 
     /**
-     * @brief GenH5Leaf
+     * @brief Node
      */
-    explicit Node(std::shared_ptr<File> file = {}) noexcept;
-
-    /**
-     * @brief returns the hdf5 object as a h5object
-     * @return h5object
-     */
-    virtual H5::H5Object const* toH5Object() const noexcept = 0;
-
-    /**
-     * @brief returns the hdf5 object as a h5location.
-     * @return h5location
-     */
-    H5::H5Location const* toH5Location() const noexcept override;
+    explicit Node() noexcept;
 };
 
 
@@ -386,7 +367,10 @@ writeAttributeHelper(Node const& obj,
 
     if (!attr.write(data))
     {
-        throw GenH5::AttributeException{"Failed to write data to attribute!"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to write data to attribute '" +
+            name.toStdString() + '\''
+        };
     }
 
     return obj;
@@ -403,7 +387,10 @@ readAttributeHelper(Node const& obj, String const& name) noexcept(false)
 
     if (!attr.read(data))
     {
-        throw GenH5::AttributeException{"Failed to read data from attribute!"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to read data from attribute '" +
+            name.toStdString() + '\''
+        };
     }
 
     return data;

@@ -6,10 +6,13 @@
  * Email: marius.broecker@dlr.de
  */
 
+
 #include "genh5_version.h"
+#include "genh5_globals.h"
+
+#include "H5public.h"
 
 #include "gtest/gtest.h"
-#include "H5public.h"
 
 #include <QDebug>
 

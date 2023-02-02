@@ -11,62 +11,8 @@
 #include "genh5_version.h"
 #include "genh5_group.h"
 
-#include <QDebug>
-
-namespace GenH5
-{
-namespace mpl
-{
-
-template<class R, class... Args, size_t... Is >
-R apply_impl(R(*pf)(Args...),
-             std::tuple<Args...>&& args,
-             std::index_sequence< Is...>)
-{
-    return pf( std::forward<Args>( std::get<Is>(args))... );
-}
-
-template<class R, class ... Args>
-R apply(R(*pf)(Args...),
-        std::tuple<Args...> args)
-{
-    return apply_impl(pf, std::move(args),
-                      std::make_index_sequence<sizeof...(Args)>());
-}
-
-} // namespace mpl
-
-template <typename...>
-class Finally;
-
-template<typename R, typename... Args>
-class Finally<R(Args...)>
-{
-    using FunctionType = R(*)(Args...);
-
-public:
-
-    constexpr explicit Finally(FunctionType function, Args... args) :
-        m_f{function}, m_args{args...}
-    { }
-
-    ~Finally()
-    {
-        mpl::apply(m_f, std::move(m_args));
-    }
-
-    Finally(Finally const&) = delete;
-    Finally(Finally&&) = delete;
-    Finally& operator=(Finally const&) = delete;
-    Finally& operator=(Finally&&) = delete;
-
-private:
-
-    FunctionType m_f;
-    std::tuple<Args...> m_args;
-};
-
-} // namespace GenH5
+#include "H5Apublic.h"
+#include "H5Ppublic.h"
 
 GenH5::DataSet
 GenH5::NodeInfo::toDataSet(Group const& parent) const noexcept(false)
@@ -103,60 +49,44 @@ GenH5::AttributeInfo::toAttribute(Node const& object,
     return object.openAttribute(path, name);
 }
 
-GenH5::Node::Node(std::shared_ptr<File> file) noexcept :
-    Location{std::move(file)}
-{ }
-
-H5::H5Location const*
-GenH5::Node::toH5Location() const noexcept
-{
-    return toH5Object();
-}
+GenH5::Node::Node() noexcept = default;
 
 bool
-GenH5::Node::hasAttribute(String const& name) const
+GenH5::Node::hasAttribute(String const& name) const noexcept
 {
-    try
-    {
-        return isValid() && toH5Object()->attrExists(name.constData());
-    }
-    catch (H5::Exception const& /*e*/)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Node::hasAttribute";
-        return false;
-    }
+    return isValid() && H5Aexists(id(), name.constData()) > 0;
 }
 
 GenH5::Attribute
 GenH5::Node::createAttribute(String const& name,
-                            DataType const& dtype,
-                            DataSpace const& dspace) const noexcept(false)
+                             DataType const& dtype,
+                             DataSpace const& dspace) const noexcept(false)
 {
-    auto const& parent = *this;
-
-    if (!parent.isValid())
+    if (!isValid())
     {
-        throw AttributeException{"Creating attribute failed (invalid parent)"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Creating attribute '" +
+            name.toStdString() + "' failed (invalid parent)"
+        };
     }
 
     // create new attribute!
-    if (!parent.hasAttribute(name))
+    if (!hasAttribute(name))
     {
-        try
+        hid_t attr = H5Acreate(id(), name.constData(), dtype.id(), dspace.id(), H5P_DEFAULT, H5P_DEFAULT);
+        if (attr < 0)
         {
-            auto attr = parent.toH5Object()->createAttribute(
-                        name.constData(), dtype.toH5(), dspace.toH5());
-            return Attribute{parent.file(), std::move(attr)};
+            throw AttributeException{
+                GENH5_MAKE_EXECEPTION_STR() "Failed to create attribute '" +
+                name.toStdString() + '\''
+            };
         }
-        catch (H5::AttributeIException const& e)
-        {
-            throw AttributeException{e.getCDetailMsg()};
-        }
-        catch (H5::Exception const& e)
-        {
-            qCritical() << "HDF5: [EXCEPTION] Node::createAttribute";
-            throw AttributeException{e.getCDetailMsg()};
-        }
+
+        // "finally" block for cleanup
+        auto cleanup = finally(H5Aclose, attr);
+        Q_UNUSED(cleanup)
+
+        return Attribute{attr};
     }
 
     // open existing attribute
@@ -169,8 +99,8 @@ GenH5::Node::createAttribute(String const& name,
     }
 
     // attribute cannot be resized and must be deleted
-    qWarning() << "HDF5: Invalid memory layout! Overwriting attribute! -"
-               << name;
+    log::ErrStream() << GENH5_MAKE_EXECEPTION_STR()
+                        "Invalid memory layout, overwriting attribute: " << name;
     attr.deleteLink();
 
     return createAttribute(std::move(name), dtype, dspace);
@@ -179,58 +109,59 @@ GenH5::Node::createAttribute(String const& name,
 GenH5::Attribute
 GenH5::Node::openAttribute(String const& name) const noexcept(false)
 {
-    auto const& parent = *this;
-
-    if (!parent.isValid())
+    if (!isValid())
     {
-        throw AttributeException{"Opening attribute failed (invalid parent)"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Opening attribute '" +
+            name.toStdString() + "' failed (invalid parent)"
+        };
     }
 
-    try
+    hid_t attr = H5Aopen(id(), name.constData(), H5P_DEFAULT);
+    if (attr < 0)
     {
-        auto attr = parent.toH5Object()->openAttribute(name.constData());
-        return Attribute{parent.file(), std::move(attr)};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to open attribute '" +
+            name.toStdString() + '\''
+        };
     }
-    catch (H5::AttributeIException const& e)
-    {
-        throw AttributeException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Node::openAttribute";
-        throw AttributeException{e.getCDetailMsg()};
-    }
+
+    // "finally" block for cleanup
+    auto cleanup = finally(H5Aclose, attr);
+    Q_UNUSED(cleanup)
+
+    return Attribute{attr};
 }
 
 GenH5::Attribute
 GenH5::Node::openAttribute(String const& path,
                            String const& name) const noexcept(false)
 {
-    hid_t attrId = H5Aopen_by_name(id(), path.constData(), name.constData(),
-                                   H5P_DEFAULT, H5P_DEFAULT);
-
-    if (!Object::isValid(attrId))
+    if (!isValid())
     {
-        throw AttributeException{"Opening attribute by name failed"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Opening attribute by path '" +
+            path.toStdString() + ':' + name.toStdString() +
+            "' failed (invalid parent)"
+        };
+    }
+
+    hid_t attr = H5Aopen_by_name(id(), path.constData(), name.constData(),
+                                 H5P_DEFAULT, H5P_DEFAULT);
+
+    if (attr < 0)
+    {
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to open attribute by path '" +
+            path.toStdString() + ':' + name.toStdString() + '\''
+        };
     }
 
     // "finally" block for cleanup
-    Finally<herr_t(hid_t)> finally{H5Aclose, attrId};
+    auto cleanup = finally(H5Aclose, attr);
+    Q_UNUSED(cleanup)
 
-    try
-    {
-        H5::Attribute attr = attrId;
-        return Attribute{file(), std::move(attr)};
-    }
-    catch (H5::AttributeIException const& e)
-    {
-        throw AttributeException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Node::openAttribute - by name";
-        throw AttributeException{e.getCDetailMsg()};
-    }
+    return Attribute{attr};
 }
 
 GenH5::String
@@ -239,25 +170,10 @@ GenH5::Node::versionAttributeName()
     return QByteArrayLiteral("GENH5_VERSION");
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-GenH5::String
-GenH5::Node::versionAttrName()
-{
-    return versionAttributeName();
-}
-#endif
-
 bool
 GenH5::Node::hasVersionAttribute(String const& string) const
 {
     return hasAttribute(string);
-}
-
-bool
-GenH5::Node::createVersionAttribute() const noexcept(false)
-{
-    writeVersionAttribute();
-    return true;
 }
 
 GenH5::Node const&
@@ -267,7 +183,10 @@ GenH5::Node::writeVersionAttribute(String const& string,
     auto attr = createAttribute(string, dataType<Version>(), DataSpace::Scalar);
     if (!attr.write(&version))
     {
-        throw AttributeException{"Failed to write version Attribute!"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to write version attribute '" +
+            string.toStdString() + '\''
+        };
     }
     return *this;
 }
@@ -276,15 +195,22 @@ GenH5::Version
 GenH5::Node::readVersionAttribute(String const& string) const noexcept(false)
 {
     Version version{-1, -1, -1};
-    auto attr = openAttribute(string);
-    if (attr.dataType() != DataType::Version ||
+    Attribute attr = openAttribute(string);
+
+    if (attr.dataType()  != DataType::Version ||
         attr.dataSpace() != DataSpace::Scalar)
     {
-        throw AttributeException{"Invalid version Attribute format!"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Invalid version attribute format (" +
+            string.toStdString() + ')'
+        };
     }
     if (!attr.read(&version))
     {
-        throw AttributeException{"Failed to read version Attribute!"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to read version attribute (" +
+            string.toStdString() + ')'
+        };
     }
     return version;
 }
@@ -300,7 +226,6 @@ getAttributeInfo(char const* attrName, H5A_info_t const* attrInfo)
 {
     assert(attrName);
     assert(attrInfo);
-//    qDebug() << "ATTRIBUTE" << attrName;
 
     AttributeInfo info;
     info.name = QByteArray{attrName};
@@ -411,7 +336,11 @@ GenH5::Node::attributeInfo(String const& path,
     if (H5Aget_info_by_name(id(), path.constData(),
                             name.constData(), &info, H5P_DEFAULT))
     {
-        throw AttributeException{"Failed to retrieve attribute info!"};
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Failed to retrieve attribute info for '" +
+            path.toStdString() + ':' + name.toStdString() + '\''
+        };
     }
     return alg::getAttributeInfo(name.constData(), &info);
 }

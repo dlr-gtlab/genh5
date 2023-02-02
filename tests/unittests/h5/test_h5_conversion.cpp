@@ -7,8 +7,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "testhelper.h"
-#include "genh5.h"
 
 #include "genh5_conversion.h"
 

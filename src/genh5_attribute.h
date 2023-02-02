@@ -27,16 +27,7 @@ public:
      * @brief Attribute
      */
     Attribute();
-    explicit Attribute(std::shared_ptr<File> file, H5::Attribute attr);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief allows access of the base hdf5 object
-     * @return base hdf5 object
-     */
-    [[deprecated("use id() instead")]]
-    H5::Attribute const& toH5() const noexcept;
-#endif
+    explicit Attribute(hid_t id);
 
     /**
      * @brief id or handle of the hdf5 resource
@@ -60,26 +51,31 @@ public:
      */
     void close();
 
-protected:
+    /**
+     * @brief dataType of this dataset
+     * @return dataType
+     */
+    DataType dataType() const noexcept(false) override;
+    /**
+     * @brief dataSpace of this dataset
+     * @return dataSpace
+     */
+    DataSpace dataSpace() const noexcept(false) override;
 
-    /// Returns the abstract hdf5 dataset
-    H5::AbstractDs const& toH5AbsDataSet() const noexcept override;
+    /// swaps all members
+    void swap(Attribute& other) noexcept;
+
+protected:
 
     /// write implementation
     bool doWrite(void const* data, DataType const&) const override;
     /// read implementation
     bool doRead(void* data, DataType const&) const override;
 
-    /**
-     * @brief returns the hdf5 object as a h5location.
-     * @return h5location
-     */
-    H5::H5Location const* toH5Location() const noexcept override;
-
 private:
 
-    /// hdf5 base instance
-    H5::Attribute m_attribute{};
+    /// attribute id
+    IdComponent<H5I_ATTR> m_id;
 
     friend class Reference;
 };
@@ -92,5 +88,11 @@ private:
 GENH5_EXPORT String getAttributeName(Attribute const& attr) noexcept;
 
 } // namespace GenH5
+
+inline void
+swap(GenH5::Attribute& a, GenH5::Attribute& b) noexcept
+{
+    a.swap(b);
+}
 
 #endif // GENH5_ATTRIBUTE_H

@@ -12,7 +12,8 @@
 #include "genh5_group.h"
 #include "genh5_dataset.h"
 
-#include <QDebug>
+#include "H5Apublic.h"
+#include "H5Ppublic.h"
 
 GenH5::Reference::Reference() = default;
 
@@ -29,11 +30,11 @@ GenH5::Reference::Reference(QByteArray buffer)  noexcept(false)
 {
     if (buffer.size() != bufferSize)
     {
-        qCritical().nospace()
-                << "HDF5: invalid buffer format! ("
-                << buffer.size() << " vs. " << bufferSize
-                << "expected elements)";
-        throw ReferenceException{"Invalid buffer format!"};
+        throw ReferenceException{
+            GENH5_MAKE_EXECEPTION_STR() "invalid reference format (" +
+            std::to_string(buffer.size()) + " vs. " +
+            std::to_string(bufferSize) + " expected elements)"
+        };
     }
 
     std::move(std::begin(buffer), std::end(buffer), std::begin(m_ref.u.__data));
@@ -45,32 +46,37 @@ GenH5::Reference::Reference(Location const& location) noexcept(false)
 
     if (!location.isValid())
     {
-        throw ReferenceException{"Referencing location failed "
-                                 "(invalid location)"};
+        throw ReferenceException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Referencing location failed (invalid id)"
+        };
     }
 
     herr_t error;
-    if (location.type() == H5I_ATTR)
+    if (classType(location.id()) == H5I_ATTR)
     {
-        error = H5Rcreate_attr(location.file()->id(), location.path(),
+        error = H5Rcreate_attr(location.file().id(), location.path(),
                                location.name(), H5P_DEFAULT, &m_ref);
     }
     else
     {
-        error = H5Rcreate_object(location.file()->id(), location.path(),
+        error = H5Rcreate_object(location.file().id(), location.path(),
                                  H5P_DEFAULT, &m_ref);
     }
 
     if (error < 0)
     {
-        throw ReferenceException{"Referencing location failed"};
+        throw ReferenceException{
+            GENH5_MAKE_EXECEPTION_STR() "Referencing location '" +
+            location.name().toStdString() + "' failed"
+        };
     }
 
     // the file ref counter is incremented when creating a reference, however
     // this is not necessary. Therefore we decrement the ref count
     if (isValid())
     {
-        H5Idec_ref(location.file()->id());
+        H5Idec_ref(location.file().id());
     }
 }
 
@@ -95,65 +101,64 @@ GenH5::Reference::toH5() const noexcept
 GenH5::Group
 GenH5::Reference::toGroup(File const& file) const noexcept(false)
 {
-    try
+//    auto ref = m_ref;
+//    hid_t group = H5Ropen_object(&ref, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t group = H5Rdereference(file.root().id(), H5P_DEFAULT,
+                                 H5R_OBJECT, &m_ref);
+    if (group < 0)
     {
-        H5::Group group;
-        group.dereference(*file.root().toH5Object(), &m_ref);
-        // access shared file in root group as the local one may not be the same
-        return Group{file.root().file(), std::move(group)};
+        throw ReferenceException{
+            GENH5_MAKE_EXECEPTION_STR() "Dereferencing group failed"
+        };
     }
-    catch (H5::ReferenceException const& e)
-    {
-        throw ReferenceException{e.getCDetailMsg()};
-    }
-    catch (H5::GroupIException const& e)
-    {
-        throw GroupException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Reference::toGroup";
-        throw ReferenceException{e.getCDetailMsg()};
-    }
+
+    auto cleanup = finally(H5Oclose, group);
+    Q_UNUSED(cleanup)
+
+    // access shared file in root group as the local one may not be the same
+    return Group{group};
 }
 
 GenH5::DataSet
 GenH5::Reference::toDataSet(File const& file) const noexcept(false)
 {
-    try
+//    auto ref = m_ref;
+//    hid_t dset = H5Ropen_object(&ref, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t dset = H5Rdereference(file.root().id(), H5P_DEFAULT,
+                                H5R_OBJECT, &m_ref);
+    if (dset < 0)
     {
-        H5::DataSet dset;
-        dset.dereference(*file.root().toH5Object(), &m_ref);
-        // access shared file in root group as the local one may not be the same
-        return DataSet{file.root().file(), std::move(dset)};
+        throw ReferenceException{
+            GENH5_MAKE_EXECEPTION_STR() "Dereferencing dataset failed"
+        };
     }
-    catch (H5::ReferenceException const& e)
-    {
-        throw ReferenceException{e.getCDetailMsg()};
-    }
-    catch (H5::DataSetIException const& e)
-    {
-        throw DataSetException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] Reference::toDataSet";
-        throw ReferenceException{e.getCDetailMsg()};
-    }
+
+    auto cleanup = finally(H5Oclose, dset);
+    Q_UNUSED(cleanup)
+
+    // access shared file in root group as the local one may not be the same
+    return DataSet{dset};
 }
 
 GenH5::Attribute
 GenH5::Reference::toAttribute(File const& file) const noexcept(false)
 {
-    auto ref = m_ref;
-    hid_t id = H5Ropen_attr(&ref, H5P_DEFAULT, H5P_DEFAULT);
+    Q_UNUSED(file)
 
-    if (id == -1)
+    auto ref = m_ref;
+    hid_t attr = H5Ropen_attr(&ref, H5P_DEFAULT, H5P_DEFAULT);
+//    hid_t attr = H5Rdereference(file.root().id(), H5P_DEFAULT, H5R_OBJECT, &m_ref);
+    if (attr < 0)
     {
-        throw ReferenceException{"Dereferencing attribute failed"};
+        throw ReferenceException{
+            GENH5_MAKE_EXECEPTION_STR() "Dereferencing attribute failed"
+        };
     }
 
+    auto cleanup = finally(H5Aclose, attr);
+    Q_UNUSED(cleanup)
+
     // access shared file in root group as the local one may not be the same
-    return Attribute{file.root().file(), id};
+    return Attribute{attr};
 }
 

@@ -8,10 +8,13 @@
 
 #include "genh5_file.h"
 #include "genh5_group.h"
+#include "genh5_private.h"
 
-#include <QDebug>
 #include <QFileInfo>
 #include <QDir>
+
+#include "H5Fpublic.h"
+#include "H5Ppublic.h"
 
 GenH5::String
 GenH5::getFileName(File const& file) noexcept
@@ -41,9 +44,11 @@ GenH5::getFileName(File const& file) noexcept
 
 GenH5::File::File() = default;
 
-GenH5::File::File(H5::H5File file) :
-    m_file{std::move(file)}
-{ }
+GenH5::File::File(hid_t id) :
+    m_id(id)
+{
+    m_id.inc();
+}
 
 GenH5::File::File(String path, FileAccessFlags flags)
 {
@@ -52,15 +57,20 @@ GenH5::File::File(String path, FileAccessFlags flags)
 
     if (!fileDir.exists())
     {
-        throw FileException{"Accessing file failed! "
-                            "(Directory does not exist)"};
+        throw FileException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Accessing file failed (directory does not exist: " +
+            path.toStdString() + ')'
+        };
     }
 
     uint flag = H5F_ACC_DEFAULT;
     bool exists = fileInfo.exists();
+    bool create = false;
 
     if (flags & Overwrite)
     {
+        create = true;
         flag = H5F_ACC_TRUNC;
     }
     else if (flags & ReadWrite)
@@ -69,6 +79,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
     }
     else if (!exists)
     {
+        create = true;
         if (flags & Create)
         {
             flags &= ~Open;
@@ -76,8 +87,11 @@ GenH5::File::File(String path, FileAccessFlags flags)
         }
         if (flags & ReadOnly || flags & Open)
         {
-            throw FileException{"Opening file failed! "
-                                "(File does not exist)"};
+            throw FileException{
+                GENH5_MAKE_EXECEPTION_STR()
+                "Opening file failed (file does not exist: " +
+                path.toStdString() + ')'
+            };
         }
     }
     else
@@ -88,8 +102,11 @@ GenH5::File::File(String path, FileAccessFlags flags)
         }
         else if (flags & Create)
         {
-            throw FileException{"Creating file failed! "
-                                "(File already exist)"};
+            throw FileException{
+                GENH5_MAKE_EXECEPTION_STR()
+                "Creating file failed (file already exists: " +
+                path.toStdString() + ')'
+            };
         }
         if (flags & ReadOnly)
         {
@@ -97,52 +114,50 @@ GenH5::File::File(String path, FileAccessFlags flags)
         }
     }
 
-    try
+    if (create)
     {
-        m_file = H5::H5File{path.constData(), flag};
+        m_id = H5Fcreate(path.constData(), flag, H5P_DEFAULT, H5P_DEFAULT);
+        if (m_id < 0)
+        {
+            throw FileException{
+                GENH5_MAKE_EXECEPTION_STR() "Failed to create file (path: " +
+                path.toStdString() + ')'
+            };
+        }
     }
-    catch (H5::FileIException const& e)
+    else
     {
-        throw FileException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] File::File";
-        throw FileException{e.getCDetailMsg()};
-    }
-}
-
-//#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-bool
-GenH5::File::isValidH5File(String const& filePath)
-{
-    try
-    {
-        return QFileInfo::exists(filePath) &&
-               H5::H5File::isAccessible(filePath.constData()) &&
-               H5::H5File::isHdf5(filePath.constData());
-    }
-    catch (H5::Exception const& /*e*/)
-    {
-        return false;
+        m_id = H5Fopen(path.constData(), flag, H5P_DEFAULT);
+        if (m_id < 0)
+        {
+            throw FileException{
+                GENH5_MAKE_EXECEPTION_STR() "Failed to open file (path: " +
+                path.toStdString() + ')'
+            };
+        }
     }
 }
-//#endif
 
 hid_t
 GenH5::File::id() const noexcept
 {
-    return m_file.getId();
+    return m_id;
 }
 
-GenH5::Group
-GenH5::File::root() const noexcept(false)
+GenH5::Group&
+GenH5::File::root() noexcept(false)
 {
     if (!isValid(m_root.id()))
     {
         m_root = Group{*this};
     }
     return m_root;
+}
+
+GenH5::Group const&
+GenH5::File::root() const noexcept(false)
+{
+    return const_cast<File*>(this)->root();
 }
 
 GenH5::String
@@ -178,17 +193,17 @@ GenH5::File::dotFileSuffix() noexcept
 void
 GenH5::File::close()
 {
-    m_file.close();
-    if (m_root.file())
+    if (m_root.isValid())
     {
-        m_root.file()->m_file.close();
+        m_root.close();
     }
+    m_id.dec();
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-H5::H5File const&
-GenH5::File::toH5() const noexcept
+void
+GenH5::File::swap(File& other) noexcept
 {
-    return m_file;
+    using std::swap;
+    swap(m_id, other.m_id);
+    swap(m_root, other.m_root);
 }
-#endif

@@ -8,75 +8,98 @@
 
 #include "genh5_datatype.h"
 #include "genh5_utils.h"
+#include "genh5_private.h"
 
-#include <QDebug>
+namespace GenH5
+{
 
-GenH5::DataType
-GenH5::DataType::Bool{H5::PredType::NATIVE_HBOOL};
-GenH5::DataType
-GenH5::DataType::Char{H5::PredType::NATIVE_CHAR};
+/// Helper function for creating a datatype
+template <typename Functor, typename CharType>
+inline DataType makeType(Functor&& functor, CharType&& msg)
+{
+    return details::make<DataType, DataTypeException>(
+        std::forward<Functor>(functor), std::forward<CharType>(msg)
+    );
+}
 
-GenH5::DataType
-GenH5::DataType::Int{H5::PredType::NATIVE_INT};
-GenH5::DataType
-GenH5::DataType::Long{H5::PredType::NATIVE_LONG};
-GenH5::DataType
-GenH5::DataType::LLong{H5::PredType::NATIVE_LLONG};
-GenH5::DataType
-GenH5::DataType::UInt{H5::PredType::NATIVE_UINT};
-GenH5::DataType
-GenH5::DataType::ULong{H5::PredType::NATIVE_ULONG};
-GenH5::DataType
-GenH5::DataType::ULLong{H5::PredType::NATIVE_ULLONG};
+/// Helper function for creating a predefined datatype
+inline DataType makePredType(hid_t id)
+{
+    return GenH5::DataType::fromId(H5Tcopy(id));
+}
 
-GenH5::DataType
-GenH5::DataType::Float{H5::PredType::NATIVE_FLOAT};
-GenH5::DataType
-GenH5::DataType::Double{H5::PredType::NATIVE_DOUBLE};
+} // namespace GenH5
 
-GenH5::DataType
-GenH5::DataType::VarString{GenH5::DataType::string(H5T_VARIABLE)};
+static const GenH5::DataType s_bool{GenH5::makePredType(H5T_NATIVE_HBOOL)};
+static const GenH5::DataType s_char{GenH5::makePredType(H5T_NATIVE_CHAR)};
 
-GenH5::DataType
-GenH5::DataType::Version{GenH5::DataType::compound(sizeof(GenH5::Version), {
-    {"major", offsetof(GenH5::Version, major), dataType<int>()},
-    {"minor", offsetof(GenH5::Version, minor), dataType<int>()},
-    {"patch", offsetof(GenH5::Version, patch), dataType<int>()}
-})};
+static const GenH5::DataType s_int{GenH5::makePredType(H5T_NATIVE_INT)};
+static const GenH5::DataType s_long{GenH5::makePredType(H5T_NATIVE_LONG)};
+static const GenH5::DataType s_llong{GenH5::makePredType(H5T_NATIVE_LLONG)};
+static const GenH5::DataType s_uint{GenH5::makePredType(H5T_NATIVE_UINT)};
+static const GenH5::DataType s_ulong{GenH5::makePredType(H5T_NATIVE_ULONG)};
+static const GenH5::DataType s_ullong{GenH5::makePredType(H5T_NATIVE_ULLONG)};
 
-GenH5::DataType::DataType() = default;
+static const GenH5::DataType s_float{GenH5::makePredType(H5T_NATIVE_FLOAT)};
+static const GenH5::DataType s_double{GenH5::makePredType(H5T_NATIVE_DOUBLE)};
+
+static const GenH5::DataType s_varString{GenH5::DataType::string(H5T_VARIABLE)};
+
+static const GenH5::DataType s_version{
+    GenH5::DataType::compound(sizeof(GenH5::Version), {
+        {"major", offsetof(GenH5::Version, major), GenH5::dataType<int>()},
+        {"minor", offsetof(GenH5::Version, minor), GenH5::dataType<int>()},
+        {"patch", offsetof(GenH5::Version, patch), GenH5::dataType<int>()}
+    })
+};
+
+GenH5::DataType const& GenH5::DataType::Bool = s_bool;
+GenH5::DataType const& GenH5::DataType::Char = s_char;
+
+GenH5::DataType const& GenH5::DataType::Int = s_int;
+GenH5::DataType const& GenH5::DataType::Long = s_long;
+GenH5::DataType const& GenH5::DataType::LLong = s_llong;
+GenH5::DataType const& GenH5::DataType::UInt = s_uint;
+GenH5::DataType const& GenH5::DataType::ULong = s_ulong;
+GenH5::DataType const& GenH5::DataType::ULLong = s_ullong;
+
+GenH5::DataType const& GenH5::DataType::Float = s_float;
+GenH5::DataType const& GenH5::DataType::Double = s_double;
+
+GenH5::DataType const& GenH5::DataType::VarString = s_varString;
+GenH5::DataType const& GenH5::DataType::Version = s_version;
 
 GenH5::DataType
 GenH5::DataType::string(size_t size, bool useUtf8) noexcept(false)
 {
-    try
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to create string type";
+
+    DataType dtype = makeType([=](){
+        return H5Tcreate(H5T_STRING, size);
+    }, errMsg);
+
+    if (useUtf8 && H5Tset_cset(dtype.m_id, H5T_CSET_UTF8) < 0)
     {
-        auto dtype = DataType{H5::StrType{H5::PredType::C_S1, size}};
-        if (useUtf8)
-        {
-            H5Tset_cset(dtype.id(), H5T_CSET_UTF8);
-        }
-        return dtype;
+        throw DataTypeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to enable utf8 for string type"
+        };
     }
-    catch (H5::Exception const& e)
-    {
-        throw DataTypeException{e.getCDetailMsg()};
-    }
+
+    return dtype;
 }
 
 GenH5::DataType
 GenH5::DataType::array(DataType const& type,
-                    Dimensions const& dims) noexcept(false)
+                       Dimensions const& dims) noexcept(false)
 {
-    try
-    {
-        return DataType{H5::ArrayType{type.toH5(), dims.length(),
-                                      dims.constData()}};
-    }
-    catch (H5::Exception const& e)
-    {
-        throw DataTypeException{e.getCDetailMsg()};
-    }
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to create array type";
+
+    return makeType(
+                [id = type.m_id, len = dims.length(), ptr = dims.constData()](){
+        return H5Tarray_create(id, len, ptr);
+    }, errMsg);
 }
 
 GenH5::DataType
@@ -88,69 +111,96 @@ GenH5::DataType::array(DataType const& type, hsize_t length) noexcept(false)
 GenH5::DataType
 GenH5::DataType::varLen(DataType const& type) noexcept(false)
 {
-    try
-    {
-        return DataType{H5::VarLenType{type.toH5()}};
-    }
-    catch (H5::Exception const& e)
-    {
-        throw DataTypeException{e.getCDetailMsg()};
-    }
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to create varlen type";
+
+    return makeType([id = type.m_id](){
+        return H5Tvlen_create(id);
+    }, errMsg);
 }
 
 GenH5::DataType
 GenH5::DataType::compound(size_t dataSize,
-                         CompoundMembers const& members) noexcept(false)
+                          CompoundMembers const& members) noexcept(false)
 {
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to create compound type";
+
     if (dataSize < 1)
     {
-        throw DataTypeException{"Creating compound type failed "
-                                "(Data size must be positive)"};
+        throw DataTypeException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Failed to create compound type (data size must be positive)"
+        };
     }
 
-    for (auto const& m : members)
+    // check if types are valid
+    int i = 0;
+    for (auto const& m : qAsConst(members))
     {
         if (m.name.isEmpty())
         {
-            throw DataTypeException{"Creating compound type failed "
-                                    "(Invalid member name)"};
+            throw DataTypeException{
+                GENH5_MAKE_EXECEPTION_STR()
+                "Failed to create compound type (member no. " +
+                std::to_string(i) + ": invalid name)"
+            };
         }
         if (!m.type.isValid())
         {
-            throw DataTypeException{"Creating compound type failed "
-                                    "(Invalid member type)"};
+            throw DataTypeException{
+                GENH5_MAKE_EXECEPTION_STR()
+                "Failed to create compound type (member no. " +
+                std::to_string(i) + ": invalid type)"
+            };
         }
+        ++i;
     }
 
-    H5::CompType dtype{dataSize};
+    // create type
+    DataType dtype = makeType([=](){
+        return H5Tcreate(H5T_COMPOUND, dataSize);
+    }, errMsg);
 
-    for (int i = 0; i < members.length(); ++i)
+    // insert members
+    for (i = 0; i < members.length(); ++i)
     {
         auto const& m = members.at(i);
 
-        if (H5Tinsert(dtype.getId(), m.name.constData(), m.offset, m.type.id()))
+        if (H5Tinsert(dtype.m_id, m.name.constData(), m.offset, m.type.m_id) < 0)
         {
-            qCritical().nospace().noquote()
-                    << "HDF5: Failed to insert member no. " << i << " '"
-                    << m.name << "' into compound type! (offset: " << m.offset
-                    << ", size: " << m.type.size()
-                    << " vs. datasize: " << dataSize << ")";
-            throw DataTypeException{"Failed to insert member into "
-                                    "compound type"};
+            throw DataTypeException{
+                GENH5_MAKE_EXECEPTION_STR() "Failed to insert member no. " +
+                std::to_string(i) + " into compound type (offset: " +
+                std::to_string(m.offset) + ", size: " +
+                std::to_string(m.type.size()) + " vs. datasize: " +
+                std::to_string(dataSize) + ")"
+            };
         }
     }
 
-    return DataType{dtype};
+    return dtype;
 }
 
-GenH5::DataType::DataType(H5::DataType type) :
-    m_datatype{std::move(type)}
-{ }
+GenH5::DataType GenH5::DataType::fromId(hid_t id) noexcept
+{
+    DataType d;
+    d.m_id = id;
+    return d;
+}
+
+GenH5::DataType::DataType() = default;
+
+GenH5::DataType::DataType(hid_t id) :
+    m_id(id)
+{
+    m_id.inc();
+}
 
 hid_t
 GenH5::DataType::id() const noexcept
 {
-    return m_datatype.getId();
+    return m_id;
 }
 
 bool
@@ -195,28 +245,20 @@ GenH5::DataType::isVarString() const noexcept
     return isString() && H5Tis_variable_str(id());
 }
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-H5::DataType const&
-GenH5::DataType::toH5() const  noexcept
-{
-    return m_datatype;
-}
-#endif
-
 size_t
 GenH5::DataType::size() const noexcept
 {
-    return H5Tget_size(id());
+    return H5Tget_size(m_id);
 }
 
 GenH5::DataType::Type
 GenH5::DataType::type() const noexcept
 {
-    return isValid() ? H5Tget_class(id()) : H5T_NO_CLASS;
+    return isValid() ? H5Tget_class(m_id) : H5T_NO_CLASS;
 }
 
 GenH5::Dimensions
-GenH5::DataType::arrayDimensions() const  noexcept
+GenH5::DataType::arrayDimensions() const noexcept
 {
     if (!isArray())
     {
@@ -224,8 +266,8 @@ GenH5::DataType::arrayDimensions() const  noexcept
     }
 
     Dimensions dims;
-    dims.resize(H5Tget_array_ndims(id()));
-    H5Tget_array_dims(id(), dims.data());
+    dims.resize(H5Tget_array_ndims(m_id));
+    H5Tget_array_dims(m_id, dims.data());
     return dims;
 }
 
@@ -237,9 +279,7 @@ GenH5::DataType::compoundMembers() const
         return {};
     }
 
-    H5::CompType dtype(id());
-
-    int n = dtype.getNmembers();
+    int n = H5Tget_nmembers(m_id);
 
     if (n < 1)
     {
@@ -249,28 +289,29 @@ GenH5::DataType::compoundMembers() const
     CompoundMembers members;
     members.reserve(n);
 
-    try
+    for (uint i = 0; i < static_cast<uint>(n); ++i)
     {
-        for (uint i = 0; i < static_cast<uint>(n); ++i)
+        char* str = H5Tget_member_name(m_id, i);
+        String memberName{str};
+        H5free_memory(str);
+
+        size_t offset = H5Tget_member_offset(m_id, i);
+
+        hid_t type = H5Tget_member_type(m_id, i);
+        if (type <= 0)
         {
-            auto* str = H5Tget_member_name(dtype.getId(), i);
-            String memberName{str};
-            H5free_memory(str);
-            members.append({
-               memberName,
-               dtype.getMemberOffset(i),
-               DataType{dtype.getMemberDataType(i)}
-           });
+            throw DataTypeException{
+                GENH5_MAKE_EXECEPTION_STR()
+                "Failed to access datatype of compound member no. " +
+                std::to_string(i)
+            };
         }
-    }
-    catch (H5::DataTypeIException const& e)
-    {
-        throw DataTypeException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] DataType::compoundMembers";
-        throw DataTypeException{e.getCDetailMsg()};
+
+        members.append({
+            std::move(memberName),
+            offset,
+            DataType::fromId(type)
+        });
     }
 
     return members;
@@ -279,19 +320,26 @@ GenH5::DataType::compoundMembers() const
 GenH5::DataType
 GenH5::DataType::superType() const noexcept(false)
 {
-    try
+    static const std::string errMsg =
+            GENH5_MAKE_EXECEPTION_STR() "Failed to open super type";
+
+    if (!isValid())
     {
-        return DataType{m_datatype.getSuper()};
+        throw DataTypeException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to open super type (invalid id)"
+        };
     }
-    catch (H5::DataTypeIException const& e)
-    {
-        throw DataTypeException{e.getCDetailMsg()};
-    }
-    catch (H5::Exception const& e)
-    {
-        qCritical() << "HDF5: [EXCEPTION] DataType::compoundMembers";
-        throw DataTypeException{e.getCDetailMsg()};
-    }
+
+    return makeType([id = m_id](){
+        return H5Tget_super(id);
+    }, errMsg);
+}
+
+void
+GenH5::DataType::swap(DataType& other) noexcept
+{
+    using std::swap;
+    swap(m_id, other.m_id);
 }
 
 #if 0
@@ -303,13 +351,20 @@ GenH5::DataType::toString() const
     switch (type())
     {
     case H5T_INTEGER:
-        string += "Int";
+        string += "Int(";
+        string += String::number(size());
+        string += ")";
         break;
     case H5T_FLOAT:
-        string += "Float";
+        string += "Float(";
+        string += String::number(size());
+        string += ")";
         break;
     case H5T_STRING:
-        string += "String";
+        if (isVarString()) string += "Var";
+        string += "String(";
+        string += String::number(size());
+        string += ")";
         break;
     case H5T_VLEN:
         string += "VarLen{ "
@@ -318,46 +373,56 @@ GenH5::DataType::toString() const
         break;
     case H5T_COMPOUND:
         {
+            string += "CompMember[";
+            bool changed = false;
             for (auto const& m : compoundMembers())
             {
-                string += "CompMember{ \""
+                changed = true;
+                string += "{ \""
                        +  m.name + "\", "
                        +  m.type.toString() + ", at "
-                       +  String::number(m.offset)
+                       +  String::number(static_cast<qulonglong>(m.offset))
                        +  " }, ";
             }
-            string.remove(string.size()-1-2, 2);
+            if (changed) string.remove(string.size() - 2, 2);
+            string += "]";
         }
         break;
     case H5T_ARRAY:
-        string += "Array{ "
-               +  arrayDimensions()
-               +  " x "
-               +  superType()
-               +  " }";
+        string += "Array{ ";
+        {
+            QString s;
+            QDebug d(&s);
+            d.nospace() << arrayDimensions();
+            string += s.toUtf8();
+        }
+        string += " x ";
+        string += superType().toString();
+        string += " }";
         break;
     case H5T_OPAQUE:
-        stream << "Opaque";
+         string += "Opaque";
         break;
     case H5T_BITFIELD:
-        stream << "Bitfield";
+         string += "Bitfield";
         break;
     case H5T_ENUM:
-        stream << "Enum";
+         string += "Enum";
         break;
     case H5T_TIME:
-        stream << "Time";
+         string += "Time";
         break;
     case H5T_REFERENCE:
-        stream << "Ref";
+         string += "Ref";
         break;
     default:
-        stream << "Type{ "
-               << dtype.type()
-               << " }";
+         string += "Type{ "
+                + String::number(type())
+                + " " + String::number(id())
+                + " }";
     }
 
-    return stream;
+    return string;
 }
 #endif
 
@@ -458,14 +523,16 @@ operator!=(GenH5::DataType const& first, GenH5::DataType const& other)
 }
 
 bool
-operator==(GenH5::CompoundMember const& first, GenH5::CompoundMember const& other)
+operator==(GenH5::CompoundMember const& first,
+           GenH5::CompoundMember const& other)
 {
     return first.offset == other.offset &&
            first.name == other.name &&
            first.type == other.type;
 }
 bool
-operator!=(GenH5::CompoundMember const& first, GenH5::CompoundMember const& other)
+operator!=(GenH5::CompoundMember const& first,
+           GenH5::CompoundMember const& other)
 {
     return !(first == other);
 }

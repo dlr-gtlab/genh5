@@ -10,8 +10,6 @@
 
 #include "genh5_data.h"
 
-#include "testhelper.h"
-
 #include <QPoint>
 #include <QList>
 #include <QStringList>

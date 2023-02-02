@@ -13,10 +13,7 @@
 
 #include "genh5_datasetcproperties.h"
 #include "genh5_dataset.h"
-#include "genh5_utils.h"
 #include "genh5_optional.h"
-
-#include <QDebug>
 
 namespace GenH5
 {
@@ -58,16 +55,7 @@ public:
      */
     Group();
     explicit Group(File const& file);
-    explicit Group(std::shared_ptr<File> file, H5::Group group);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    /**
-     * @brief allows access of the base hdf5 object
-     * @return base hdf5 object
-     */
-    [[deprecated("use id() instead")]]
-    H5::Group const& toH5() const noexcept;
-#endif
+    explicit Group(hid_t id);
 
     /**
      * @brief id or handle of the hdf5 resource
@@ -84,7 +72,7 @@ public:
      * @brief deletes the object tree recursively
      * (subgroups, datasets and attributes)
      */
-    void deleteRecursively() noexcept(false);
+    void deleteRecursively() noexcept(false) override;
 
     /**
      * @brief explicitly closes the resource handle
@@ -113,15 +101,6 @@ public:
      * CREATE/OPEN DATASET
      */
 
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    [[deprecated("use createDataSet instead")]]
-    DataSet createDataset(String const& name,
-                          DataType const& dtype,
-                          DataSpace const& dspace,
-                          Optional<DataSetCProperties> cProps = {}
-                          ) const noexcept(false);
-#endif
-
     /**
      * @brief Creates a dataset. The dataset has no values set. If the
      * dataset already exists, its datatype and dataspace are checked. If they
@@ -138,11 +117,6 @@ public:
                           DataSpace const& dspace,
                           Optional<DataSetCProperties> cProps = {}
                           ) const noexcept(false);
-
-#ifndef GENH5_NO_DEPRECATED_SYMBOLS
-    [[deprecated("use openDataSet instead")]]
-    DataSet openDataset(String const& name) const noexcept(false);
-#endif
 
     /**
      * @brief Opens the dataset specified.
@@ -296,18 +270,13 @@ public:
      */
     NodeInfo nodeInfo(String path) const noexcept(false);
 
-protected:
-
-    /**
-     * @brief returns the hdf5 object as a h5object
-     * @return h5object
-     */
-    H5::H5Object const* toH5Object() const noexcept override;
+    /// swaps all members
+    void swap(Group& other) noexcept;
 
 private:
 
-    /// hdf5 base instance
-    H5::Group m_group{};
+    /// group id
+    IdComponent<H5I_GROUP> m_id;
 
     friend class Reference;
 };
@@ -326,8 +295,10 @@ writeDataSetHelper(Group const& obj,
 
     if (!dset.write(data))
     {
-        throw GenH5::DataSetException{"GenH5: DataSet: "
-                                      "Failed to write data to dataset!"};
+        throw DataSetException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to write data to dataset '" +
+            name.toStdString() + '\''
+        };
     }
 
     return dset;
@@ -344,8 +315,10 @@ readDataSetHelper(Group const& obj, String const& name) noexcept(false)
 
     if (!dset.read(data))
     {
-        throw GenH5::DataSetException{"GenH5: DataSet: "
-                                      "Failed to read data from dataset!"};
+        throw DataSetException{
+            GENH5_MAKE_EXECEPTION_STR() "Failed to read data from dataset '" +
+            name.toStdString() + '\''
+        };
     }
 
     return data;
@@ -395,5 +368,11 @@ Group::readDataSet0D(String const& name) const noexcept(false)
 }
 
 } // namespace GenH5
+
+inline void
+swap(GenH5::Group& a, GenH5::Group& b) noexcept
+{
+    a.swap(b);
+}
 
 #endif // GENH5_GROUP_H

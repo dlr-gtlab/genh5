@@ -8,9 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "genh5_data.h"
-
-#include "testhelper.h"
+#include "genh5_data/fixedstring0d.h"
 
 #include <QPoint>
 #include <QList>
