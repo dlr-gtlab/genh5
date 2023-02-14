@@ -40,6 +40,7 @@ set(headers
     genh5_data/base.h
     genh5_data/comp.h
     genh5_data/comp0d.h
+    genh5_data/buffer.h
     genh5_data/common.h
     genh5_data/common0d.h
     genh5_data/fixedstring0d.h
