@@ -14,7 +14,7 @@ int main()
     // access the root group of the file and create a subgroup
     GenH5::Group group = file.root().createGroup("my_group");
     // create simple dataset at '/my_group/my_data'
-    GenH5::DataSet dataset = group.createDataset("my_data", data.dataType(), data.dataSpace());
+    GenH5::DataSet dataset = group.createDataSet("my_data", data.dataType(), data.dataSpace());
     // write the data
     dataset.write(data);
 
