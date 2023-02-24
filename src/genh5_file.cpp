@@ -19,27 +19,10 @@
 GenH5::String
 GenH5::getFileName(File const& file) noexcept
 {
-    if (!file.isValid())
-    {
-        return {};
-    }
-
-    String buffer{32, ' '};
-    size_t bufferLen = static_cast<size_t>(buffer.size());
-
-    auto acutalLen = static_cast<size_t>(H5Fget_name(file.id(),
-                                                     buffer.data(),
-                                                     bufferLen));
-
-    if (acutalLen > bufferLen)
-    {
-        bufferLen = acutalLen + 1;
-        buffer.resize(static_cast<int>(bufferLen));
-        H5Fget_name(file.id(), buffer.data(), bufferLen);
-    }
-
-    // remove of excess whitespaces and trailing '\0'
-    return buffer.trimmed().chopped(1);
+    return GenH5::details::getName(file.id(),
+                                   [](hid_t id, size_t len, char* data) {
+         return H5Fget_name(id, data, len);
+    });
 }
 
 GenH5::File::File() = default;

@@ -56,7 +56,7 @@ TEST_F(TestH5Location, linkName)
     EXPECT_EQ(GenH5::DataSet().name(), QByteArray{});
     EXPECT_EQ(GenH5::Attribute().name(), QByteArray{});
 
-    EXPECT_EQ(file.root().name(), QByteArray{});
+    EXPECT_EQ(file.root().name(), QByteArrayLiteral("/"));
     EXPECT_EQ(group.name(), QByteArrayLiteral("group"));
     EXPECT_EQ(dataset.name(), QByteArrayLiteral("dataset"));
     EXPECT_EQ(attribute.name(), QByteArrayLiteral("attribute"));
@@ -78,7 +78,7 @@ TEST_F(TestH5Location, linkPath)
 
 TEST_F(TestH5Location, file)
 {
-//    EXPECT_THROW(GenH5::File().root().file(), GenH5::GroupException);
+//    EXPECT_THROW(GenH5::File().root().file(), GenH5::FileException);
 
 //    EXPECT_THROW(GenH5::Group().file(), GenH5::GroupException);
 //    EXPECT_THROW(GenH5::DataSet().file(), GenH5::GroupException);

@@ -98,3 +98,30 @@ TEST_F(TestH5Attribute, deleteLinkNested)
 
     EXPECT_FALSE(groupD.hasAttribute("my_attr"));
 }
+
+TEST_F(TestH5Attribute, nodeInfo)
+{
+    EXPECT_THROW(GenH5::Attribute{}.nodeInfo(), GenH5::AttributeException);
+
+    auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
+    auto rootAttr = file.root().createAttribute("root_attr",
+                                                GenH5::dataType<int>(),
+                                                GenH5::DataSpace::Scalar);
+
+    EXPECT_EQ(rootAttr.path(), file.root().name());
+    ASSERT_NO_THROW(rootAttr.nodeInfo());
+    EXPECT_EQ(rootAttr.nodeInfo().path, file.root().name());
+    EXPECT_TRUE(rootAttr.nodeInfo().isGroup());
+    EXPECT_TRUE(rootAttr.nodeInfo().toGroup(file.root()).isValid());
+
+    auto dset= file.root().writeDataSet0D("dset", 42);
+    auto dsetAttr = dset.createAttribute("dset_attr",
+                                         GenH5::dataType<int>(),
+                                         GenH5::DataSpace::Scalar);
+
+    EXPECT_EQ(dsetAttr.path(), dset.path());
+    ASSERT_NO_THROW(dsetAttr.nodeInfo());
+    EXPECT_EQ(dsetAttr.nodeInfo().path, dset.path());
+    EXPECT_TRUE(dsetAttr.nodeInfo().isDataSet());
+    EXPECT_TRUE(dsetAttr.nodeInfo().toDataSet(file.root()).isValid());
+}

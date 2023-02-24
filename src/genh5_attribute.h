@@ -15,6 +15,8 @@
 namespace GenH5
 {
 
+struct NodeInfo;
+
 /**
  * @brief The Attribute class
  */
@@ -45,6 +47,13 @@ public:
      * @return name
      */
     String name() const noexcept override;
+
+    /**
+     * @brief Returns the parent node i.e. the node that contains this
+     * attribute.
+     * @return Node info
+     */
+    NodeInfo nodeInfo() const noexcept(false);
 
     /**
      * @brief explicitly closes the resource handle

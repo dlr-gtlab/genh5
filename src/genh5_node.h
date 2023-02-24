@@ -62,6 +62,19 @@ public:
     virtual void deleteRecursively() noexcept(false) = 0;
 
     /**
+     * @brief Returns true if parent exists
+     * @return has parent
+     */
+    bool hasParent() const noexcept;
+
+    /**
+     * @brief Returns the parent object. Check if parent exists using
+     * hasParent()
+     * @return parent object
+     */
+    Group parent() const noexcept(false);
+
+    /**
      * @brief returns whether the attribute exists at this node
      * @param name of the attribute
      * @return whether attibuet exists
