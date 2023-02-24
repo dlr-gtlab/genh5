@@ -240,91 +240,6 @@ GenH5::Group::openDataSet(String const& name) const noexcept(false)
     return DataSet{dset};
 }
 
-namespace GenH5
-{
-
-namespace alg
-{
-
-inline NodeInfo getNodeInfo(hid_t groupId, char const* nodeName,
-                            H5L_info_t const* nodeInfo)
-{
-    assert(nodeName);
-    assert(nodeInfo);
-    // open object to retrieve object type
-    auto id = H5Oopen_by_token(groupId, nodeInfo->u.token);
-    auto type = H5Iget_type(id);
-    H5Oclose(id);
-
-    NodeInfo info;
-    info.path = QByteArray{nodeName};
-    info.type = type;
-    info.corder = nodeInfo->corder_valid ? nodeInfo->corder : -1;
-    info.token = nodeInfo->u.token;
-    return info;
-}
-
-struct IterAccumulateData
-{
-    Vector<NodeInfo>* nodes{};
-    IterationFilter filter{};
-};
-
-inline herr_t
-accumulateNodes(hid_t groupId, char const* nodeName,
-                H5L_info_t const* nodeInfo, void* dataPtr)
-{
-    assert(dataPtr);
-
-    auto* data = static_cast<IterAccumulateData*>(dataPtr);
-    assert(data->nodes);
-
-    NodeInfo info = getNodeInfo(groupId, nodeName, nodeInfo);
-    if (data->filter == FilterGroups && info.type != H5I_GROUP)
-    {
-        return 0;
-    }
-    if (data->filter == FilterDataSets && info.type != H5I_DATASET)
-    {
-        return 0;
-    }
-    *data->nodes << std::move(info);
-    return 0;
-}
-
-struct IterForeachData
-{
-    Group const* parent{};
-    NodeIterationFunction* f{};
-    IterationFilter filter{};
-};
-
-inline herr_t
-foreachNode(hid_t groupId, char const* nodeName,
-            H5L_info_t const* nodeInfo, void* dataPtr)
-{
-    assert(dataPtr);
-
-    auto* data = static_cast<IterForeachData*>(dataPtr);
-    assert(data->parent);
-    assert(data->f);
-
-    NodeInfo info = getNodeInfo(groupId, nodeName, nodeInfo);
-    if (data->filter == FilterGroups && info.type != H5I_GROUP)
-    {
-        return 0;
-    }
-    if (data->filter == FilterDataSets && info.type != H5I_DATASET)
-    {
-        return 0;
-    }
-    return (*data->f)(*data->parent, info);
-}
-
-} // namespae alg
-
-} // namespace GenH5
-
 GenH5::Vector<GenH5::NodeInfo>
 GenH5::Group::findChildNodes(IterationType iterType,
                              IterationFilter iterFilter,
@@ -359,7 +274,7 @@ GenH5::Group::iterateChildNodes(NodeIterationFunction iterFunction,
 {
     assert(iterFunction);
 
-    alg::IterForeachData data{this, &iterFunction, iterFilter};
+    alg::IterForeachNodeData data{this, &iterFunction, iterFilter};
     herr_t error = 0;
 
     auto h5index = static_cast<H5_index_t>(iterIndex);

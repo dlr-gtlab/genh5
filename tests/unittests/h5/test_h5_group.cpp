@@ -110,6 +110,8 @@ TEST_F(TestH5Group, openGroup)
     root = GenH5::Group(file);
     EXPECT_TRUE(root.isValid());
 
+    EXPECT_TRUE(root.openGroup("/").isValid());
+
     EXPECT_THROW(GenH5::Group{}.openGroup("my_fancy_group"),
                  GenH5::GroupException);
     qDebug() << "### EXPECTING ERROR: unable to open group";
@@ -206,4 +208,19 @@ TEST_F(TestH5Group, writeDataSet)
     root.writeDataSet0D("my_dset_0d_varlen", vlenOrig);
     auto vlen = root.readDataSet<VarLen<char>>("my_dset_0d_varlen");
     EXPECT_EQ(vlen.value(0), vlenOrig);
+}
+
+TEST_F(TestH5Group, nodeInfo)
+{
+    // cannot get info of itself
+    EXPECT_THROW(file.root().nodeInfo("."), GenH5::GroupException);
+
+    auto group = file.root().createGroup("test");
+
+    auto dset = group.writeDataSet0D("dset", 42);
+    // does not work with leading '/'
+    EXPECT_THROW(group.nodeInfo("/dset"), GenH5::GroupException);
+
+    ASSERT_NO_THROW(group.nodeInfo("dset"));
+    EXPECT_TRUE(group.nodeInfo("dset").isDataSet());
 }

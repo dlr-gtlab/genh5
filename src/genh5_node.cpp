@@ -8,6 +8,8 @@
 
 #include "genh5_node.h"
 
+#include "genh5_file.h"
+#include "genh5_private.h"
 #include "genh5_version.h"
 #include "genh5_group.h"
 
@@ -50,6 +52,37 @@ GenH5::AttributeInfo::toAttribute(Node const& object,
 }
 
 GenH5::Node::Node() noexcept = default;
+
+bool
+GenH5::Node::hasParent() const noexcept
+{
+    auto path = this->path();
+    return path.size() > 1 && path.lastIndexOf('/') >= 0;
+}
+
+GenH5::Group
+GenH5::Node::parent() const noexcept(false)
+{
+    auto path = this->path();
+    if (path.isEmpty()) // -> presumably invalid id
+    {
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Accessing parent failed (invalid group object)"
+        };
+    }
+
+    auto idx = path.lastIndexOf('/');
+    if (path.size() <= 1 || idx < 0)
+    {
+        throw GroupException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Accessing parent failed (no parent)"
+        };
+    }
+
+    return file().root().openGroup(path.mid(0, idx + 1));
+}
 
 bool
 GenH5::Node::hasAttribute(String const& name) const noexcept
@@ -215,60 +248,6 @@ GenH5::Node::readVersionAttribute(String const& string) const noexcept(false)
     return version;
 }
 
-namespace GenH5
-{
-
-namespace alg
-{
-
-inline AttributeInfo
-getAttributeInfo(char const* attrName, H5A_info_t const* attrInfo)
-{
-    assert(attrName);
-    assert(attrInfo);
-
-    AttributeInfo info;
-    info.name = QByteArray{attrName};
-    info.corder = attrInfo->corder_valid ? attrInfo->corder : -1;
-    return info;
-}
-
-inline herr_t
-accumulateAttributes(hid_t /*locId*/, char const* attrName,
-                     H5A_info_t const* attrInfo, void* dataPtr)
-{
-    assert(dataPtr);
-
-    auto* nodes = static_cast<Vector<AttributeInfo>*>(dataPtr);
-    *nodes << getAttributeInfo(attrName, attrInfo);
-    return 0;
-}
-
-struct IterForeachData
-{
-    Node const* parent{};
-    AttributeIterationFunction* f{};
-};
-
-inline herr_t
-foreachAttribute(hid_t /*locId*/, char const* attrName,
-                 H5A_info_t const* attrInfo, void* dataPtr)
-{
-    assert(dataPtr);
-
-    auto* data = static_cast<IterForeachData*>(dataPtr);
-    assert(data->parent);
-    assert(data->f);
-
-    AttributeInfo info = getAttributeInfo(attrName, attrInfo);
-
-    return (*data->f)(*data->parent, info);
-}
-
-} // namespae alg
-
-} // namespace GenH5
-
 GenH5::Vector<GenH5::AttributeInfo>
 GenH5::Node::findAttributes(IterationIndex iterIndex,
                             IterationOrder iterOrder) const noexcept
@@ -310,7 +289,7 @@ GenH5::Node::iterateAttributes(String const& path,
     assert(iterFunction);
     assert(!path.isEmpty());
 
-    alg::IterForeachData data{this, &iterFunction};
+    alg::IterForeachAttrData data{this, &iterFunction};
 
     hsize_t idx_ = 0;
     herr_t error = H5Aiterate_by_name(id(), path.constData(),

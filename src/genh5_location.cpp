@@ -7,6 +7,7 @@
  */
 
 #include "genh5_location.h"
+#include "genh5_private.h"
 #include "genh5_reference.h"
 #include "genh5_group.h"
 #include "genh5_file.h"
@@ -20,43 +21,33 @@
 GenH5::String
 GenH5::getObjectName(Location const& location) noexcept
 {
-    auto path = location.path().split('/');
+    if (!location.isValid()) return  {};
 
-    // should not be the case
-    if (path.isEmpty())
+    auto path = location.path();
+    int idx = path.lastIndexOf('/');
+    if (idx < 0)
     {
         log::ErrStream() << GENH5_MAKE_EXECEPTION_STR()
                             "Failed to retrieve the location name!";
         return {};
     }
 
-    return path.last();
+    path = path.mid(idx);
+    if (path.size() == 1)
+    {
+        return path; // root
+    }
+    // remove '/' from name
+    return path.mid(1);
 }
 
 GenH5::String
 GenH5::getObjectPath(GenH5::Location const& location) noexcept
 {
-    if (!location.isValid())
-    {
-        return {};
-    }
-
-    String buffer{32, ' '};
-    auto bufferLen = static_cast<size_t>(buffer.size());
-
-    auto acutalLen = static_cast<size_t>(H5Iget_name(location.id(),
-                                                     buffer.data(),
-                                                     bufferLen));
-
-    if (acutalLen > bufferLen)
-    {
-        bufferLen = acutalLen + 1;
-        buffer.resize(static_cast<int>(bufferLen));
-        H5Iget_name(location.id(), buffer.data(), bufferLen);
-    }
-
-    // chop of excess whitespaces and trailing '\0'
-    return buffer.trimmed().chopped(1);
+    return GenH5::details::getName(location.id(),
+                                   [](hid_t id, size_t len, char* data) {
+         return H5Iget_name(id, data, len);
+    });
 }
 
 GenH5::Location::Location() noexcept = default;

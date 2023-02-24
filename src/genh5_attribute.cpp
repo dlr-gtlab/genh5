@@ -18,27 +18,10 @@
 GenH5::String
 GenH5::getAttributeName(Attribute const& attr) noexcept
 {
-    if (!attr.isValid())
-    {
-        return {};
-    }
-
-    String buffer{32, ' '};
-    size_t bufferLen = static_cast<size_t>(buffer.size());
-
-    auto acutalLen = static_cast<size_t>(H5Aget_name(attr.id(),
-                                                     bufferLen,
-                                                     buffer.data()));
-
-    if (acutalLen > bufferLen)
-    {
-        bufferLen = acutalLen + 1;
-        buffer.resize(static_cast<int>(bufferLen));
-        H5Aget_name(attr.id(), bufferLen, buffer.data());
-    }
-
-    // remove of excess whitespaces and trailing '\0'
-    return buffer.trimmed().chopped(1);
+    return GenH5::details::getName(attr.id(),
+                                   [](hid_t id, size_t len, char* data) {
+         return H5Aget_name(id, len, data);
+    });
 }
 
 GenH5::Attribute::Attribute() = default;
@@ -99,6 +82,25 @@ GenH5::String
 GenH5::Attribute::name() const noexcept
 {
     return getAttributeName(*this);
+}
+
+GenH5::NodeInfo
+GenH5::Attribute::nodeInfo() const noexcept(false)
+{
+    if (!isValid())
+    {
+        throw AttributeException{
+            GENH5_MAKE_EXECEPTION_STR()
+            "Accessing node object failed (invalid attribute object)"
+        };
+    }
+
+    auto path = this->path();
+    if (path == "/") // root
+    {
+        return NodeInfo{path, ObjectType::H5I_GROUP};
+    }
+    return file().root().nodeInfo(std::move(path));
 }
 
 void
