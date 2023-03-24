@@ -30,26 +30,34 @@ TEST_F(Tests, test_1)
     auto file = makeFile("datatype_test.h5");
 
     // pod
-     auto dset = file.root().writeDataSet0D("bool", true);
+    auto dset = file.root().writeDataSet0D("bool", true);
+
+
+
+    auto scalar = file.root().createGroup("Scalar");
 
     //strings
-    file.root().writeDataSet("string_fixed", GenH5::makeFixedStr("Hello World"));
-    file.root().writeDataSet0D("string_varlen", QString("This is a very basic string! ☺"));
+    scalar.writeDataSet("string_fixed", GenH5::makeFixedStr("Hello World"));
+    scalar.writeDataSet0D("string_varlen", QString("This is a very basic string! ☺"));
 
     // compound
-    file.root().writeDataSet0D("compound_version", Version::current());
+    scalar.writeDataSet0D("compound_version", Version::current());
 
     GenH5::CompData0D<int, Version> nestedCompData{
         42, Version::current()
     };
-    file.root().writeDataSet("compound_nested", nestedCompData);
+    scalar.writeDataSet("compound_nested", nestedCompData);
 
-    GenH5::CompData<int, int> compData2D{
-        std::array<int, 10>{33, 42, 1, -213, 213, 21, 21, 23, 4, -124},
-        std::array<int, 10>{213, 32, 21, 12, -1, -2, -230123, 1234, 32, 42}
-    };
-    compData2D.setDimensions({5, 2});
-    file.root().writeDataSet("compound_2d", compData2D);
+    // varlen
+    scalar.writeDataSet0D("varlen_double", VarLen<double>{42.1, 13.2, 33});
+    scalar.writeDataSet0D("varlen_string", VarLen<QString>{"42.1", "13.2", "33"});
+
+
+
+    auto linear = file.root().createGroup("Linear");
+
+    // ints
+    linear.writeDataSet("ints", h5TestHelper->linearDataVector(60));
 
     // array
     GenH5::Data<Array<int, 3>> arrayData{
@@ -57,11 +65,7 @@ TEST_F(Tests, test_1)
         {4, 5, 6},
         {7, 8, 9}
     };
-    file.root().writeDataSet("array_3xint", arrayData);
-
-    // varlen
-    file.root().writeDataSet0D("varlen_double", VarLen<double>{42.1, 13.2, 33});
-    file.root().writeDataSet0D("varlen_string", VarLen<QString>{"42.1", "13.2", "33"});
+    linear.writeDataSet("array_3xint", arrayData);
 
     // complex
     GenH5::CompData<VarLen<Array<double, 3>>> complexVlenArrayData{
@@ -74,7 +78,7 @@ TEST_F(Tests, test_1)
             {1, 2, 3}
         }
     };
-    file.root().writeDataSet("complex_vlen_array_3xdouble", complexVlenArrayData);
+    linear.writeDataSet("complex_nested", complexVlenArrayData);
 
     GenH5::CompData<VarLen<bool>> complexVlenBoolData{
         GenH5::VarLen<bool>{
@@ -85,7 +89,7 @@ TEST_F(Tests, test_1)
         },
         { }
     };
-    file.root().writeDataSet("complex_vlen_bool", complexVlenBoolData);
+    linear.writeDataSet("complex_vlen_bool", complexVlenBoolData);
 
     GenH5::CompData<VarLen<Version>> complexVlenVersionData{
         VarLen<Version>{
@@ -97,7 +101,18 @@ TEST_F(Tests, test_1)
             42
         }
     };
-    file.root().writeDataSet("complex_vlen_version", complexVlenVersionData);
+    linear.writeDataSet("complex_vlen_version", complexVlenVersionData);
+
+
+
+    auto multi = file.root().createGroup("Multidim");
+
+    GenH5::CompData<int, int> compData2D{
+        std::array<int, 10>{33, 42, 1, -213, 213, 21, 21, 23, 4, -124},
+        std::array<int, 10>{213, 32, 21, 12, -1, -2, -230123, 1234, 32, 42}
+    };
+    compData2D.setDimensions({5, 2});
+    multi.writeDataSet("compound_2d", compData2D);
 
     auto attr = file.root().createAttribute("my_ref",
                                             GenH5::DataType(H5::PredType::STD_REF_OBJ.getId()),
@@ -106,7 +121,7 @@ TEST_F(Tests, test_1)
     attr.write(&ref);
 
     char bitfield = 0b10101010; // = AA
-    file.root().createDataSet("bitfield",
+    linear.createDataSet("bitfield",
                               GenH5::DataType::fromId(H5Tcopy(H5T_NATIVE_B8)),
                               GenH5::DataSpace::Scalar).write(&bitfield);
 }
