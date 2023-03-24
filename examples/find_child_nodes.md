@@ -36,7 +36,7 @@ For this example we consider the following file structure:
 
 We can create this using the following snippet:
 
-```c++
+```cpp
 GenH5::File file{"my_file.h5", GenH5::Create};
 
 // group "A"
@@ -74,10 +74,10 @@ Use `Group::findChildNodes` to get a list of all child nodes (empty if group has
 
 The method returns a list of `NodeInfo` structs, which may either belong to another group or a dataset. 
 Using the `toGroup` or `toDataset` a new node may be created. 
-One may check if its "save" to access a node as a group or dataset using the `NodeInfo::isGroup` or `NodeInfo::isDataSet` methods. 
+One may check if its "save" to access a node as a group or dataset using the `NodeInfo::isGroup` or `NodeInfo::isDataSet` methods otherwise the method may throw. 
 Alternatively `toNode` can be used to create a `Node` object on the heap. 
 
-```c++
+```cpp
 // find all nodes 
 GenH5::Vector<NodeInfo> allNodes = file.root().findChildNodes(GenH5::FindRecursive);
 
@@ -94,12 +94,12 @@ GenH5::Vector<NodeInfo> aDsets = a.findChildNodes(GenH5::FindRecursive,
 ```
 
 A filter may be used to find nodes of a certain type. 
-In that case its guranteed that the `NodeInfo` struct does belong to the node type supplied (e.g. when using `FilterDataSets` all info structs refer to datasets)
+In that case it is guranteed that the `NodeInfo` struct does belong to the node type supplied (e.g. when using `FilterDataSets` all info structs refer to datasets)
 
-```c++
+```cpp
 for (NodeInfo const& info : aDsets)
 {
-    // in this case info.isDataSet() will always return true 
+    // in this case info.isDataSet() will always return true here
     auto dset = info.toDataSet(a);
     ... // do something
 }
@@ -113,13 +113,13 @@ The method returns a list of `AttributeInfo` structs.
 Using the `toAttribute` method an attribute object may be created.
 
 
-```c++
+```cpp
 GenH5::Vector<AttributeInfo> bAttrs = b.findAttributes();
 
 for (AttributeInfo const& info : bAttrs)
 {
     auto attr = info.toAttribute(b);
-	... // do something
+    ... // do something
 }
 ```
 
@@ -127,7 +127,7 @@ for (AttributeInfo const& info : bAttrs)
 
 Additionally one can use the methods `Group::iterateChildNodes` or `Node::iterateAttributes` to invoke a method on each node or attribute respectively.
 
-```c++
+```cpp
 // prints the absolute path of all child nodes
 b.iterateChildNodes([](GenH5::Group& parent, GenH5::NodeInfo const& info) -> herr_t {
     qDebug() << parent.path() + "/" + info.path;
@@ -135,4 +135,4 @@ b.iterateChildNodes([](GenH5::Group& parent, GenH5::NodeInfo const& info) -> her
 }, GenH5::FindRecursive);
 ```
 
-> Do not throw exceptions in the iteration functor! The C-library may not be able to cleanup afterwards.
+> **Note:** Do not throw exceptions in the iteration functor! The HDF5 C-library may not be able to cleanup afterwards resulting in memory leaks.

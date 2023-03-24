@@ -21,7 +21,7 @@ A dataspace defines the layout of the data inside a dataset or an attribute. A d
   The method `GenH5::DataSpace::dimensions` will return the 1D dimension vector respectively.
 
 - A **Multidimensional** dataspace has a ND data layout and can be constructed using a dimension vector. 
-  `GenH5::DataSpace::dimensions` will return the dimension vector respectively.
+  `GenH5::DataSpace::dimensions` will return the dimension vector respectively. It can be created using `GenH5::DataSpace{n, m, ...}`. 
   
 The size (i.e. the total number of elements stored) can be retrieved using the `GenH5::DataSpace::size` method. 
 
@@ -36,18 +36,20 @@ A data selection may be created using the function `GenH5::makeSelection` or by 
 The selection itself will be stored in a dataspace, which can be accessed using `GenH5::DataSpaceSelection::space`. 
 Once the selection has been committed, the total number of selected items can be retrieved using `GenH5::DataSpace::selectionSize`.
 
-The helper class takes as a first argument the original dataspace (i.e. the dataspace defining the whole data layout).
+The helper class takes the original dataspace as a first argument (i.e. the dataspace defining the whole data layout).
 If the selection count was not specified, the whole dataspace will be selected. 
 By default the offset will be set to `0`, while the stride and block dimensions will be set to `1`.
 If the number of dimensions of a selection property does not match the number of dimensions of the dataspace, each missing dimension will be filled up using its default value.
 
 ### Example
 
-> **Note:** try-catch blocks were omitted for this example
+> **Note:** try-catch blocks were omitted for the following examples
+
+#### Selecting every second element
 
 Consider a dataspace with the dimensions `6 x 10`. The code to select every second element, skipping the first dimension, could look like this:
 
-```c++
+```cpp
 GenH5::DataSpace space{6, 10};
 
 auto selection = GenH5::makeSelection(space, 
@@ -57,7 +59,7 @@ auto selection = GenH5::makeSelection(space,
 
 selection.space().selectionSize();             // == 5 x 5
 ```
-Resulting selection:
+Resulting selection visualized (x = selected):
 
 ```
  O O O O O O O O O O
@@ -66,4 +68,49 @@ Resulting selection:
  x O x O x O x O x O
  x O x O x O x O x O
  x O x O x O x O x O
+```
+
+#### Selecting first and last few elements
+
+Consider a dataspace with the dimensions `8 x 6`. 
+We can write a selection pattern to select the first and last elements few of each dimension:
+
+```cpp
+// first we have to create the data
+GenH5::File file("test_file.h5", GenH5::Overwrite);
+
+GenH5::Data<QString> data{
+	"0", "1", "-", "-", "2", "3",
+	"4", "5", "-", "-", "6", "7",
+	"-", "-", "-", "-", "-", "-",
+	"-", "-", "-", "-", "-", "-",
+	"-", "-", "-", "-", "-", "-",
+	"-", "-", "-", "-", "-", "-",
+	"8", "9", "-", "-", "A", "B",
+	"C", "D", "-", "-", "E", "F"
+};
+// set data dimensions
+data.setDimensions({8, 6});
+
+// write the data
+GenH5::DataSet dset = file.root().writeDataSet("2D_selection", data);
+
+// clear data
+data.clear()
+
+// create the desired selection
+auto selection = GenH5::makeSelection(dset.dataSpace(), 
+                                      {2, 2},  // we want to read two blocks of each dimension
+                                      {0, 0},  // no offset
+                                      {6, 4},  // distance to next block
+                                      {2, 2}); // we want to read two rows and columns
+
+// read selection
+dset.read(data, selection); 
+```
+
+The data that was read will now contain all hex numbers from `0 - F` as a 1D list (16 elements):
+
+```cpp
+data = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"}
 ```

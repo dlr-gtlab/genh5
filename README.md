@@ -22,17 +22,20 @@ Currently not covered:
  - Commiting datatypes
  - Certain datatypes are not properly supported (eg. opaque, time, reference etc.)
  - Access and Create Property Lists are not properly integrated
- - No direct interface for Filters, Maps, Plugins or the VOL
+ - No direct interface for Filters, Maps, Plugins
 
-## How to use the wrapper
+## How to use this library
 
 > **Note:** The try-catch blocks in the following examples were omitted. All exceptions may be catched using `GenH5::Exception` or `std::runtime_error`
 
 Additional examples...
-- [Creating dataspaces and selections](examples/creating_dataspaces_selections.md)
+- [File handling and internal path traversal](examples/file_handling_and_traversal.md)
 - [Creating simple and complex datatypes](examples/creating_datatypes.md)
-- [The conversion system](examples/conversion_system.md)
+- [Creating dataspaces and selections](examples/creating_dataspaces_and_selections.md)
+- [Introduction to data helper objects](examples/creating_data.md)
+- [Reading and writing data from and to a dataset or attribute](examples/reading_and_writing_data.md)
 - [Finding child nodes and attributes](examples/find_child_nodes.md)
+- [The conversion system](examples/conversion_system.md)
 
 ### Examples
 
@@ -45,7 +48,7 @@ GenH5::File file{ "my_file.h5", GenH5::Overwrite };
 // access the root group of the file and create a subgroup
 GenH5::Group group = file.root().createGroup("my_group");
 // create simple dataset at '/my_group/my_data'
-GenH5::DataSet dataset = group.createDataset("my_data", data.dataType(), data.dataSpace());
+GenH5::DataSet dataset = group.createDataSet("my_data", data.dataType(), data.dataSpace());
 // write the data
 dataset.write(data);
 ```
@@ -59,9 +62,9 @@ GenH5::CompData<int, QString> data;
 // set compound type names
 data.setTypeNames({"my_ints", "my_strings"});
 // access the root group of the file and the desired dataset at '/my_group/my_data'
-GenH5::DataSet dataset = file.root().openDataset("my_group/my_data");
+GenH5::DataSet dataset = file.root().openDataSet("my_group/my_data");
 // check for correct dataset properties
-if (dataset.dataType() != data.dataType() || dataset.dataSpace().sum() != 42) {
+if (dataset.dataType() != data.dataType() || dataset.dataSpace().size() != 42) {
 	return; // error handling
 }
 // read the data from the dataset
@@ -77,7 +80,7 @@ Referencing an attribute:
 // create or open the file if it exists
 GenH5::File file{ "my_file.h5", GenH5::ReadWrite };
 // create data container
-GenH5::Data<float> data{0f};
+GenH5::Data<float> data{0.f};
 // access the root group of the file and create an attribute
 GenH5::Attribute attr = file.root().createAttribute("my_attribute", GenH5::dataType<float>(), GenH5::DataSpace::Scalar);
 // create reference
