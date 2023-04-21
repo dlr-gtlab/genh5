@@ -4,6 +4,14 @@ if (NOT TARGET GenH5)
     find_package(GenH5 CONFIG REQUIRED)
 endif()
 
+if (NOT TARGET hdf5::hdf5_cpp)
+    find_package(HDF5 CONFIG REQUIRED)
+endif()
+
+# make conan and normal config files work
+if (TARGET hdf5::hdf5_cpp AND NOT TARGET hdf5_cpp-shared)
+  add_library(hdf5_cpp-shared ALIAS hdf5::hdf5_cpp)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -39,5 +47,5 @@ add_executable(H5UnitTest
 
 target_include_directories(H5UnitTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(H5UnitTest PRIVATE GenH5 gtest)
+target_link_libraries(H5UnitTest PRIVATE GenH5 gtest hdf5_cpp-shared)
 
