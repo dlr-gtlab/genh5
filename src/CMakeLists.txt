@@ -107,21 +107,21 @@ target_link_libraries(GenH5 PUBLIC Qt5::Core hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
-    $<INSTALL_INTERFACE:include/genh5>
+    $<INSTALL_INTERFACE:include/h5>
 )
 
 # install library
 install (TARGETS GenH5
          EXPORT GenH5-targets
          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/h5
+         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/h5
 )
 
 # copy header files and keep directory structure
 foreach ( file ${headers} )
     get_filename_component( dir ${file} DIRECTORY )
-    install( FILES ${file} DESTINATION include/genh5/${dir} )
+    install( FILES ${file} DESTINATION include/h5/${dir} )
 endforeach()
 
 include(CMakePackageConfigHelpers)

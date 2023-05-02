@@ -39,8 +39,8 @@ class GenH5Conan(ConanFile):
             del self.options.fPIC
 
     def configure(self):
-        # somehow, linking the static hdf5 lib does not seem to be working yet
-        self.options["hdf5"].shared = True
+        # linking a static library into a shared genh5 makes the tests fail
+        self.options["hdf5"].shared = self.options.shared
         self.options["qt"].shared = True
 
     def build(self):    
@@ -56,8 +56,11 @@ class GenH5Conan(ConanFile):
         files.copy(self, "README.md", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)
 
     def package_info(self):      
-        self.cpp_info.includedirs.append(os.path.join("include", "genh5"))
+        self.cpp_info.includedirs.append(os.path.join("include", "h5"))
 
+
+        self.cpp_info.libdirs = ['lib', 'lib/h5']
+        
         if self.settings.build_type != "Debug":
             self.cpp_info.libs = ['GenH5']
         else:
