@@ -49,3 +49,4 @@ target_include_directories(H5UnitTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(H5UnitTest PRIVATE GenH5 gtest hdf5_cpp-shared)
 
+add_test(NAME Unittests COMMAND H5UnitTest)
