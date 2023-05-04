@@ -32,6 +32,7 @@ class GenH5Conan(ConanFile):
             self.requires("qt/5.12.5@dlr-at/stable")
         else:
             self.requires("qt/5.15.2")
+            self.requires("zlib/1.2.13", override=True)
 
 
     def config_options(self):
