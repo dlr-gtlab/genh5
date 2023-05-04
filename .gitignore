@@ -1,5 +1,5 @@
 Makefile*
-build/
+build*/
 debug/
 release/
 lib/
@@ -9,7 +9,7 @@ include/
 local_settings.pri
 !features/local_settings.pri
 
-*.pro.user
+*.txt.user
 *.autosave
 *.directory
 *.qmake.stash
