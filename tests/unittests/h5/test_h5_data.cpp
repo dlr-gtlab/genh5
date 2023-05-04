@@ -1169,3 +1169,31 @@ TEST_F(TestH5Data, buffer_constData)
     // but buffer data should still be valid
     EXPECT_EQ(firstA, firstB);
 }
+
+#if 0
+// using std vectors will invalidate char*
+TEST_F(TestH5Data, buffer_constData2)
+{
+    using GenH5::details::StaticBuffer;
+
+    std::vector<std::string> buffer;
+    buffer.push_back("test");
+
+
+    auto firstA = buffer.front().data();
+    auto cdataA = buffer.data();
+
+    // reallocate buffer
+    buffer.resize(1000);
+
+    auto firstB = buffer.front().data();
+    auto cdataB = buffer.data();
+
+    buffer.push_back("wda");
+
+    // data pointers should have changed
+    EXPECT_NE(cdataA, cdataB);
+    // but buffer data should still be valid
+    EXPECT_EQ(firstA, firstB);
+}
+#endif
