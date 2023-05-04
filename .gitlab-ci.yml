@@ -104,6 +104,24 @@ linuxBuildReleaseUnstable:
     - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTLAB_DEVTOOLS_DIR=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux
     - cmake --build build --target install
 
+# make sure, that we can be genh5 on a vanilla system
+linuxBuildVanillaUbuntu:
+  stage: build
+  tags: ["docker", "linux"]
+  needs: []
+  image: ubuntu:20.04
+  extends:
+    - .run-always
+  before_script:
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt update -yy
+    - apt install -y libhdf5-dev cmake g++ qtbase5-dev qtbase5-dev-tools
+  script:
+    - cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+    - cmake --build build
+  variables:
+    GIT_SUBMODULE_STRATEGY: "none"
+
 # run tests using the binary built before
 .testWinTemplate:
   tags: ["windows", "docker"]
