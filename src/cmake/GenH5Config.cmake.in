@@ -10,10 +10,10 @@ find_dependency(Qt5 COMPONENTS Core REQUIRED)
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 if(NOT TARGET GenH5)
-  include("${CMAKE_CURRENT_LIST_DIR}/GenH5-targets.cmake")
+  include("${CMAKE_CURRENT_LIST_DIR}/GenH5Targets.cmake")
 endif()
 
  
-# These are IMPORTED targets created by GenH5-targets.cmake
+# These are IMPORTED targets created by GenH5Targets.cmake
 set(GenH5_LIBRARIES GenH5)
 get_target_property(GenH5_INCLUDE_DIRS GenH5 INTERFACE_INCLUDE_DIRECTORIES)
