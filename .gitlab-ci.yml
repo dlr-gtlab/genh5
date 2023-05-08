@@ -10,8 +10,6 @@ variables:
   # e.g. /^main$|^main_1_0$/
   STABLE_BRANCHES: /^main$/
   
-  # Name of the unstable branch (if it exists)
-  # UNSTABLE_BRANCH: unstable_master
 
 include:
   - project: 'at-twk/gitlab-templates'
