@@ -102,7 +102,7 @@ target_include_directories(GenH5 PUBLIC
 
 # install library
 install (TARGETS GenH5
-         EXPORT GenH5-targets
+         EXPORT GenH5Targets
          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/h5
          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/h5
@@ -116,18 +116,18 @@ endforeach()
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/GenH5-config-version.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/GenH5ConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
 
 file(GENERATE
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/GenH5-config.cmake"
-  INPUT  "${PROJECT_SOURCE_DIR}/cmake/GenH5-config.cmake.in"
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/GenH5Config.cmake"
+  INPUT  "${PROJECT_SOURCE_DIR}/cmake/GenH5Config.cmake.in"
 )
 
 
-install (EXPORT GenH5-targets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/GenH5)
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/GenH5-config-version.cmake
-               ${CMAKE_CURRENT_BINARY_DIR}/GenH5-config.cmake
+install (EXPORT GenH5Targets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/GenH5)
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/GenH5ConfigVersion.cmake
+               ${CMAKE_CURRENT_BINARY_DIR}/GenH5Config.cmake
          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/GenH5)
