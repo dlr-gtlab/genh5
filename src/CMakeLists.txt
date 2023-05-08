@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(GenH5 VERSION 3.0.1)
+project(GenH5 VERSION 3.0.2)
 
 if (NOT DEFINED BUILD_SHARED_LIBS)
   set(BUILD_SHARED_LIBS ON)
