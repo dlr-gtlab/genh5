@@ -12,8 +12,12 @@
 #define GENH5_TO_STR_HELPER(x) #x
 #define GENH5_TO_STR(x) GENH5_TO_STR_HELPER(x)
 
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard)
-  #define GENH5_NODISCARD [[nodiscard]]
+#if defined(__has_cpp_attribute)
+  #if __has_cpp_attribute(nodiscard)
+    #define GENH5_NODISCARD [[nodiscard]]
+  #else
+    #define GENH5_NODISCARD
+  #endif
 #else
   #define GENH5_NODISCARD
 #endif
