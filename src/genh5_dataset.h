@@ -113,17 +113,17 @@ public:
     bool read(void* data,
               DataSpace const& fileSpace,
               DataSpace const& memSpace,
-              Optional<DataType> dtype = {}) noexcept(false);
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
     bool read(Vector<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype = {}) noexcept(false);
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
     bool read(details::AbstractData<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype = {}) noexcept(false);
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     /*
      *  WRITE ATTRIBUTE
@@ -253,7 +253,7 @@ template<typename T>
 inline bool
 DataSet::read(Vector<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype) noexcept(false)
+              Optional<DataType> dtype) const noexcept(false)
 {
     data.resize(fileSpace.selectionSize());
 
@@ -265,7 +265,7 @@ template<typename T>
 inline bool
 DataSet::read(details::AbstractData<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype) noexcept(false)
+              Optional<DataType> dtype) const noexcept(false)
 {
     if (!data.resize(fileSpace, dtype.isDefault() ? dataType() : *dtype))
     {

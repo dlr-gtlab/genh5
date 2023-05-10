@@ -296,7 +296,7 @@ GenH5::Group::iterateChildNodes(NodeIterationFunction iterFunction,
 }
 
 GenH5::NodeInfo
-GenH5::Group::nodeInfo(String path) const noexcept(false)
+GenH5::Group::nodeInfo(String const& path) const noexcept(false)
 {
     H5L_info_t info{};
     if (H5Lget_info(m_id, path.constData(), &info, H5P_DEFAULT))

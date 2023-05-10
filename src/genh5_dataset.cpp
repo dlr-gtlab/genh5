@@ -116,7 +116,7 @@ bool
 GenH5::DataSet::read(void* data,
                      DataSpace const& fileSpace,
                      DataSpace const& memSpace,
-                     Optional<DataType> dtype)
+                     Optional<DataType> dtype) const
 {
     auto space = dataSpace();
     if (space.isNull())

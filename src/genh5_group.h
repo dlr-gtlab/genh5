@@ -268,7 +268,7 @@ public:
      * @param name path to the node
      * @return Attribute info struct
      */
-    NodeInfo nodeInfo(String path) const noexcept(false);
+    NodeInfo nodeInfo(String const& path) const noexcept(false);
 
     /// swaps all members
     void swap(Group& other) noexcept;
