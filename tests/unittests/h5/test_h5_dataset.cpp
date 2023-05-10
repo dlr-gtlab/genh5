@@ -46,7 +46,7 @@ TEST_F(TestH5DataSet, isValid)
     EXPECT_THROW(dset.cProperties(), GenH5::DataSetException);
 
     // valid dataset
-    dset = file.root().createDataSet(QByteArrayLiteral("test"),
+    dset = file.root().createDataSet("test",
                                      intData.dataType(),
                                      intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
@@ -60,16 +60,16 @@ TEST_F(TestH5DataSet, deleteLink)
     EXPECT_FALSE(dset.isValid());
 
     // create valid dataset
-    dset = file.root().createDataSet(QByteArrayLiteral("test"),
+    dset = file.root().createDataSet("test",
                                      intData.dataType(),
                                      intData.dataSpace());
     EXPECT_TRUE(dset.isValid());
-    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("test")));
+    EXPECT_TRUE(file.root().exists("test"));
 
     // delete dataset
     dset.deleteLink();
     EXPECT_FALSE(dset.isValid());
-    EXPECT_FALSE(file.root().exists(QByteArrayLiteral("test")));
+    EXPECT_FALSE(file.root().exists("test"));
 }
 
 TEST_F(TestH5DataSet, deleteLinkNested)
@@ -116,11 +116,11 @@ TEST_F(TestH5DataSet, deleteLinkRecursively)
 
 TEST_F(TestH5DataSet, resize)
 {
-    auto group = file.root().createGroup(QByteArrayLiteral("group"));
+    auto group = file.root().createGroup("group");
     ASSERT_TRUE(group.isValid());
 
     // create new dataset
-    auto dset = group.createDataSet(QByteArrayLiteral("test"),
+    auto dset = group.createDataSet("test",
                                     doubleData.dataType(),
                                     doubleData.dataSpace());
 
@@ -137,7 +137,7 @@ TEST_F(TestH5DataSet, resize)
 
 TEST_F(TestH5DataSet, writeSelection)
 {
-    auto group = file.root().createGroup(QByteArrayLiteral("group"));
+    auto group = file.root().createGroup("group");
     ASSERT_TRUE(group.isValid());
 
     GenH5::Data<float> data{h5TestHelper->linearDataVector<float>(42, 1)};
@@ -172,7 +172,7 @@ TEST_F(TestH5DataSet, writeSelection)
 
 TEST_F(TestH5DataSet, readSelection)
 {
-    auto group = file.root().createGroup(QByteArrayLiteral("group"));
+    auto group = file.root().createGroup("group");
     ASSERT_TRUE(group.isValid());
 
     GenH5::Data<uint64_t> data{h5TestHelper->linearDataVector<uint64_t>(48, 1)};
@@ -180,9 +180,9 @@ TEST_F(TestH5DataSet, readSelection)
     ASSERT_EQ(dspace.size(), data.length());
 
     // create new dataset
-    GenH5::DataSet dset = group.createDataSet(QByteArrayLiteral("test_selec"),
-                                             data.dataType(),
-                                             dspace);
+    GenH5::DataSet dset = group.createDataSet("test_selec",
+                                              data.dataType(),
+                                              dspace);
 
     /* WRITE */
     dset.write(data, dspace);

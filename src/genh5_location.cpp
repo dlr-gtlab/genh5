@@ -24,21 +24,21 @@ GenH5::getObjectName(Location const& location) noexcept
     if (!location.isValid()) return  {};
 
     auto path = location.path();
-    int idx = path.lastIndexOf('/');
-    if (idx < 0)
+
+    auto r_iter = std::find(std::rbegin(path), std::rend(path), '/');
+    if (r_iter == std::rend(path))
     {
         log::ErrStream() << GENH5_MAKE_EXECEPTION_STR()
-                            "Failed to retrieve the location name!";
+            "Failed to retrieve the location name!";
         return {};
     }
 
-    path = path.mid(idx);
-    if (path.size() == 1)
-    {
-        return path; // root
-    }
-    // remove '/' from name
-    return path.mid(1);
+    bool isRoot = std::distance(std::rbegin(path), r_iter) < 1;
+
+    // removes the leading '/'
+    if (isRoot) r_iter++;
+
+    return String{r_iter.base(), std::end(path)};
 }
 
 GenH5::String
@@ -59,28 +59,23 @@ GenH5::Location::isValid() const noexcept
 }
 
 bool
-GenH5::Location::exists(String const& path) const noexcept
+GenH5::Location::exists(hid_t locId, const char* name)
 {
-    return exists(path.split('/').toVector());
+    return H5Lexists(locId, name, H5P_DEFAULT) != 0;
 }
 
 bool
-GenH5::Location::exists(Vector<String> const& path) const noexcept
+GenH5::Location::exists(String const& path) const noexcept
 {
-    String subPath{};
+    std::vector<std::string> elements;
+    std::istringstream iss(path);
+    std::string token;
 
-    for (auto& entry : qAsConst(path))
-    {
-        subPath.push_back(entry);
-        subPath.push_back('/');
-
-        if (H5Lexists(id(), subPath.constData(), H5P_DEFAULT) == 0)
-        {
-            return false;
-        }
+    while (std::getline(iss, token, '/')) {
+        elements.push_back(token);
     }
 
-    return true;
+    return exists(elements);
 }
 
 GenH5::String

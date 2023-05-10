@@ -35,7 +35,7 @@ GenH5::File::File(hid_t id) :
 
 GenH5::File::File(String path, FileAccessFlags flags)
 {
-    QFileInfo fileInfo{path};
+    QFileInfo fileInfo{QString::fromStdString(path)};
     QDir fileDir{fileInfo.path()};
 
     if (!fileDir.exists())
@@ -43,7 +43,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
         throw FileException{
             GENH5_MAKE_EXECEPTION_STR()
             "Accessing file failed (directory does not exist: " +
-            path.toStdString() + ')'
+            path + ')'
         };
     }
 
@@ -73,7 +73,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR()
                 "Opening file failed (file does not exist: " +
-                path.toStdString() + ')'
+                path + ')'
             };
         }
     }
@@ -88,7 +88,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR()
                 "Creating file failed (file already exists: " +
-                path.toStdString() + ')'
+                path + ')'
             };
         }
         if (flags & ReadOnly)
@@ -99,23 +99,23 @@ GenH5::File::File(String path, FileAccessFlags flags)
 
     if (create)
     {
-        m_id = H5Fcreate(path.constData(), flag, H5P_DEFAULT, H5P_DEFAULT);
+        m_id = H5Fcreate(path.data(), flag, H5P_DEFAULT, H5P_DEFAULT);
         if (m_id < 0)
         {
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create file (path: " +
-                path.toStdString() + ')'
+                path + ')'
             };
         }
     }
     else
     {
-        m_id = H5Fopen(path.constData(), flag, H5P_DEFAULT);
+        m_id = H5Fopen(path.data(), flag, H5P_DEFAULT);
         if (m_id < 0)
         {
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to open file (path: " +
-                path.toStdString() + ')'
+                path + ')'
             };
         }
     }
@@ -146,31 +146,19 @@ GenH5::File::root() const noexcept(false)
 GenH5::String
 GenH5::File::fileName() const noexcept
 {
-    return QFileInfo{filePath()}.fileName().toUtf8();
+    return QFileInfo{QString::fromStdString(filePath())}.fileName().toStdString();
 }
 
 GenH5::String
 GenH5::File::fileBaseName() const noexcept
 {
-    return QFileInfo{filePath()}.baseName().toUtf8();
+    return QFileInfo{QString::fromStdString(filePath())}.baseName().toStdString();
 }
 
 GenH5::String
 GenH5::File::filePath() const noexcept
 {
     return getFileName(*this);
-}
-
-GenH5::String
-GenH5::File::fileSuffix() noexcept
-{
-    return QByteArrayLiteral("h5");
-}
-
-GenH5::String
-GenH5::File::dotFileSuffix() noexcept
-{
-    return QByteArrayLiteral(".h5");
 }
 
 void

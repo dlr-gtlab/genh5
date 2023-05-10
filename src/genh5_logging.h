@@ -50,7 +50,7 @@ public:
 
     ErrStream& operator<<(String const& t)
     {
-        m_stream << t.constData();
+        m_stream << t.data();
         return *this;
     }
 

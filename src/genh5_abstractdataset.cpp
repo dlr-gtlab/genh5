@@ -43,7 +43,7 @@ inline bool isDefaultCompoundType(GenH5::DataType dtype, GenH5::DataType other)
             // names should not match
             tMembers[i].name   == oMembers[i].name ||
             // we expect a default compound type name
-            oMembers[i].name != String{"type_"} + QString::number(i))
+            oMembers[i].name != String{"type_"} + std::to_string(i))
         {
             return false;
         }

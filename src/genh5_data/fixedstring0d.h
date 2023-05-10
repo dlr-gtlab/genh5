@@ -16,18 +16,18 @@ namespace GenH5
 {
 
 /** FIXED STRING 0D **/
-class FixedString0D : public details::AbstractData<String>
+class FixedString0D : public details::AbstractData<QByteArray>
 {
-    using T = String;
+    using T = QByteArray;
 
 public:
 
     FixedString0D() = default;
 
     using compound_names = CompoundNames<0>;
-    using size_type      = typename String::size_type;
-    using value_type     = conversion_t<String>;
-    using buffer_type    = String;
+    using size_type      = typename T::size_type;
+    using value_type     = conversion_t<T>;
+    using buffer_type    = T;
 
     // compound type not supported
     static DataType dataType(compound_names names) = delete;

@@ -382,7 +382,7 @@ writeAttributeHelper(Node const& obj,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to write data to attribute '" +
-            name.toStdString() + '\''
+            name + '\''
         };
     }
 
@@ -402,7 +402,7 @@ readAttributeHelper(Node const& obj, String const& name) noexcept(false)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to read data from attribute '" +
-            name.toStdString() + '\''
+            name + '\''
         };
     }
 

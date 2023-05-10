@@ -49,7 +49,7 @@ getName(hid_t id, Functor const& getNameFunctor)
         return {};
     }
 
-    String buffer{32, ' '};
+    QByteArray buffer{32, ' '};
     size_t bufferLen = static_cast<size_t>(buffer.size());
 
     auto acutalLen =
@@ -63,7 +63,7 @@ getName(hid_t id, Functor const& getNameFunctor)
     }
 
     // remove of excess whitespaces and trailing '\0'
-    return buffer.trimmed().chopped(1);
+    return buffer.trimmed().chopped(1).toStdString();
 }
 
 } // namespace details
@@ -82,7 +82,7 @@ inline NodeInfo getNodeInfo(hid_t groupId, char const* nodeName,
     H5Oclose(id);
 
     NodeInfo info;
-    info.path = QByteArray{nodeName};
+    info.path = String{nodeName};
     info.type = type;
     info.corder = nodeInfo->corder_valid ? nodeInfo->corder : -1;
     info.token = nodeInfo->u.token;
@@ -153,7 +153,7 @@ getAttributeInfo(char const* attrName, H5A_info_t const* attrInfo)
     assert(attrInfo);
 
     AttributeInfo info;
-    info.name = QByteArray{attrName};
+    info.name = String{attrName};
     info.corder = attrInfo->corder_valid ? attrInfo->corder : -1;
     return info;
 }

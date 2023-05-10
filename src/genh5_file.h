@@ -39,17 +39,6 @@ class GENH5_EXPORT File : public Object
 public:
 
     /**
-     * @brief A default hdf5 file suffix not including dot
-     * @return file suffix
-     */
-    static String fileSuffix() noexcept;
-    /**
-     * @brief same as fileSuffix including dot
-     * @return file suffix
-     */
-    static String dotFileSuffix() noexcept;
-
-    /**
      * @brief File
      */
     File();

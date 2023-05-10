@@ -86,7 +86,7 @@ TEST_F(TestH5DataSetCProperties, createDataSetOptionalParam)
     ASSERT_TRUE(file.isValid());
 
     // optional was explicitly created -> not default and not chunked
-    auto dset1 = file.root().createDataSet(QByteArrayLiteral("testA"),
+    auto dset1 = file.root().createDataSet("testA",
                                            GenH5::DataType::Float,
                                            GenH5::DataSpace::linear(10),
                                            GenH5::DataSetCProperties{});
@@ -95,7 +95,7 @@ TEST_F(TestH5DataSetCProperties, createDataSetOptionalParam)
 
     // optional is default -> by default dset will be chunked
     auto dset2 = file.root().createDataSet(
-                                QByteArrayLiteral("testB"),
+                                "testB",
                                 GenH5::DataType::VarString,
                                 GenH5::DataSpace::linear(10),
                                 GenH5::Optional<GenH5::DataSetCProperties>{});

@@ -25,7 +25,7 @@ template <typename T>
 using Vector = QVector<T>;
 
 // alias for strings
-using String = QByteArray;
+using String = std::string;
 
 // alias for dimension vector type
 using Dimensions = Vector<hsize_t>;

@@ -167,11 +167,10 @@ GenH5::DataSet::deleteLink() noexcept(false)
     }
 
     // returns error type
-    if (H5Ldelete(file().id(), path().constData(), H5P_DEFAULT) < 0)
+    if (H5Ldelete(file().id(), path().data(), H5P_DEFAULT) < 0)
     {
         throw LocationException{
-            GENH5_MAKE_EXECEPTION_STR() "Deleting dataset '" +
-            path().toStdString() + "' failed"
+            GENH5_MAKE_EXECEPTION_STR() "Deleting dataset '" + path() + "' failed"
         };
     }
     close();

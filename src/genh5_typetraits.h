@@ -153,10 +153,15 @@ template <typename T>
 using if_has_not_template_type =
             std::enable_if_t<!has_template_type<decay_crv_t<T>>::value, bool>;
 
+// used to check if T is convertible to U
+template <typename T, typename U>
+using if_convertible =
+    std::enable_if_t<std::is_convertible<T, U>::value, bool>;
+
 // used to check if T is not convertible to U
 template <typename T, typename U>
 using if_not_convertible =
-            std::enable_if_t<!std::is_convertible<T, U>::value, bool>;
+    std::enable_if_t<!std::is_convertible<T, U>::value, bool>;
 
 
 } // namespace traits

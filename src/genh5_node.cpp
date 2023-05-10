@@ -56,15 +56,16 @@ GenH5::Node::Node() noexcept = default;
 bool
 GenH5::Node::hasParent() const noexcept
 {
-    auto path = this->path();
-    return path.size() > 1 && path.lastIndexOf('/') >= 0;
+    auto const& p = path();
+    return std::distance(std::rbegin(p),
+                         std::find(std::rbegin(p), std::rend(p), '/')) >= 1;
 }
 
 GenH5::Group
 GenH5::Node::parent() const noexcept(false)
 {
     auto path = this->path();
-    if (path.isEmpty()) // -> presumably invalid id
+    if (path.empty()) // -> presumably invalid id
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR()
@@ -72,8 +73,8 @@ GenH5::Node::parent() const noexcept(false)
         };
     }
 
-    auto idx = path.lastIndexOf('/');
-    if (path.size() <= 1 || idx < 0)
+    auto r_iter = std::find(std::rbegin(path), std::rend(path), '/');
+    if (std::distance(std::rbegin(path), r_iter) < 1)
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR()
@@ -81,13 +82,13 @@ GenH5::Node::parent() const noexcept(false)
         };
     }
 
-    return file().root().openGroup(path.mid(0, idx + 1));
+    return file().root().openGroup(String{std::begin(path), r_iter.base()});
 }
 
 bool
 GenH5::Node::hasAttribute(String const& name) const noexcept
 {
-    return isValid() && H5Aexists(id(), name.constData()) > 0;
+    return isValid() && H5Aexists(id(), name.data()) > 0;
 }
 
 GenH5::Attribute
@@ -99,19 +100,19 @@ GenH5::Node::createAttribute(String const& name,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Creating attribute '" +
-            name.toStdString() + "' failed (invalid parent)"
+            name + "' failed (invalid parent)"
         };
     }
 
     // create new attribute!
     if (!hasAttribute(name))
     {
-        hid_t attr = H5Acreate(id(), name.constData(), dtype.id(), dspace.id(), H5P_DEFAULT, H5P_DEFAULT);
+        hid_t attr = H5Acreate(id(), name.data(), dtype.id(), dspace.id(), H5P_DEFAULT, H5P_DEFAULT);
         if (attr < 0)
         {
             throw AttributeException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create attribute '" +
-                name.toStdString() + '\''
+                name + '\''
             };
         }
 
@@ -146,16 +147,16 @@ GenH5::Node::openAttribute(String const& name) const noexcept(false)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Opening attribute '" +
-            name.toStdString() + "' failed (invalid parent)"
+            name + "' failed (invalid parent)"
         };
     }
 
-    hid_t attr = H5Aopen(id(), name.constData(), H5P_DEFAULT);
+    hid_t attr = H5Aopen(id(), name.data(), H5P_DEFAULT);
     if (attr < 0)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open attribute '" +
-            name.toStdString() + '\''
+            name + '\''
         };
     }
 
@@ -174,19 +175,19 @@ GenH5::Node::openAttribute(String const& path,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Opening attribute by path '" +
-            path.toStdString() + ':' + name.toStdString() +
+            path + ':' + name +
             "' failed (invalid parent)"
         };
     }
 
-    hid_t attr = H5Aopen_by_name(id(), path.constData(), name.constData(),
+    hid_t attr = H5Aopen_by_name(id(), path.data(), name.data(),
                                  H5P_DEFAULT, H5P_DEFAULT);
 
     if (attr < 0)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open attribute by path '" +
-            path.toStdString() + ':' + name.toStdString() + '\''
+            path + ':' + name + '\''
         };
     }
 
@@ -200,7 +201,7 @@ GenH5::Node::openAttribute(String const& path,
 GenH5::String
 GenH5::Node::versionAttributeName()
 {
-    return QByteArrayLiteral("GENH5_VERSION");
+    return "GENH5_VERSION";
 }
 
 bool
@@ -218,7 +219,7 @@ GenH5::Node::writeVersionAttribute(String const& string,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to write version attribute '" +
-            string.toStdString() + '\''
+            string + '\''
         };
     }
     return *this;
@@ -235,14 +236,14 @@ GenH5::Node::readVersionAttribute(String const& string) const noexcept(false)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid version attribute format (" +
-            string.toStdString() + ')'
+            string + ')'
         };
     }
     if (!attr.read(&version))
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to read version attribute (" +
-            string.toStdString() + ')'
+            string + ')'
         };
     }
     return version;
@@ -252,7 +253,7 @@ GenH5::Vector<GenH5::AttributeInfo>
 GenH5::Node::findAttributes(IterationIndex iterIndex,
                             IterationOrder iterOrder) const noexcept
 {
-    return findAttributes(QByteArrayLiteral("."), iterIndex, iterOrder);
+    return findAttributes(".", iterIndex, iterOrder);
 }
 
 GenH5::Vector<GenH5::AttributeInfo>
@@ -263,7 +264,7 @@ GenH5::Node::findAttributes(String const& path,
     GenH5::Vector<GenH5::AttributeInfo> attributes;
 
     hsize_t idx_ = 0;
-    H5Aiterate_by_name(id(), path.constData(),
+    H5Aiterate_by_name(id(), path.data(),
                        static_cast<H5_index_t>(iterIndex),
                        static_cast<H5_iter_order_t>(iterOrder), &idx_,
                        alg::accumulateAttributes, &attributes,
@@ -276,7 +277,7 @@ GenH5::Node::iterateAttributes(AttributeIterationFunction iterFunction,
                                IterationIndex iterIndex,
                                IterationOrder iterOrder) const noexcept
 {
-    return iterateAttributes(QByteArrayLiteral("."), iterFunction,
+    return iterateAttributes(".", iterFunction,
                              iterIndex, iterOrder);
 }
 
@@ -287,12 +288,12 @@ GenH5::Node::iterateAttributes(String const& path,
                                IterationOrder iterOrder) const noexcept
 {
     assert(iterFunction);
-    assert(!path.isEmpty());
+    assert(!path.empty());
 
     alg::IterForeachAttrData data{this, &iterFunction};
 
     hsize_t idx_ = 0;
-    herr_t error = H5Aiterate_by_name(id(), path.constData(),
+    herr_t error = H5Aiterate_by_name(id(), path.data(),
                                       static_cast<H5_index_t>(iterIndex),
                                       static_cast<H5_iter_order_t>(iterOrder),
                                       &idx_, alg::foreachAttribute, &data,
@@ -304,7 +305,7 @@ GenH5::Node::iterateAttributes(String const& path,
 GenH5::AttributeInfo
 GenH5::Node::attributeInfo(String const& name) const noexcept(false)
 {
-    return attributeInfo(QByteArrayLiteral("."), name);
+    return attributeInfo(".", name);
 }
 
 GenH5::AttributeInfo
@@ -312,14 +313,14 @@ GenH5::Node::attributeInfo(String const& path,
                            String const& name) const noexcept(false)
 {
     H5A_info_t info{};
-    if (H5Aget_info_by_name(id(), path.constData(),
-                            name.constData(), &info, H5P_DEFAULT))
+    if (H5Aget_info_by_name(id(), path.data(),
+                            name.data(), &info, H5P_DEFAULT))
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR()
             "Failed to retrieve attribute info for '" +
-            path.toStdString() + ':' + name.toStdString() + '\''
+            path + ':' + name + '\''
         };
     }
-    return alg::getAttributeInfo(name.constData(), &info);
+    return alg::getAttributeInfo(name.data(), &info);
 }

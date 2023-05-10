@@ -83,6 +83,13 @@ get(Ttuple&& tuple)
     return std::get<idx>(std::forward<Ttuple>(tuple));
 }
 
+template <typename T>
+inline T last(T const& t)
+{
+
+}
+
+
 namespace details
 {
 

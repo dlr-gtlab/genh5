@@ -36,7 +36,7 @@ protected:
         root = file.root();
         ASSERT_TRUE(root.isValid());
 
-        dataset = root.createDataSet(QByteArrayLiteral("test"),
+        dataset = root.createDataSet("test",
                                      intData.dataType(),
                                      intData.dataSpace());
         ASSERT_TRUE(dataset.isValid());
@@ -61,8 +61,7 @@ protected:
         GenH5::Data<T> data{values};
 
         // create new dataset
-        auto dset = root.createDataSet(QByteArrayLiteral("test_") +
-                                       QByteArray(name),
+        auto dset = root.createDataSet(GenH5::String{"test_"} + name,
                                        data.dataType(),
                                        data.dataSpace());
         EXPECT_TRUE(dset.dataSpace() == data.dataSpace());

@@ -274,7 +274,7 @@ TEST_F(TestH5DataType, getTypeNames)
     // not a compound type
     auto dtype3 = GenH5::dataType<double>();
     auto names3 = GenH5::getTypeNames<1>(dtype3);
-    EXPECT_TRUE(names3[0].isEmpty());
+    EXPECT_TRUE(names3[0].empty());
 }
 
 TEST_F(TestH5DataType, template_arrayDataTypes)

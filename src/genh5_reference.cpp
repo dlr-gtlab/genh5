@@ -52,15 +52,18 @@ GenH5::Reference::Reference(Location const& location) noexcept(false)
         };
     }
 
+    auto const& path = location.path();
+
     herr_t error;
     if (classType(location.id()) == H5I_ATTR)
     {
-        error = H5Rcreate_attr(location.file().id(), location.path(),
-                               location.name(), H5P_DEFAULT, &m_ref);
+        auto const& name = location.name();
+        error = H5Rcreate_attr(location.file().id(), path.data(), name.data(),
+                               H5P_DEFAULT, &m_ref);
     }
     else
     {
-        error = H5Rcreate_object(location.file().id(), location.path(),
+        error = H5Rcreate_object(location.file().id(), path.data(),
                                  H5P_DEFAULT, &m_ref);
     }
 
@@ -68,7 +71,7 @@ GenH5::Reference::Reference(Location const& location) noexcept(false)
     {
         throw ReferenceException{
             GENH5_MAKE_EXECEPTION_STR() "Referencing location '" +
-            location.name().toStdString() + "' failed"
+            location.path() + "' failed"
         };
     }
 

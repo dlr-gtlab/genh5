@@ -31,7 +31,7 @@ GenH5::Group::Group(const File& file)
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open root group (path: )" +
-            file.filePath().toStdString() + ")"
+            file.filePath() + ")"
         };
     }
 }
@@ -51,12 +51,13 @@ GenH5::Group::id() const noexcept
 void
 GenH5::Group::deleteLink() noexcept(false)
 {
+    auto path = this->path();
+
     // returns error type
-    if (H5Ldelete(file().id(), path().constData(), H5P_DEFAULT) < 0)
+    if (H5Ldelete(file().id(), path.data(), H5P_DEFAULT) < 0)
     {
         throw LocationException{
-            GENH5_MAKE_EXECEPTION_STR() "Deleting group '" +
-            path().toStdString() + "' failed"
+            GENH5_MAKE_EXECEPTION_STR() "Deleting group '" + path + "' failed"
         };
     }
     close();
@@ -101,20 +102,20 @@ GenH5::Group::createGroup(String const& name) const noexcept(false)
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Creating group '" +
-            name.toStdString() + "' failed (invalid parent)"
+            name + "' failed (invalid parent)"
         };
     }
 
     // create new group
     if (!exists(name))
     {
-        hid_t group = H5Gcreate(m_id, name.constData(),
+        hid_t group = H5Gcreate(m_id, name.data(),
                                 H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         if (group < 0)
         {
             throw GroupException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create group '" +
-                name.toStdString() + '\''
+                name + '\''
             };
         }
 
@@ -135,16 +136,16 @@ GenH5::Group::openGroup(String const& name) const noexcept(false)
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Opening group '" +
-            name.toStdString() + "' failed (invalid parent)"
+            name + "' failed (invalid parent)"
         };
     }
 
-    hid_t group = H5Gopen(m_id, name.constData(), H5P_DEFAULT);
+    hid_t group = H5Gopen(m_id, name.data(), H5P_DEFAULT);
     if (group < 0)
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open group '" +
-            name.toStdString() + '\''
+            name + '\''
         };
     }
 
@@ -164,7 +165,7 @@ GenH5::Group::createDataSet(String const& name,
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Creating dataset '" +
-            name.toStdString() + "' failed (invalid parent)"
+            name + "' failed (invalid parent)"
         };
     }
 
@@ -177,13 +178,13 @@ GenH5::Group::createDataSet(String const& name,
     // create new dataset
     if (!exists(name))
     {
-        hid_t dset = H5Dcreate(m_id, name.constData(), dtype.id(), dspace.id(),
+        hid_t dset = H5Dcreate(m_id, name.data(), dtype.id(), dspace.id(),
                                H5P_DEFAULT, properties->id(), H5P_DEFAULT);
         if (dset < 0)
         {
             throw DataSetException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create dataset '" +
-                name.toStdString() + '\''
+                name + '\''
             };
         }
 
@@ -221,16 +222,16 @@ GenH5::Group::openDataSet(String const& name) const noexcept(false)
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Opening dataset '" +
-            name.toStdString() + "' failed (invalid parent)"
+            name + "' failed (invalid parent)"
         };
     }
 
-    hid_t dset = H5Dopen(m_id, name.constData(), H5P_DEFAULT);
+    hid_t dset = H5Dopen(m_id, name.data(), H5P_DEFAULT);
     if (dset < 0)
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open dataset '" +
-            name.toStdString() + '\''
+            name + '\''
         };
     }
 
@@ -299,14 +300,14 @@ GenH5::NodeInfo
 GenH5::Group::nodeInfo(String const& path) const noexcept(false)
 {
     H5L_info_t info{};
-    if (H5Lget_info(m_id, path.constData(), &info, H5P_DEFAULT))
+    if (H5Lget_info(m_id, path.data(), &info, H5P_DEFAULT))
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to retrieve node info for '" +
-            path.toStdString() + '\''
+            path + '\''
         };
     }
-    return alg::getNodeInfo(m_id, path.constData(), &info);
+    return alg::getNodeInfo(m_id, path.data(), &info);
 }
 
 void

@@ -138,7 +138,7 @@ GenH5::DataType::compound(size_t dataSize,
     int i = 0;
     for (auto const& m : qAsConst(members))
     {
-        if (m.name.isEmpty())
+        if (m.name.empty())
         {
             throw DataTypeException{
                 GENH5_MAKE_EXECEPTION_STR()
@@ -167,7 +167,7 @@ GenH5::DataType::compound(size_t dataSize,
     {
         auto const& m = members.at(i);
 
-        if (H5Tinsert(dtype.m_id, m.name.constData(), m.offset, m.type.m_id) < 0)
+        if (H5Tinsert(dtype.m_id, m.name.data(), m.offset, m.type.m_id) < 0)
         {
             throw DataTypeException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to insert member no. " +

@@ -278,11 +278,10 @@ private:
     {
         for (size_t i = 0; i < sizeof...(Ts); ++i)
         {
-            if (m_typeNames[i].isEmpty())
+            if (m_typeNames[i].empty())
             {
                 // String::number ambiguous for size_t
-                m_typeNames[i] = String{"type_"} +
-                                 String::number(static_cast<qulonglong>(i));
+                m_typeNames[i] = String{"type_"} + std::to_string(i);
             }
         }
     }

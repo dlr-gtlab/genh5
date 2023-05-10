@@ -21,7 +21,7 @@ TestHelper::instance()
     return &instance;
 }
 
-QByteArray
+GenH5::String
 TestHelper::newFilePath() const
 {
     QDir dir(tempPath());
@@ -32,8 +32,8 @@ TestHelper::newFilePath() const
         return {};
     }
 
-    return dir.absoluteFilePath(QUuid::createUuid().toString() +
-                                GenH5::File::dotFileSuffix()).toUtf8();
+    return dir.absoluteFilePath(QUuid::createUuid().toString() + ".h5")
+        .toStdString();
 }
 
 QString

@@ -21,7 +21,7 @@ class TestH5Iteration : public testing::Test
 {
 protected:
 
-    GenH5::Vector<QByteArray> m_groups{
+    GenH5::Vector<GenH5::String> m_groups{
         "my_group_1",
         "my_group_1/sub1",
         "my_group_1/sub2",
@@ -32,7 +32,7 @@ protected:
         "my_group_2/C/final",
     };
 
-    GenH5::Vector<QByteArray> m_dsets{
+    GenH5::Vector<GenH5::String> m_dsets{
         "my_fancy_dset",
         "my_group_1/dset1",
         "my_group_1/sub1/dsetA",
@@ -41,15 +41,15 @@ protected:
         "my_group_2/C/final/final_dset",
     };
 
-    int countChildNodes(GenH5::Vector<QByteArray> const& list,
+    int countChildNodes(GenH5::Vector<GenH5::String> const& list,
                         GenH5::Group const& parent)
     {
-        if (parent.path().isEmpty()) // relative to root
+        if (parent.path().empty()) // relative to root
         {
             return static_cast<int>(
                         std::count_if(list.cbegin(), list.cend(),
-                                      [](QByteArray const& item){
-                return !item.contains('/');
+                              [](auto const& item){
+                return !QByteArray::fromStdString(item).contains('/');
             }));
         }
         return -1;

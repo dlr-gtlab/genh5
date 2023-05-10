@@ -15,7 +15,7 @@ struct Tests : public testing::Test
     GenH5::File makeFile(const char* name)
     {
         h5TestHelper->newFilePath();
-        QByteArray filePath = h5TestHelper->tempPath().toUtf8() + "/" + name;
+        auto filePath = h5TestHelper->tempPath().toStdString() + "/" + name;
         return GenH5::File{filePath, GenH5::Overwrite};
     }
 };

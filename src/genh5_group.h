@@ -297,7 +297,7 @@ writeDataSetHelper(Group const& obj,
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to write data to dataset '" +
-            name.toStdString() + '\''
+            name + '\''
         };
     }
 
@@ -317,7 +317,7 @@ readDataSetHelper(Group const& obj, String const& name) noexcept(false)
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to read data from dataset '" +
-            name.toStdString() + '\''
+            name + '\''
         };
     }
 

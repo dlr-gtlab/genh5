@@ -183,7 +183,7 @@ TEST_F(TestH5Utils, makeStringArray)
     // unpack
     String resA;
     GenH5::unpack(arrayA, resA);
-    EXPECT_EQ(stringA.mid(0, 11), resA);
+    EXPECT_EQ((String{std::begin(resA), std::begin(resA) + 11}), resA);
 
     // make string too short
     String stringB = "123456789";

@@ -14,6 +14,7 @@
 #include <QDebug>
 #include <QVector>
 #include <QRandomGenerator>
+
 #include "genh5_utils.h"
 
 template<typename... Ts>
@@ -29,6 +30,12 @@ QDebug operator<<(QDebug s, std::tuple<Ts...> const& tuple)
     return s;
 }
 
+template<typename... Ts>
+QDebug operator<<(QDebug s, std::string const& str)
+{
+    return s << str.c_str();
+}
+
 class QDir;
 class QString;
 
@@ -41,7 +48,7 @@ public:
      */
     static TestHelper* instance();
 
-    QByteArray newFilePath() const;
+    GenH5::String newFilePath() const;
 
     QString tempPath() const;
 
