@@ -9,9 +9,7 @@
 #include "genh5_location.h"
 #include "genh5_private.h"
 #include "genh5_reference.h"
-#include "genh5_group.h"
 #include "genh5_file.h"
-#include "genh5_attribute.h"
 
 #include <QList>
 
@@ -29,7 +27,7 @@ GenH5::getObjectName(Location const& location) noexcept
     if (r_iter == std::rend(path))
     {
         log::ErrStream() << GENH5_MAKE_EXECEPTION_STR()
-            "Failed to retrieve the location name!";
+                            "Failed to retrieve the location name!";
         return {};
     }
 

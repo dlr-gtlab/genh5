@@ -70,16 +70,16 @@ GenH5::DataSetCProperties::id() const noexcept
 
 void
 GenH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions
-                                             ) noexcept(false)
+                                              ) noexcept(false)
 {
-    if (dimensions.isEmpty())
+    if (dimensions.empty())
     {
         throw PropertyListException{
             GENH5_MAKE_EXECEPTION_STR() "Chunking failed (Invalid dimensions)"
         };
     }
 
-    if (H5Pset_chunk(m_id, dimensions.length(), dimensions.data()))
+    if (H5Pset_chunk(m_id, dimensions.size(), dimensions.data()))
     {
         throw PropertyListException{
             GENH5_MAKE_EXECEPTION_STR() "Chunking failed"

@@ -28,7 +28,7 @@ using Vector = QVector<T>;
 using String = std::string;
 
 // alias for dimension vector type
-using Dimensions = Vector<hsize_t>;
+using Dimensions = std::vector<hsize_t>;
 
 // alias for a compound type
 template <typename ...Ts>

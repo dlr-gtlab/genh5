@@ -158,7 +158,7 @@ GenH5::DataSet::deleteLink() noexcept(false)
 
     auto m_dataspace = dataSpace();
     auto dims = m_dataspace.dimensions();
-    dims.fill(0);
+    std::fill(std::begin(dims), std::end(dims), 0);
 
     // resize dataset to 0
     if (cProperties().isChunked())
@@ -238,12 +238,12 @@ GenH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
 
     // nDims must be equal
     auto dspace = dataSpace();
-    if (dimensions.length() != dspace.nDims())
+    if (dimensions.size() != dspace.nDims())
     {
         log::ErrStream()
                 << GENH5_MAKE_EXECEPTION_STR()
                    "Resizing dataset failed! (n-dims mismatch: "
-                << dimensions.length() << " vs. " << dspace.nDims() << ")";
+                << dimensions.size() << " vs. " << dspace.nDims() << ")";
         return false;
     }
 
@@ -251,7 +251,7 @@ GenH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
     herr_t err = 0;
     if (dimensions != dspace.dimensions())
     {
-        err = H5Dset_extent(m_id, dimensions.constData());
+        err = H5Dset_extent(m_id, dimensions.data());
     }
     return err >= 0;
 }

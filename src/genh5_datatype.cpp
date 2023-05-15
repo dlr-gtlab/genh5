@@ -96,8 +96,7 @@ GenH5::DataType::array(DataType const& type,
     static const std::string errMsg =
             GENH5_MAKE_EXECEPTION_STR() "Failed to create array type";
 
-    return makeType(
-                [id = type.m_id, len = dims.length(), ptr = dims.constData()](){
+    return makeType([id = type.m_id, len = dims.size(), ptr = dims.data()](){
         return H5Tarray_create(id, len, ptr);
     }, errMsg);
 }

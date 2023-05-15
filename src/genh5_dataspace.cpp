@@ -45,7 +45,7 @@ GenH5::DataSpace::DataSpace(hid_t id) :
 }
 
 GenH5::DataSpace::DataSpace(Dimensions const& dimensions) noexcept(false) :
-    m_id(H5Screate_simple(dimensions.size(), dimensions.constData(), nullptr))
+    m_id(H5Screate_simple(dimensions.size(), dimensions.data(), nullptr))
 {
     if (m_id < 0)
     {
@@ -175,8 +175,8 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
     testSelection(m_block, dims, 1);
 
     herr_t err = H5Sselect_hyperslab(m_space.id(), m_op,
-                                     m_offset.constData(), m_stride.constData(),
-                                     m_count.constData(), m_block.constData());
+                                     m_offset.data(), m_stride.data(),
+                                     m_count.data(), m_block.data());
 
     if (err < 0)
     {
