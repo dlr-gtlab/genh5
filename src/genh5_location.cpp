@@ -33,7 +33,7 @@ GenH5::getObjectName(Location const& location) noexcept
 
     bool isRoot = std::distance(std::rbegin(path), r_iter) < 1;
 
-    // removes the leading '/'
+    // includes leading '/'
     if (isRoot) r_iter++;
 
     return String{r_iter.base(), std::end(path)};

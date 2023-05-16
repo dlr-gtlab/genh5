@@ -10,10 +10,8 @@
 #define GENH5_PRIVATE_H
 
 #include "genh5_group.h"
-#include "genh5_typetraits.h"
 
 #include "H5Ipublic.h"
-#include "H5Ppublic.h"
 #include "H5Apublic.h"
 
 #include <utility>
@@ -44,26 +42,25 @@ template <typename Functor>
 inline GenH5::String
 getName(hid_t id, Functor const& getNameFunctor)
 {
-    if (!GenH5::isValidId(id))
-    {
-        return {};
-    }
+    if (!GenH5::isValidId(id)) return {};
 
-    QByteArray buffer{32, ' '};
-    size_t bufferLen = static_cast<size_t>(buffer.size());
+    std::vector<char> buffer(32);
+    std::fill(std::begin(buffer), std::end(buffer), '\0');
+    size_t bufferLen = buffer.size();
 
     auto acutalLen =
-            static_cast<size_t>(getNameFunctor(id, bufferLen, buffer.data()));
+        static_cast<size_t>(getNameFunctor(id, bufferLen, buffer.data()));
 
     if (acutalLen > bufferLen)
     {
         bufferLen = acutalLen + 1;
-        buffer.resize(static_cast<int>(bufferLen));
+        buffer.resize(bufferLen);
         getNameFunctor(id, bufferLen, buffer.data());
     }
 
     // remove of excess whitespaces and trailing '\0'
-    return buffer.trimmed().chopped(1).toStdString();
+    auto iter = std::find(std::begin(buffer), std::end(buffer), '\0');
+    return std::string{std::begin(buffer), iter};
 }
 
 } // namespace details
