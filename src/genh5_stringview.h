@@ -28,10 +28,15 @@ public:
     using const_reverse_iterator = typename value_type::const_reverse_iterator;
 
     /* constructors */
-    StringView(value_type str) : m_string(std::move(str)) {}
 
+    // cppcheck-suppress noExplicitConstructor
+    StringView(const char* str) : m_string(str) {}
+    // cppcheck-suppress noExplicitConstructor
+    StringView(value_type str) : m_string(std::move(str)) {}
     template <typename T,
-              traits::if_convertible<decltype(std::declval<T>().toStdString()), String> = true>
+              traits::if_convertible<
+                 decltype(std::declval<T>().toStdString()), String> = true>
+    // cppcheck-suppress noExplicitConstructor
     StringView(T const& str) : m_string(str.toStdString()) {}
 
     char const* data() const noexcept { return m_string.data(); }

@@ -48,7 +48,9 @@ public:
     { }
 
     template <typename U,
-             traits::if_convertible<decltype(std::declval<U>().toStdString()), T> = true>
+             traits::if_convertible<
+                 decltype(std::declval<U>().toStdString()), T> = true>
+    // cppcheck-suppress noExplicitConstructor
     FixedString0D(U const& str) : m_data(str.toStdString()) {}
 
     /** conversion constructors **/
@@ -74,7 +76,7 @@ public:
         return convertTo<U>(m_data.data());
     }
 
-    void resize(size_type size) { m_data.resize(size + 1); }
+    void resize(size_type size) { m_data.resize(size); }
 
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
