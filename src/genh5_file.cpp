@@ -10,11 +10,11 @@
 #include "genh5_group.h"
 #include "genh5_private.h"
 
-#include <QFileInfo>
-#include <QDir>
-
 #include "H5Fpublic.h"
 #include "H5Ppublic.h"
+
+#include <fstream>
+#include <sys/stat.h>
 
 GenH5::String
 GenH5::getFileName(File const& file) noexcept
@@ -33,22 +33,26 @@ GenH5::File::File(hid_t id) :
     m_id.inc();
 }
 
-GenH5::File::File(String path, FileAccessFlags flags)
+GenH5::File::File(StringView path, FileAccessFlags flags)
 {
-    QFileInfo fileInfo{QString::fromStdString(path)};
-    QDir fileDir{fileInfo.path()};
+    std::string dir = path;
+    auto r_iter = std::find(std::rbegin(dir), std::rend(dir), '/');
+    dir.erase(r_iter.base(), std::end(dir));
 
-    if (!fileDir.exists())
+    struct stat sb;
+    bool dirExists = stat(dir.c_str(), &sb) == 0 && (sb.st_mode & S_IFDIR);
+
+    if (!dirExists)
     {
         throw FileException{
             GENH5_MAKE_EXECEPTION_STR()
             "Accessing file failed (directory does not exist: " +
-            path + ')'
+            path.get() + ')'
         };
     }
 
     uint flag = H5F_ACC_DEFAULT;
-    bool exists = fileInfo.exists();
+    bool fileExists = stat(path, &sb) == 0 && (sb.st_mode & S_IFREG);
     bool create = false;
 
     if (flags & Overwrite)
@@ -60,7 +64,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
     {
         flag = H5F_ACC_RDWR;
     }
-    else if (!exists)
+    else if (!fileExists)
     {
         create = true;
         if (flags & Create)
@@ -73,7 +77,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR()
                 "Opening file failed (file does not exist: " +
-                path + ')'
+                path.get() + ')'
             };
         }
     }
@@ -88,7 +92,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR()
                 "Creating file failed (file already exists: " +
-                path + ')'
+                path.get() + ')'
             };
         }
         if (flags & ReadOnly)
@@ -99,23 +103,23 @@ GenH5::File::File(String path, FileAccessFlags flags)
 
     if (create)
     {
-        m_id = H5Fcreate(path.data(), flag, H5P_DEFAULT, H5P_DEFAULT);
+        m_id = H5Fcreate(path, flag, H5P_DEFAULT, H5P_DEFAULT);
         if (m_id < 0)
         {
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create file (path: " +
-                path + ')'
+                path.get() + ')'
             };
         }
     }
     else
     {
-        m_id = H5Fopen(path.data(), flag, H5P_DEFAULT);
+        m_id = H5Fopen(path, flag, H5P_DEFAULT);
         if (m_id < 0)
         {
             throw FileException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to open file (path: " +
-                path + ')'
+                path.get() + ')'
             };
         }
     }
@@ -146,13 +150,25 @@ GenH5::File::root() const noexcept(false)
 GenH5::String
 GenH5::File::fileName() const noexcept
 {
-    return QFileInfo{QString::fromStdString(filePath())}.fileName().toStdString();
+    auto path = filePath();
+
+    auto r_iter = std::find(std::rbegin(path), std::rend(path), '/');
+
+    path.erase(std::begin(path), r_iter.base());
+
+    return path;
 }
 
 GenH5::String
 GenH5::File::fileBaseName() const noexcept
 {
-    return QFileInfo{QString::fromStdString(filePath())}.baseName().toStdString();
+    auto name = fileName();
+
+    auto iter = std::find(std::begin(name), std::end(name), '.');
+
+    name.erase(iter, std::end(name));
+
+    return name;
 }
 
 GenH5::String

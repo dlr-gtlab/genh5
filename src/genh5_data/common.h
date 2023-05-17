@@ -36,6 +36,9 @@ public:
 
     using iterator              = typename container_type::iterator;
     using const_iterator        = typename container_type::const_iterator;
+    using reverse_iterator       = typename container_type::reverse_iterator;
+    using const_reverse_iterator = typename container_type::const_reverse_iterator;
+
 
     using pointer               = value_type*;
     using const_pointer         = value_type const*;
@@ -378,7 +381,7 @@ public:
     /** STL **/
     void clear() { m_data.clear(); m_dims.clear(); }
     bool empty() const { return m_data.empty(); }
-    size_type size() const override { return m_data.size(); }
+    size_t size() const override { return m_data.size(); }
     size_type capacity() const { return m_data.capacity(); }
 
     void reserve(size_type len) { return m_data.reserve(len); }
@@ -393,19 +396,19 @@ public:
 
     void remove(size_type i, uint n = 1) { m_data.remove(i, n); }
 
-    iterator begin() { return m_data.begin(); }
+    iterator begin() noexcept { return m_data.begin(); }
     const_iterator begin() const noexcept { return m_data.cbegin(); }
-    iterator rbegin() noexcept { return m_data.rbegin(); }
-    const_iterator rbegin() const noexcept { return m_data.rbegin(); }
     const_iterator cbegin() const noexcept { return m_data.cbegin(); }
-    const_iterator crbegin() const noexcept { return m_data.crbegin(); }
+    reverse_iterator rbegin() noexcept { return m_data.rbegin(); }
+    const_reverse_iterator rbegin() const noexcept { return m_data.rbegin(); }
+    const_reverse_iterator crbegin() const noexcept { return m_data.crbegin(); }
 
-    iterator end() { return m_data.end(); }
+    iterator end() noexcept { return m_data.end(); }
     const_iterator end() const noexcept { return m_data.cend(); }
-    iterator rend() noexcept { return m_data.rend(); }
-    const_iterator rend() const noexcept { return m_data.rend(); }
     const_iterator cend() const noexcept { return m_data.cend(); }
-    const_iterator crend() const noexcept { return m_data.crbegin(); }
+    reverse_iterator rend() noexcept { return m_data.rend(); }
+    const_reverse_iterator rend() const noexcept { return m_data.rend(); }
+    const_reverse_iterator crend() const noexcept { return m_data.crbegin(); }
 
     // 1D
     reference at(size_type idx) {

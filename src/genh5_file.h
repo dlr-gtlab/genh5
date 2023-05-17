@@ -11,6 +11,7 @@
 
 #include "genh5_object.h"
 #include "genh5_group.h"
+#include "genh5_stringview.h"
 
 // forward decl
 class QFile;
@@ -23,13 +24,13 @@ namespace GenH5
  */
 enum FileAccessFlag
 {
-    Create = 1,
-    Open = 2,
-    Overwrite = 4,
-    ReadOnly = 8,
-    ReadWrite = 16
+    Create    = 1 << 0,
+    Open      = 1 << 1,
+    Overwrite = 1 << 2,
+    ReadOnly  = 1 << 3,
+    ReadWrite = 1 << 4,
 };
-Q_DECLARE_FLAGS(FileAccessFlags, FileAccessFlag)
+using FileAccessFlags = size_t;
 
 /**
  * @brief The File class
@@ -43,7 +44,7 @@ public:
      */
     File();
     explicit File(hid_t id);
-    explicit File(String path, FileAccessFlags flags = ReadWrite);
+    explicit File(StringView path, FileAccessFlags flags = ReadWrite);
 
     /**
      * @brief id or handle of the hdf5 resource.

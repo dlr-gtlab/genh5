@@ -52,6 +52,7 @@ set(headers
     genh5_optional.h
     genh5_private.h
     genh5_reference.h
+    genh5_stringview.h
     genh5_typedefs.h
     genh5_typetraits.h
     genh5_utils.h

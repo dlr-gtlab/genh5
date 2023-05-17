@@ -203,7 +203,7 @@ struct datatype_impl<Array<T, N>>
     datatype_impl(CompoundNames<0> = {}) {}
     operator DataType() const
     {
-        return GenH5::DataType::array(datatype_impl<T>(), N);
+        return DataType::array(datatype_impl<T>(), N);
     }
 };
 
@@ -224,7 +224,7 @@ struct datatype_impl<VarLen<T>>
     datatype_impl(CompoundNames<0> = {}) {}
     operator DataType() const
     {
-        return GenH5::DataType::varLen(datatype_impl<T>());
+        return DataType::varLen(datatype_impl<T>());
     }
 };
 
@@ -246,7 +246,7 @@ struct datatype_impl<Comp<Ts...>>
         CompoundMembers members;
         members.reserve(sizeof...(Ts));
 
-        GenH5::mpl::static_for<sizeof...(Ts)>([&](auto const idx){
+        mpl::static_for<sizeof...(Ts)>([&](auto const idx){
             members.append({
                 m_typeNames.at(traits::comp_size<Compound>()-1-idx),
                 offset<idx>(),

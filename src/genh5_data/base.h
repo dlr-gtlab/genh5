@@ -32,7 +32,7 @@ public:
     AbstractData& operator=(AbstractData&&) = default;
 
     using template_type = T;
-    using size_type     = typename conversion_container_t<T>::size_type;
+    using size_type     = size_t;
 
     // only necessary for when creating compound types
     using compound_names = CompoundNames<traits::comp_size<T>::value>;

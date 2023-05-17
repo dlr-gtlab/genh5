@@ -16,16 +16,15 @@ namespace GenH5
 {
 
 /** FIXED STRING 0D **/
-class FixedString0D : public details::AbstractData<QByteArray>
+class FixedString0D : public details::AbstractData<String>
 {
-    using T = QByteArray;
+    using T = String;
 
 public:
 
     FixedString0D() = default;
 
     using compound_names = CompoundNames<0>;
-    using size_type      = typename T::size_type;
     using value_type     = conversion_t<T>;
     using buffer_type    = T;
 
@@ -47,6 +46,10 @@ public:
     FixedString0D(buffer_type arg) :
         m_data{std::move(arg)}
     { }
+
+    template <typename U,
+             traits::if_convertible<decltype(std::declval<U>().toStdString()), T> = true>
+    FixedString0D(U const& str) : m_data(str.toStdString()) {}
 
     /** conversion constructors **/
     // frwd ref for template type
@@ -71,7 +74,7 @@ public:
         return convertTo<U>(m_data.data());
     }
 
-    void resize(size_type size) { m_data.resize(size); }
+    void resize(size_type size) { m_data.resize(size + 1); }
 
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
@@ -87,14 +90,17 @@ public:
     }
 
     // pointer for reading
-    void* dataReadPtr() override { return data(); }
+    void* dataReadPtr() override
+    {
+        // *sigh* (there is no "char*" overload of "data()" prior c++17)
+        return const_cast<void*>(static_cast<void const*>(m_data.data()));
+    }
 
     // pointer for writing
     void const* dataWritePtr() const override { return data(); }
 
     /** implicit conversions **/
     operator char const*() const { return data(); }
-    operator char*() { return data(); }
 
     /** for accessing raw data **/
     buffer_type& raw() { return m_data; }
@@ -104,7 +110,6 @@ public:
     size_type stringSize() const { return m_data.size(); }
 
     /** STL **/
-    char* data() { return m_data.data(); }
     char const* data() const { return m_data.data(); }
 
     /** Qt **/
