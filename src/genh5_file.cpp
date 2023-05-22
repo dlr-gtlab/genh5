@@ -33,7 +33,7 @@ GenH5::File::File(hid_t id) :
     m_id.inc();
 }
 
-GenH5::File::File(StringView path, FileAccessFlags flags)
+GenH5::File::File(StringView const& path, FileAccessFlags flags)
 {
     std::string dir = path;
     auto r_iter = std::find(std::rbegin(dir), std::rend(dir), '/');

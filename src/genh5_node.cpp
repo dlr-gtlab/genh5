@@ -12,6 +12,7 @@
 #include "genh5_private.h"
 #include "genh5_version.h"
 #include "genh5_group.h"
+#include "genh5_finally.h"
 
 #include "H5Apublic.h"
 #include "H5Ppublic.h"
@@ -86,13 +87,13 @@ GenH5::Node::parent() const noexcept(false)
 }
 
 bool
-GenH5::Node::hasAttribute(String const& name) const noexcept
+GenH5::Node::hasAttribute(StringView const& name) const noexcept
 {
     return isValid() && H5Aexists(id(), name.data()) > 0;
 }
 
 GenH5::Attribute
-GenH5::Node::createAttribute(String const& name,
+GenH5::Node::createAttribute(StringView const& name,
                              DataType const& dtype,
                              DataSpace const& dspace) const noexcept(false)
 {
@@ -100,7 +101,7 @@ GenH5::Node::createAttribute(String const& name,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Creating attribute '" +
-            name + "' failed (invalid parent)"
+            name.get() + "' failed (invalid parent)"
         };
     }
 
@@ -112,7 +113,7 @@ GenH5::Node::createAttribute(String const& name,
         {
             throw AttributeException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create attribute '" +
-                name + '\''
+                name.get() + '\''
             };
         }
 
@@ -141,13 +142,13 @@ GenH5::Node::createAttribute(String const& name,
 }
 
 GenH5::Attribute
-GenH5::Node::openAttribute(String const& name) const noexcept(false)
+GenH5::Node::openAttribute(StringView const& name) const noexcept(false)
 {
     if (!isValid())
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Opening attribute '" +
-            name + "' failed (invalid parent)"
+            name.get() + "' failed (invalid parent)"
         };
     }
 
@@ -156,7 +157,7 @@ GenH5::Node::openAttribute(String const& name) const noexcept(false)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open attribute '" +
-            name + '\''
+            name.get() + '\''
         };
     }
 
@@ -168,14 +169,14 @@ GenH5::Node::openAttribute(String const& name) const noexcept(false)
 }
 
 GenH5::Attribute
-GenH5::Node::openAttribute(String const& path,
-                           String const& name) const noexcept(false)
+GenH5::Node::openAttribute(StringView const& path,
+                           StringView const& name) const noexcept(false)
 {
     if (!isValid())
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Opening attribute by path '" +
-            path + ':' + name +
+            path.get() + ':' + name.get() +
             "' failed (invalid parent)"
         };
     }
@@ -187,7 +188,7 @@ GenH5::Node::openAttribute(String const& path,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open attribute by path '" +
-            path + ':' + name + '\''
+            path.get() + ':' + name.get() + '\''
         };
     }
 
@@ -205,13 +206,13 @@ GenH5::Node::versionAttributeName()
 }
 
 bool
-GenH5::Node::hasVersionAttribute(String const& string) const
+GenH5::Node::hasVersionAttribute(StringView const& string) const
 {
     return hasAttribute(string);
 }
 
 GenH5::Node const&
-GenH5::Node::writeVersionAttribute(String const& string,
+GenH5::Node::writeVersionAttribute(StringView const& string,
                                    Version version) const noexcept(false)
 {
     auto attr = createAttribute(string, dataType<Version>(), DataSpace::Scalar);
@@ -219,14 +220,14 @@ GenH5::Node::writeVersionAttribute(String const& string,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to write version attribute '" +
-            string + '\''
+            string.get() + '\''
         };
     }
     return *this;
 }
 
 GenH5::Version
-GenH5::Node::readVersionAttribute(String const& string) const noexcept(false)
+GenH5::Node::readVersionAttribute(StringView const& string) const noexcept(false)
 {
     Version version{-1, -1, -1};
     Attribute attr = openAttribute(string);
@@ -236,14 +237,14 @@ GenH5::Node::readVersionAttribute(String const& string) const noexcept(false)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid version attribute format (" +
-            string + ')'
+            string.get() + ')'
         };
     }
     if (!attr.read(&version))
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to read version attribute (" +
-            string + ')'
+            string.get() + ')'
         };
     }
     return version;
@@ -257,7 +258,7 @@ GenH5::Node::findAttributes(IterationIndex iterIndex,
 }
 
 GenH5::Vector<GenH5::AttributeInfo>
-GenH5::Node::findAttributes(String const& path,
+GenH5::Node::findAttributes(StringView const& path,
                             IterationIndex iterIndex,
                             IterationOrder iterOrder) const noexcept
 {
@@ -282,7 +283,7 @@ GenH5::Node::iterateAttributes(AttributeIterationFunction iterFunction,
 }
 
 herr_t
-GenH5::Node::iterateAttributes(String const& path,
+GenH5::Node::iterateAttributes(StringView const& path,
                                AttributeIterationFunction iterFunction,
                                IterationIndex iterIndex,
                                IterationOrder iterOrder) const noexcept
@@ -303,14 +304,14 @@ GenH5::Node::iterateAttributes(String const& path,
 }
 
 GenH5::AttributeInfo
-GenH5::Node::attributeInfo(String const& name) const noexcept(false)
+GenH5::Node::attributeInfo(StringView const& name) const noexcept(false)
 {
     return attributeInfo(".", name);
 }
 
 GenH5::AttributeInfo
-GenH5::Node::attributeInfo(String const& path,
-                           String const& name) const noexcept(false)
+GenH5::Node::attributeInfo(StringView const& path,
+                           StringView const& name) const noexcept(false)
 {
     H5A_info_t info{};
     if (H5Aget_info_by_name(id(), path.data(),
@@ -319,7 +320,7 @@ GenH5::Node::attributeInfo(String const& path,
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR()
             "Failed to retrieve attribute info for '" +
-            path + ':' + name + '\''
+            path.get() + ':' + name.get() + '\''
         };
     }
     return alg::getAttributeInfo(name.data(), &info);

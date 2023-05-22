@@ -11,7 +11,6 @@
 
 #include "genh5_object.h"
 #include "genh5_group.h"
-#include "genh5_stringview.h"
 
 // forward decl
 class QFile;
@@ -44,7 +43,7 @@ public:
      */
     File();
     explicit File(hid_t id);
-    explicit File(StringView path, FileAccessFlags flags = ReadWrite);
+    explicit File(StringView const& path, FileAccessFlags flags = ReadWrite);
 
     /**
      * @brief id or handle of the hdf5 resource.

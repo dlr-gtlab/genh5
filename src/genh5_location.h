@@ -9,6 +9,7 @@
 #ifndef GENH5_LOCATION_H
 #define GENH5_LOCATION_H
 
+#include "genh5_stringview.h"
 #include "genh5_object.h"
 #include "genh5_typetraits.h"
 
@@ -46,7 +47,7 @@ public:
      * @param path Path to check
      * @return exists
      */
-    bool exists(String const& path) const noexcept;
+    bool exists(StringView const& path) const noexcept;
 
     /**
      * @brief exists

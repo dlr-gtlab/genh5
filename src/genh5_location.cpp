@@ -10,6 +10,7 @@
 #include "genh5_private.h"
 #include "genh5_reference.h"
 #include "genh5_file.h"
+#include "genh5_finally.h"
 
 #include <QList>
 
@@ -63,13 +64,14 @@ GenH5::Location::exists(hid_t locId, const char* name)
 }
 
 bool
-GenH5::Location::exists(String const& path) const noexcept
+GenH5::Location::exists(StringView const& path) const noexcept
 {
     std::vector<std::string> elements;
     std::istringstream iss(path);
     std::string token;
 
-    while (std::getline(iss, token, '/')) {
+    while (std::getline(iss, token, '/'))
+    {
         elements.push_back(token);
     }
 

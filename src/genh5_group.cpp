@@ -9,6 +9,7 @@
 #include "genh5_group.h"
 #include "genh5_file.h"
 #include "genh5_private.h"
+#include "genh5_finally.h"
 
 #include "H5Gpublic.h"
 #include "H5Ppublic.h"
@@ -96,13 +97,13 @@ GenH5::Group::close()
 }
 
 GenH5::Group
-GenH5::Group::createGroup(String const& name) const noexcept(false)
+GenH5::Group::createGroup(StringView const& name) const noexcept(false)
 {
     if (!isValid())
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Creating group '" +
-            name + "' failed (invalid parent)"
+            name.get() + "' failed (invalid parent)"
         };
     }
 
@@ -115,7 +116,7 @@ GenH5::Group::createGroup(String const& name) const noexcept(false)
         {
             throw GroupException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create group '" +
-                name + '\''
+                name.get() + '\''
             };
         }
 
@@ -130,13 +131,13 @@ GenH5::Group::createGroup(String const& name) const noexcept(false)
 }
 
 GenH5::Group
-GenH5::Group::openGroup(String const& name) const noexcept(false)
+GenH5::Group::openGroup(StringView const& name) const noexcept(false)
 {
     if (!isValid())
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Opening group '" +
-            name + "' failed (invalid parent)"
+            name.get() + "' failed (invalid parent)"
         };
     }
 
@@ -145,7 +146,7 @@ GenH5::Group::openGroup(String const& name) const noexcept(false)
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open group '" +
-            name + '\''
+            name.get() + '\''
         };
     }
 
@@ -156,7 +157,7 @@ GenH5::Group::openGroup(String const& name) const noexcept(false)
 }
 
 GenH5::DataSet
-GenH5::Group::createDataSet(String const& name,
+GenH5::Group::createDataSet(StringView const& name,
                             DataType const& dtype,
                             DataSpace const& dspace,
                             Optional<DataSetCProperties> properties) const
@@ -165,7 +166,7 @@ GenH5::Group::createDataSet(String const& name,
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Creating dataset '" +
-            name + "' failed (invalid parent)"
+            name.get() + "' failed (invalid parent)"
         };
     }
 
@@ -184,7 +185,7 @@ GenH5::Group::createDataSet(String const& name,
         {
             throw DataSetException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to create dataset '" +
-                name + '\''
+                name.get() + '\''
             };
         }
 
@@ -216,13 +217,13 @@ GenH5::Group::createDataSet(String const& name,
 }
 
 GenH5::DataSet
-GenH5::Group::openDataSet(String const& name) const noexcept(false)
+GenH5::Group::openDataSet(StringView const& name) const noexcept(false)
 {
     if (!isValid())
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Opening dataset '" +
-            name + "' failed (invalid parent)"
+            name.get() + "' failed (invalid parent)"
         };
     }
 
@@ -231,7 +232,7 @@ GenH5::Group::openDataSet(String const& name) const noexcept(false)
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to open dataset '" +
-            name + '\''
+            name.get() + '\''
         };
     }
 
@@ -297,14 +298,14 @@ GenH5::Group::iterateChildNodes(NodeIterationFunction iterFunction,
 }
 
 GenH5::NodeInfo
-GenH5::Group::nodeInfo(String const& path) const noexcept(false)
+GenH5::Group::nodeInfo(StringView const& path) const noexcept(false)
 {
     H5L_info_t info{};
     if (H5Lget_info(m_id, path.data(), &info, H5P_DEFAULT))
     {
         throw GroupException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to retrieve node info for '" +
-            path + '\''
+            path.get() + '\''
         };
     }
     return alg::getNodeInfo(m_id, path.data(), &info);

@@ -41,6 +41,7 @@ set(headers
     genh5_exception.h
     genh5_exports.h
     genh5_file.h
+    genh5_finally.h
     genh5_group.h
     genh5_globals.h
     genh5_idcomponent.h

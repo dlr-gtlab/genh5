@@ -164,7 +164,8 @@ public:
      * @param version Version to write
      * @return This
      */
-    DataSet const& writeVersionAttribute(String const& string = versionAttributeName(),
+    [[deprecated("Use writeAttribute0D(<name>, <version>) instead")]]
+    DataSet const& writeVersionAttribute(StringView const& string = versionAttributeName(),
                                          Version version = Version::current()
                                          ) const noexcept(false)
     {

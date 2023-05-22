@@ -47,6 +47,8 @@ public:
 
     size_type size() const noexcept { return m_string.size(); }
 
+    bool empty() const noexcept { return m_string.empty(); }
+
 //    auto erase(const const_iterator where) noexcept { return m_string.erase(where); }
 //    auto erase(const const_iterator first, const const_iterator last) noexcept { return m_string.erase(first, last); }
 

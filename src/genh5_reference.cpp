@@ -11,6 +11,7 @@
 #include "genh5_attribute.h"
 #include "genh5_group.h"
 #include "genh5_dataset.h"
+#include "genh5_finally.h"
 
 #include "H5Apublic.h"
 #include "H5Ppublic.h"
