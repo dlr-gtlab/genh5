@@ -125,54 +125,6 @@ public:
               DataSpace const& fileSpace,
               Optional<DataType> dtype = {}) const noexcept(false);
 
-    /*
-     *  WRITE ATTRIBUTE
-     */
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute
-     * @param name Name of attribute
-     * @param data Data to write
-     * @return This
-     */
-    template <typename T>
-    DataSet const& writeAttribute(String const& name, T&& data
-                                  ) const noexcept(false)
-    {
-        Node::writeAttribute(name, std::forward<T>(data));
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute0D
-     * @param name Name of attribute
-     * @param data 0D Data to write
-     * @return This
-     */
-    template <typename Container,
-              traits::if_has_not_template_type<Container> = true>
-    DataSet const& writeAttribute0D(String const& name, Container&& data
-                                    ) const noexcept(false)
-    {
-        Node::writeAttribute0D(name, std::forward<Container>(data));
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeVersionAttribute
-     * @param string Attribute name
-     * @param version Version to write
-     * @return This
-     */
-    [[deprecated("Use writeAttribute0D(<name>, <version>) instead")]]
-    DataSet const& writeVersionAttribute(StringView const& string = versionAttributeName(),
-                                         Version version = Version::current()
-                                         ) const noexcept(false)
-    {
-        Node::writeVersionAttribute(string, version);
-        return *this;
-    }
-
     /// swaps all members
     void swap(DataSet& other) noexcept;
 

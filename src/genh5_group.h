@@ -181,54 +181,6 @@ public:
     Data0D<T1, Ts...> readDataSet0D(StringView const& name) const noexcept(false);
 
     /*
-     *  WRITE ATTRIBUTE
-     */
-
-    /**
-     * @brief Delegates the function call to Node::writeVersionAttribute
-     * @param string Attribute name
-     * @param version Version to write
-     * @return This
-     */
-    [[deprecated("Use writeAttribute0D(<name>, <version>) instead")]]
-    Group const& writeVersionAttribute(StringView const& string = versionAttributeName(),
-                                       Version version = Version::current()
-                                       ) const noexcept(false)
-    {
-        Node::writeVersionAttribute(string, version);
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute
-     * @param name Name of attribute
-     * @param data Data to write
-     * @return This
-     */
-    template <typename T>
-    Group const& writeAttribute(StringView const& name, T&& data
-                                ) const noexcept(false)
-    {
-        Node::writeAttribute(name, std::forward<T>(data));
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute0D
-     * @param name Name of attribute
-     * @param data 0D Data to write
-     * @return This
-     */
-    template <typename Container,
-              traits::if_has_not_template_type<Container> = true>
-    Group const& writeAttribute0D(StringView const& name, Container&& data
-                                  ) const noexcept(false)
-    {
-        Node::writeAttribute0D(name, std::forward<Container>(data));
-        return *this;
-    }
-
-    /*
      *  FIND CHILD NODES
      */
 
