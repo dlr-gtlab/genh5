@@ -86,7 +86,13 @@ convert(VarLen<T> const& values, buffer_t<VarLen<T>>& buffer)
     buffer.push_back({});
     details::hvl_buffer<T>& hvlB = buffer.back();
 
-    hvlB.data.reserve(values.size());
+    auto size = values.size();
+    // reserve enough memory
+    hvlB.data.reserve(size);
+    details::applyToBuffer<T>(hvlB.buffer, [=](auto& buffer){
+        buffer.reserve(buffer.size() + size);
+    });
+
     for (auto const& val : values)
     {
         hvlB.data.push_back(convert(val, hvlB.buffer));

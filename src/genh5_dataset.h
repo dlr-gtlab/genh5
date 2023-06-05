@@ -179,7 +179,7 @@ DataSet::write(details::AbstractData<T>& data,
 {
     auto selected = fileSpace.selectionSize();
 
-    if (data.size() < selected)
+    if (static_cast<hssize_t>(data.size()) < selected)
     {
         log::ErrStream()
                 << GENH5_MAKE_EXECEPTION_STR()

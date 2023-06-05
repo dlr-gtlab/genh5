@@ -9,7 +9,7 @@
 #ifndef GENH5_CONVERSION_DEFAULTS_H
 #define GENH5_CONVERSION_DEFAULTS_H
 
-#include "genh5_datatype.h"
+#include "genh5_version.h"
 #include "genh5_conversion/buffer.h"
 
 /**

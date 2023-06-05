@@ -7,6 +7,8 @@
  */
 
 #include "gtest/gtest.h"
+
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_dataset.h"
 #include "genh5_group.h"
 #include "genh5_file.h"

@@ -13,7 +13,8 @@
 
 #include <tuple>
 #include <array>
-#include <QVector>
+#include <vector>
+#include <string>
 
 #include "H5public.h"
 
@@ -22,7 +23,7 @@ namespace GenH5
 
 // alias for vector type
 template <typename T>
-using Vector = QVector<T>;
+using Vector = std::vector<T>;
 
 // alias for strings
 using String = std::string;
@@ -40,7 +41,7 @@ using RComp = mpl::reversed_comp_t<Comp<Ts...>>;
 
 // alias for a var len type
 template<typename T>
-using VarLen = Vector<T>;
+using VarLen = std::vector<T>;
 
 // alias for a fixed length array type
 template<typename T, size_t N>

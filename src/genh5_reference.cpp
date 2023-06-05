@@ -27,7 +27,7 @@ GenH5::Reference::Reference(Alignment data) noexcept
     m_ref.u.align = data;
 }
 
-GenH5::Reference::Reference(QByteArray buffer)  noexcept(false)
+GenH5::Reference::Reference(String buffer)  noexcept(false)
 {
     if (buffer.size() != bufferSize)
     {
@@ -90,7 +90,7 @@ GenH5::Reference::isValid() const noexcept
     return alignment() > 0;
 }
 
-QByteArray
+GenH5::String
 GenH5::Reference::buffer() const noexcept
 {
     return {reinterpret_cast<char const*>(m_ref.u.__data), bufferSize};

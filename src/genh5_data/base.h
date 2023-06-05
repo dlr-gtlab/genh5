@@ -11,12 +11,8 @@
 
 #include "genh5_datatype.h"
 #include "genh5_dataspace.h"
-#include "genh5_conversion.h"
 
 namespace GenH5
-{
-
-namespace details
 {
 
 template<typename T>
@@ -96,6 +92,13 @@ protected:
     // compound type names
     compound_names m_typeNames{};
 };
+
+namespace details
+{
+
+template <typename...T>
+using AbstractData [[deprecated("Use GenH5::AbstractData instead")]]
+                    = GenH5::AbstractData<T...>;
 
 } // namespace details
 

@@ -7,6 +7,8 @@
  */
 
 #include "gtest/gtest.h"
+
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_datatype.h"
 #include "genh5_data.h"
 
@@ -222,8 +224,8 @@ TEST_F(TestH5DataType, compound)
     EXPECT_EQ(type.size(), sizeof(MyData));
 
     auto members2 = type.compoundMembers();
-    ASSERT_EQ(members2.length(), members.length());
-    ASSERT_EQ(members2.length(), 2);
+    ASSERT_EQ(members2.size(), members.size());
+    ASSERT_EQ(members2.size(), 2);
     EXPECT_TRUE(members2.at(0) == members.at(0));
     EXPECT_TRUE(members2.at(1) == members.at(1));
 }

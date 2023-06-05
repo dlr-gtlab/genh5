@@ -35,6 +35,32 @@ QDebug operator<<(QDebug s, std::string const& str)
 {
     return s << str.c_str();
 }
+template<typename Vec>
+Vec concat(Vec const& a)
+{
+    return a;
+}
+
+template<typename Vec, typename ...VecOther>
+Vec concat(Vec a, Vec const& b, VecOther const& ...other)
+{
+    a.insert(a.end(), b.begin(), b.end());
+    return concat(a, other...);
+}
+
+template<typename Vec, typename T>
+bool contains(Vec const& a, T const& b)
+{
+    return std::find(a.begin(), a.end(), b) != std::end(a);
+}
+
+template<typename Vec>
+Vec mid(Vec const& d, size_t pos, hssize_t len = -1)
+{
+    auto start = std::next(std::cbegin(d), pos);
+    auto dist = std::distance(start, std::end(d));
+    return Vec{start, std::next(start, len < 0 ? dist : std::min(len, dist))};
+}
 
 class QDir;
 class QString;
@@ -77,12 +103,12 @@ public:
     template<typename T = double>
     GenH5::Vector<T> randomDataVector(int length)
     {
-        QVector<T> retVal;
+        GenH5::Vector<T> retVal;
         retVal.reserve(length);
 
-        for (int i = 0; i < length; ++i)
+        for (size_t i = 0; i < length; ++i)
         {
-            retVal.append(static_cast<T>(
+            retVal.push_back(static_cast<T>(
                               QRandomGenerator::global()->generateDouble()*10));
         }
 
@@ -98,13 +124,13 @@ public:
     template<typename T = double>
     GenH5::Vector<T> linearDataVector(int length, T start = 0, T step = 1)
     {
-        QVector<T> retVal;
+        GenH5::Vector<T> retVal;
         retVal.reserve(length);
 
         T value = start;
-        for (int i = 0; i < length; ++i)
+        for (size_t i = 0; i < length; ++i)
         {
-            retVal.append(value);
+            retVal.push_back(value);
             value += step;
         }
 

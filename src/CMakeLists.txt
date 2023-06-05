@@ -26,6 +26,7 @@ set(headers
     genh5_conversion/defaults.h
     genh5_conversion/generic.h
     genh5_conversion/type.h
+    genh5_bytearray.h
     genh5_data.h
     genh5_data/base.h
     genh5_data/comp.h

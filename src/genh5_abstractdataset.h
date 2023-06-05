@@ -121,7 +121,7 @@ AbstractDataSet::write(details::AbstractData<T> const& data,
                        Optional<DataType> dtype) const noexcept(false)
 {
     auto dspace = dataSpace();
-    if (data.size() < dspace.selectionSize())
+    if (static_cast<hssize_t>(data.size()) < dspace.selectionSize())
     {
         log::ErrStream()
                 << GENH5_MAKE_EXECEPTION_STR()

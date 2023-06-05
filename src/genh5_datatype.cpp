@@ -134,7 +134,7 @@ GenH5::DataType::compound(size_t dataSize,
     }
 
     // check if types are valid
-    int i = 0;
+    size_t i = 0;
     for (auto const& m : qAsConst(members))
     {
         if (m.name.empty())
@@ -162,7 +162,7 @@ GenH5::DataType::compound(size_t dataSize,
     }, errMsg);
 
     // insert members
-    for (i = 0; i < members.length(); ++i)
+    for (i = 0; i < members.size(); ++i)
     {
         auto const& m = members.at(i);
 
@@ -306,7 +306,7 @@ GenH5::DataType::compoundMembers() const
             };
         }
 
-        members.append({
+        members.push_back({
             std::move(memberName),
             offset,
             DataType::fromId(type)

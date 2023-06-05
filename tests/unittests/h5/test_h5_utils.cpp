@@ -163,7 +163,7 @@ TEST_F(TestH5Utils, makeArraysFromList)
 
     for (int i = 0; i < size; ++i)
     {
-        EXPECT_EQ(res[i], floats.mid(i * N, N));
+        EXPECT_EQ(res[i], mid(floats, i * N, N));
     }
 }
 
@@ -235,7 +235,7 @@ TEST_F(TestH5Utils, makeStringArrays)
         auto str = strs[i].mid(0, N);
         auto& vec = res[i];
         EXPECT_EQ(vec.size(), N);
-        EXPECT_EQ(str, QByteArray(vec.constData(), N));
+        EXPECT_EQ(str, QByteArray(vec.data(), N));
     }
 }
 

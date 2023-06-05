@@ -13,6 +13,10 @@
 #include "genh5_typetraits.h"
 #include "genh5_exception.h"
 
+#include <algorithm>
+#include <numeric>
+#include <iterator>
+
 namespace GenH5
 {
 
@@ -54,10 +58,10 @@ idx(Dimensions const& dims, Vector<hsize_t> const& idxs)
     }
 
     hsize_t idx = 0;
-    for (auto i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
-        idx += idxs[i] * std::accumulate(std::cbegin(dims) + i + 1,
-                                         std::cend(dims), 1ull,
+        idx += idxs[i] * std::accumulate(std::next(std::begin(dims), i + 1),
+                                         std::end(dims), 1ull,
                                          [](auto prod, auto dim){
             return prod * dim;
         });
@@ -147,10 +151,10 @@ makeArraysFromList(Container&& container) noexcept(false)
             std::to_string(N) + " != 0)"
         };
     }
-    int length = container.size() / N;
+    size_t length = container.size() / N;
     R arrays;
     arrays.reserve(length);
-    for (int i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
     {
         Array<C, N> array{};
         std::copy(std::cbegin(container) + i * N,
@@ -205,12 +209,12 @@ makeComp(Containers&&... containersIn) noexcept(false)
 
     // for iterating more easily over variadic arguments
     auto containers = std::make_tuple(&containersIn...);
-    auto size = get<0>(containers)->size();
+    size_t size = static_cast<size_t>(get<0>(containers)->size());
     tuples.resize(size);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
         auto* container = get<idx>(containers);
-        if (size != container->size())
+        if (size != static_cast<size_t>(container->size()))
         {
             throw InvalidArgumentError{
                 GENH5_MAKE_EXECEPTION_STR_ID("makeComp")
@@ -220,7 +224,7 @@ makeComp(Containers&&... containersIn) noexcept(false)
             };
         }
 
-        int i = 0;
+        size_t i = 0;
         for (auto const& value : *container)
         {
             get<idx>(tuples[i++]) = value;
@@ -275,6 +279,7 @@ template <typename T, typename Container,
 inline void
 unpack(Vector<VarLen<T>> const& varlens, Container& container)
 {
+    // TODO: cast to size_type of container
     container.reserve(varlens.size());
     std::transform(std::cbegin(varlens), std::cend(varlens),
                    std::back_inserter(container), [](auto const& varlen){
@@ -304,6 +309,7 @@ unpack(Vector<Tuple> const& tuples, Containers&... containersIn)
     auto containers = std::make_tuple(&containersIn...);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
+        // TODO: cast to size_type of container
         get<idx>(containers)->reserve(tuples.size());
     });
 
@@ -326,7 +332,7 @@ unpackNested(Nested&& nested, Containers&... containersIn)
         get<idx>(containers)->resize(nested.size());
     });
 
-    for (int i = 0; i < nested.size(); ++i)
+    for (size_t i = 0; i < nested.size(); ++i)
     {
         unpack(nested[i], containersIn[i]...);
     }

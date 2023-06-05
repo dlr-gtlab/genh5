@@ -9,6 +9,7 @@
 #ifndef FIXEDSTRING0D_H
 #define FIXEDSTRING0D_H
 
+#include "genh5_conversion.h"
 #include "genh5_data/base.h"
 #include "genh5_data/buffer.h"
 
@@ -47,11 +48,11 @@ public:
         m_data{std::move(arg)}
     { }
 
-    template <typename U,
-             traits::if_convertible<
-                 decltype(std::declval<U>().toStdString()), T> = true>
-    // cppcheck-suppress noExplicitConstructor
-    FixedString0D(U const& str) : m_data(str.toStdString()) {}
+//    template <typename U,
+//             traits::if_convertible<
+//                 decltype(std::declval<U>().toStdString()), T> = true>
+//    // cppcheck-suppress noExplicitConstructor
+//    FixedString0D(U const& str) : m_data(str.toStdString()) {}
 
     /** conversion constructors **/
     // frwd ref for template type
@@ -80,7 +81,7 @@ public:
 
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
-        if (dspace.selectionSize() > size() &&
+        if (dspace.selectionSize() > static_cast<hssize_t>(size()) &&
             dtype.type() != H5T_STRING &&
             dtype.isVarString())
         {

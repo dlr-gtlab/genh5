@@ -247,7 +247,7 @@ struct datatype_impl<Comp<Ts...>>
         members.reserve(sizeof...(Ts));
 
         mpl::static_for<sizeof...(Ts)>([&](auto const idx){
-            members.append({
+            members.push_back({
                 m_typeNames.at(traits::comp_size<Compound>()-1-idx),
                 offset<idx>(),
                 datatype_impl<traits::rcomp_element_t<idx, Comp<Ts...>>>()

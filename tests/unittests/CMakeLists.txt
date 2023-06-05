@@ -19,6 +19,8 @@ if (NOT TARGET gtest)
     include(AddGoogleTest)
 endif()
 
+set(CMAKE_CXX_STANDARD 14)
+
 add_executable(H5UnitTest
     h5/test_h5.cpp
     h5/test_h5_abstractdataset.cpp

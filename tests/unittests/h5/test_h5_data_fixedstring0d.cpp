@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_data/fixedstring0d.h"
 
 #include <QPoint>

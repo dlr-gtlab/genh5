@@ -68,15 +68,15 @@ TestHelper::randomStringList(int length) const
     return retVal;
 }
 
-QVector<QByteArray>
+GenH5::Vector<QByteArray>
 TestHelper::randomByteArrays(int length) const
 {
-    QVector<QByteArray> retVal;
+    GenH5::Vector<QByteArray> retVal;
     retVal.reserve(length);
 
     for (int i = 0; i < length; ++i)
     {
-        retVal.append(QUuid::createUuid().toString().toUtf8());
+        retVal.push_back(QUuid::createUuid().toString().toUtf8());
     }
 
     return retVal;

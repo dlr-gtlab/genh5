@@ -10,7 +10,7 @@
 #define GENH5_DATA_COMMON_H
 
 #include "genh5_optional.h"
-
+#include "genh5_conversion.h"
 #include "genh5_data/base.h"
 #include "genh5_data/buffer.h"
 
@@ -131,7 +131,11 @@ public:
     // container type
     void push_back(container_type data)
     {
-        m_data.append(std::move(data));
+        m_data.insert(
+            m_data.end(),
+            std::make_move_iterator(data.begin()),
+            std::make_move_iterator(data.end())
+        );
     }
     // value type
     void push_back(value_type data)
@@ -260,6 +264,7 @@ public:
     void unpack(Container& c) const
     {
         using GenH5::convertTo; // ADL
+        // TODO: cast to size_type of container
         c.reserve(size());
         std::transform(std::cbegin(m_data), std::cend(m_data),
                        std::back_inserter(c), [](auto const& value){
@@ -394,7 +399,14 @@ public:
     reference back() { return m_data.back(); }
     const_reference back() const { return m_data.back(); }
 
-    void remove(size_type i, uint n = 1) { m_data.remove(i, n); }
+    void remove(size_type i, size_type n = 1)
+    {
+        auto next = std::next(begin(), i);
+        erase(next, std::next(next, n));
+    }
+
+    void erase(const_iterator const& where) { m_data.erase(where); }
+    void erase(const_iterator const& first, const_iterator const& last) { m_data.erase(first, last); }
 
     iterator begin() noexcept { return m_data.begin(); }
     const_iterator begin() const noexcept { return m_data.cbegin(); }
@@ -450,9 +462,23 @@ public:
     template <typename U>
     void append(U&& arg) { push_back(std::forward<U>(arg)); }
 
-    container_type mid(int pos, int len = -1) const
+    /**
+     * @brief Returns a subrange which contains elements starting at position
+     * pos. If length is -1, all elements after pos are included; otherwise
+     * length elements or the rest will be included.
+     * @param pos Post to start from
+     * @param len Number of elements to include at maximum. -1 for all elements.
+     * @tparam Container Optional return type.
+     * @return Subrange
+     */
+    template <typename Container = container_type>
+    Container mid(size_t pos, hssize_t len = -1) const
     {
-        return m_data.mid(pos, len);
+        auto start = std::next(std::cbegin(m_data), pos);
+        auto dist = std::distance(start, std::end(m_data));
+        return Container{
+            start, std::next(start, len < 0 ? dist : std::min(len, dist))
+        };
     }
 
 protected:

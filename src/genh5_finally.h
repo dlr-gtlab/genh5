@@ -34,8 +34,8 @@ public:
 
     // move allowed
     Finally(Finally&& other) :
-        m_func{other.m_func},
-        m_invoked{other.m_invoked}
+        m_func{std::move(other.m_func)},
+        m_invoked{std::move(other.m_invoked)}
     {
         other.clear();
     };

@@ -9,6 +9,7 @@
 #ifndef GENH5_REFERENCE_H
 #define GENH5_REFERENCE_H
 
+#include "genh5_conversion/bindings.h"
 #include "genh5_location.h"
 
 #include "H5Rpublic.h"
@@ -36,7 +37,7 @@ public:
     Reference();
     explicit Reference(H5R_ref_t ref)  noexcept;
     explicit Reference(Alignment data)  noexcept;
-    explicit Reference(QByteArray buffer) noexcept(false);
+    explicit Reference(String buffer) noexcept(false);
     explicit Reference(Location const& location) noexcept(false);
 
     /**
@@ -67,7 +68,7 @@ public:
      * serialize and deserialize a reference.
      * @return data array
      */
-    QByteArray buffer() const noexcept;
+    String buffer() const noexcept;
 
     /**
      * @brief try dereferencing the object to a group.

@@ -110,7 +110,7 @@ accumulateNodes(hid_t groupId, char const* nodeName,
     {
         return 0;
     }
-    *data->nodes << std::move(info);
+    data->nodes->push_back(std::move(info));
     return 0;
 }
 
@@ -162,7 +162,7 @@ accumulateAttributes(hid_t /*locId*/, char const* attrName,
     assert(dataPtr);
 
     auto* nodes = static_cast<Vector<AttributeInfo>*>(dataPtr);
-    *nodes << getAttributeInfo(attrName, attrInfo);
+    nodes->push_back(getAttributeInfo(attrName, attrInfo));
     return 0;
 }
 

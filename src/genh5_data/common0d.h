@@ -9,6 +9,7 @@
 #ifndef GENH5_DATA_COMMON0D_H
 #define GENH5_DATA_COMMON0D_H
 
+#include "genh5_conversion.h"
 #include "genh5_data/base.h"
 #include "genh5_data/buffer.h"
 
@@ -85,7 +86,7 @@ public:
     // resize data
     bool resize(DataSpace const& dspace, DataType const& /*dtype*/) override
     {
-        return dspace.selectionSize() <= size();
+        return dspace.selectionSize() <= static_cast<hssize_t>(size());
     }
 
     // pointer for reading

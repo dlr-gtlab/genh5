@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_data.h"
 
 #include <QPoint>
@@ -109,7 +110,7 @@ TEST_F(TestH5Data0D, array_constructor_differentConversionType)
     using ConvArrayT = Array<char*, 2>;
 
     char str2[] = "Hello";
-    char str3[] = "!676adö1ä";
+    char str3[] = "!676aöd1ä";
 
     ArrayT val1{str2, str3};
     CArrayT cval1{str2, str3};
