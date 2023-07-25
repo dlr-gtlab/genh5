@@ -101,7 +101,7 @@ public:
      * @return list
      */
     template<typename T = double>
-    GenH5::Vector<T> randomDataVector(int length)
+    GenH5::Vector<T> randomDataVector(size_t length)
     {
         GenH5::Vector<T> retVal;
         retVal.reserve(length);
@@ -109,7 +109,7 @@ public:
         for (size_t i = 0; i < length; ++i)
         {
             retVal.push_back(static_cast<T>(
-                              QRandomGenerator::global()->generateDouble()*10));
+                             QRandomGenerator::global()->generateDouble()*10));
         }
 
         return retVal;
@@ -122,7 +122,7 @@ public:
      * @return list
      */
     template<typename T = double>
-    GenH5::Vector<T> linearDataVector(int length, T start = 0, T step = 1)
+    GenH5::Vector<T> linearDataVector(size_t length, T start = 0, T step = 1)
     {
         GenH5::Vector<T> retVal;
         retVal.reserve(length);

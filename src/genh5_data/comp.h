@@ -24,7 +24,7 @@ inline void
 pushBackHelper(Tdata& data, Tbuffer& buffer, Lambda&& lambda, Args&&... argsIn)
 {
     auto args = std::make_tuple(&argsIn...);
-    auto size = static_cast<size_t>(get<0>(args)->size());
+    auto size = numeric_cast<size_t>(get<0>(args)->size());
 
     mpl::static_for<sizeof...(Args)>([&](auto const idx){
         if (size != get<idx>(args)->size())

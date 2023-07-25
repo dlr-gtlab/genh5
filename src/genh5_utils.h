@@ -12,10 +12,13 @@
 #include "genh5_mpl.h"
 #include "genh5_typetraits.h"
 #include "genh5_exception.h"
+#include "genh5_logging.h"
 
+#include <iostream>
 #include <algorithm>
 #include <numeric>
 #include <iterator>
+#include <cassert>
 
 namespace GenH5
 {
@@ -86,6 +89,94 @@ get(Ttuple&& tuple)
     return std::get<idx>(std::forward<Ttuple>(tuple));
 }
 
+/** CASTS **/
+
+template <typename T>
+constexpr inline T const&
+asConst(T& t) noexcept { return t; }
+
+namespace details
+{
+
+template <typename Target, typename Input,
+          std::enable_if_t<
+              std::is_signed<Target>::value ==
+              std::is_signed<Input>::value, bool> = true>
+constexpr inline bool
+is_within_numnerical_limits(Input t) noexcept
+{
+    using std::numeric_limits;
+
+    bool s = (t >= numeric_limits<Target>::min() &&
+              t <= numeric_limits<Target>::max());
+
+    if (!s) {
+        log::ErrStream()
+            << "### OUT OF NUMERICAL BOUNDS: "
+            << t << " < " << numeric_limits<Target>::min() << " || "
+            << t << " > " << numeric_limits<Target>::max();
+    }
+
+    return s;
+}
+
+template <typename Target, typename Input,
+          std::enable_if_t<
+               std::is_signed<Target>::value &&
+              !std::is_signed<Input>::value, bool> = true>
+constexpr inline bool
+is_within_numnerical_limits(Input t) noexcept
+{
+    using std::numeric_limits;
+
+    bool s = (t <= static_cast<uint64_t>(numeric_limits<Target>::max()));
+
+    if (!s) {
+        log::ErrStream()
+            << "### OUT OF NUMERICAL BOUNDS (signed vs unsigned): "
+            << t << " > " << numeric_limits<Target>::max();
+    }
+
+    return s;
+}
+
+template <typename Target, typename Input,
+          std::enable_if_t<
+              !std::is_signed<Target>::value &&
+               std::is_signed<Input>::value, bool> = true>
+constexpr inline bool
+is_within_numnerical_limits(Input t) noexcept
+{
+    bool s = (t >= 0 &&
+              static_cast<uint64_t>(t) <= std::numeric_limits<Target>::max());
+
+    if (!s) {
+        log::ErrStream()
+            << "### OUT OF NUMERICAL BOUNDS (unsigned vs signed): "
+            << t << " < 0 || "
+            << t << " > " << std::numeric_limits<Target>::max();;
+    }
+
+    return s;
+}
+
+} // namespace details
+
+template <typename Target, typename Input,
+          typename Target_decayed = traits::decay_crv_t<Target>,
+          typename Input_decayed  = traits::decay_crv_t<Input>,
+          std::enable_if_t<
+              std::is_integral<Target_decayed>::value &&
+              std::is_integral<Input_decayed>::value, bool> = true>
+constexpr inline Target
+numeric_cast(Input&& t) noexcept
+{
+    assert((details::is_within_numnerical_limits<Target_decayed, Input_decayed>(t)));
+    return static_cast<Target>(std::forward<Input>(t));
+}
+
+/** REVERSE COMPOUND **/
+
 namespace details
 {
 
@@ -116,7 +207,7 @@ makeArray(Container&& container)
 {
     R array{};
     std::copy_n(std::cbegin(container),
-                std::min(N, static_cast<size_t>(container.size())),
+                std::min(N, numeric_cast<size_t>(container.size())),
                 std::begin(array));
     return array;
 }
@@ -209,12 +300,12 @@ makeComp(Containers&&... containersIn) noexcept(false)
 
     // for iterating more easily over variadic arguments
     auto containers = std::make_tuple(&containersIn...);
-    size_t size = static_cast<size_t>(get<0>(containers)->size());
+    auto size = numeric_cast<size_t>(get<0>(containers)->size());
     tuples.resize(size);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
         auto* container = get<idx>(containers);
-        if (size != static_cast<size_t>(container->size()))
+        if (size != numeric_cast<size_t>(container->size()))
         {
             throw InvalidArgumentError{
                 GENH5_MAKE_EXECEPTION_STR_ID("makeComp")

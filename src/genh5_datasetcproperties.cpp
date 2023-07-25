@@ -79,7 +79,7 @@ GenH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions
         };
     }
 
-    if (H5Pset_chunk(m_id, dimensions.size(), dimensions.data()))
+    if (H5Pset_chunk(m_id, numeric_cast<int>(dimensions.size()), dimensions.data()))
     {
         throw PropertyListException{
             GENH5_MAKE_EXECEPTION_STR() "Chunking failed"
@@ -124,7 +124,7 @@ GenH5::DataSetCProperties::setDeflate(int level) noexcept(false)
         };
     }
 
-    if (H5Pset_deflate(m_id, static_cast<unsigned>(level)) < 0)
+    if (H5Pset_deflate(m_id, numeric_cast<unsigned>(level)) < 0)
     {
         throw PropertyListException{
             GENH5_MAKE_EXECEPTION_STR() "Deflating failed"
@@ -141,8 +141,8 @@ GenH5::DataSetCProperties::isChunked() const noexcept
 bool
 GenH5::DataSetCProperties::isDeflated() const noexcept
 {
-    uint flags{};
-    uint config{};
+    unsigned flags{};
+    unsigned config{};
 
     return H5Pget_nfilters(m_id) &&
            H5Pget_filter_by_id(m_id, H5Z_FILTER_DEFLATE, &flags,
@@ -152,10 +152,10 @@ GenH5::DataSetCProperties::isDeflated() const noexcept
 int
 GenH5::DataSetCProperties::deflation() const noexcept
 {
-    uint flags{};       // 0 = mandatory, 1 = optional in pipeline
+    unsigned flags{};       // 0 = mandatory, 1 = optional in pipeline
     size_t len{1};      // length of the filter data
-    uint compression{}; // "compression level" is the first entry in the data
-    uint config{};      // filter config - not relevant?
+    unsigned compression{}; // "compression level" is the first entry in the data
+    unsigned config{};      // filter config - not relevant?
 
     herr_t err = H5Pget_filter_by_id(m_id, H5Z_FILTER_DEFLATE, &flags, &len,
                                      &compression, 0, nullptr, &config);
@@ -172,7 +172,7 @@ GenH5::DataSetCProperties::chunkDimensions() const noexcept
     }
 
     Dimensions dims(H5Pget_chunk(m_id, 0, nullptr));
-    H5Pget_chunk(m_id, dims.size(), dims.data());
+    H5Pget_chunk(m_id, numeric_cast<int>(dims.size()), dims.data());
     return dims;
 }
 

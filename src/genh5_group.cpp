@@ -121,7 +121,6 @@ GenH5::Group::createGroup(StringView const& name) const noexcept(false)
         }
 
         auto cleanup = finally(H5Gclose, group);
-        Q_UNUSED(cleanup)
 
         return Group{group};
     }
@@ -151,7 +150,6 @@ GenH5::Group::openGroup(StringView const& name) const noexcept(false)
     }
 
     auto cleanup = finally(H5Gclose, group);
-    Q_UNUSED(cleanup)
 
     return Group{group};
 }
@@ -190,7 +188,6 @@ GenH5::Group::createDataSet(StringView const& name,
         }
 
         auto cleanup = finally(H5Dclose, dset);
-        Q_UNUSED(cleanup)
 
         return DataSet{dset};
     }
@@ -237,7 +234,6 @@ GenH5::Group::openDataSet(StringView const& name) const noexcept(false)
     }
 
     auto cleanup = finally(H5Dclose, dset);
-    Q_UNUSED(cleanup)
 
     return DataSet{dset};
 }

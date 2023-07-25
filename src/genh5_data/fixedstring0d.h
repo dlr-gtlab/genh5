@@ -17,7 +17,7 @@ namespace GenH5
 {
 
 /** FIXED STRING 0D **/
-class FixedString0D : public details::AbstractData<String>
+class FixedString0D : public AbstractData<String>
 {
     using T = String;
 
@@ -48,11 +48,10 @@ public:
         m_data{std::move(arg)}
     { }
 
-//    template <typename U,
-//             traits::if_convertible<
-//                 decltype(std::declval<U>().toStdString()), T> = true>
-//    // cppcheck-suppress noExplicitConstructor
-//    FixedString0D(U const& str) : m_data(str.toStdString()) {}
+    // cppcheck-suppress noExplicitConstructor
+    FixedString0D(char const* arg) :
+        m_data{arg}
+    { }
 
     /** conversion constructors **/
     // frwd ref for template type
@@ -81,14 +80,13 @@ public:
 
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
-        if (dspace.selectionSize() > static_cast<hssize_t>(size()) &&
-            dtype.type() != H5T_STRING &&
-            dtype.isVarString())
+        if (dspace.selectionSize() > numeric_cast<hssize_t>(size()) ||
+            dtype.type() != H5T_STRING || dtype.isVarString())
         {
             return false;
         }
 
-        m_data.resize(static_cast<size_type>(dtype.size() + 1));
+        m_data.resize(numeric_cast<size_type>(dtype.size() + 1));
         return true;
     }
 

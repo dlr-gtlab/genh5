@@ -48,12 +48,6 @@ public:
         return *this;
     }
 
-    ErrStream& operator<<(String const& t)
-    {
-        m_stream << t.data();
-        return *this;
-    }
-
 private:
 
     std::ostringstream m_stream;

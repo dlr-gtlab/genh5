@@ -19,6 +19,23 @@ class TestH5Utils : public testing::Test
 protected:
 };
 
+TEST_F(TestH5Utils, numeric_cast)
+{
+    uint64_t u;
+    u = std::numeric_limits<uint64_t>::max();
+    EXPECT_FALSE(GenH5::details::is_within_numnerical_limits<int64_t>(u));
+
+    u = std::numeric_limits<uint64_t>::min();
+    EXPECT_TRUE(GenH5::details::is_within_numnerical_limits<int64_t>(u));
+
+    int64_t s;
+    s = std::numeric_limits<int64_t>::max();
+    EXPECT_TRUE(GenH5::details::is_within_numnerical_limits<uint64_t>(s));
+
+    s = std::numeric_limits<int64_t>::min();
+    EXPECT_FALSE(GenH5::details::is_within_numnerical_limits<uint64_t>(s));
+}
+
 TEST_F(TestH5Utils, prod)
 {
     // by T out

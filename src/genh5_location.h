@@ -62,7 +62,7 @@ public:
         hid_t id = this->id();
         String subPath{};
 
-        for (auto const& entry : qAsConst(path))
+        for (auto const& entry : asConst(path))
         {
             subPath += entry;
             subPath += '/';

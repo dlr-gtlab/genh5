@@ -144,7 +144,7 @@ convertTo(hvl_t hvl)
 
     if (hvl.p)
     {
-        conv.reserve(static_cast<int>(hvl.len));
+        conv.reserve(hvl.len);
         for (size_t i = 0; i < hvl.len; ++i)
         {
             // interpret buffer as the conversion type (eg. char* for str types)

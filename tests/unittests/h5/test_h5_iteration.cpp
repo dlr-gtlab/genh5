@@ -48,7 +48,7 @@ protected:
     {
         if (parent.path().empty()) // relative to root
         {
-            return static_cast<int>(
+            return GenH5::numeric_cast<int>(
                         std::count_if(list.cbegin(), list.cend(),
                               [](auto const& item){
                 return !QByteArray::fromStdString(item).contains('/');

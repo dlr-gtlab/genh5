@@ -51,7 +51,7 @@ GenH5::File::File(StringView const& path, FileAccessFlags flags)
         };
     }
 
-    uint flag = H5F_ACC_DEFAULT;
+    unsigned flag = H5F_ACC_DEFAULT;
     bool fileExists = stat(path, &sb) == 0 && (sb.st_mode & S_IFREG);
     bool create = false;
 

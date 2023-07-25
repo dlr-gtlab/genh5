@@ -27,6 +27,21 @@ struct TestH5FixedString0D : public testing::Test
     }
 };
 
+TEST_F(TestH5FixedString0D, resize)
+{
+    GenH5::FixedString0D data = "Hello World";
+
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::Scalar,
+                            GenH5::dataType<char[10]>()));
+
+    EXPECT_FALSE(data.resize(GenH5::DataSpace::linear(42),
+                             GenH5::dataType<char[10]>()));
+    EXPECT_FALSE(data.resize(GenH5::DataSpace::Scalar,
+                             GenH5::dataType<QString>()));
+    EXPECT_FALSE(data.resize(GenH5::DataSpace::Scalar,
+                             GenH5::dataType<int>()));
+}
+
 TEST_F(TestH5FixedString0D, constructor)
 {
     // conversion value

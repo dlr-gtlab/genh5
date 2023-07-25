@@ -12,8 +12,6 @@
 #include "genh5_file.h"
 #include "genh5_finally.h"
 
-#include <QList>
-
 #include "H5Fpublic.h"
 #include "H5Ppublic.h"
 
@@ -100,6 +98,5 @@ GenH5::File GenH5::Location::file() const noexcept
 {
     hid_t f = H5Iget_file_id(id());
     auto cleanup = finally(H5Fclose, f);
-    Q_UNUSED(cleanup)
     return File(f);
 }

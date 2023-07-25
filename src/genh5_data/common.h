@@ -19,9 +19,9 @@ namespace GenH5
 
 /** DATA VECTOR **/
 template<typename T>
-class CommonData : public details::AbstractData<T>
+class CommonData : public AbstractData<T>
 {
-    using base_class =  details::AbstractData<T>;
+    using base_class =  AbstractData<T>;
 
 public:
 
@@ -149,7 +149,7 @@ public:
     void push_back(Container&& c)
     {
         using GenH5::convert; // ADL
-        auto size = static_cast<size_type>(c.size());
+        auto size = numeric_cast<size_type>(c.size());
         m_buffer.reserve(size);
         m_data.reserve(size);
         std::transform(std::cbegin(c), std::cend(c),
@@ -277,7 +277,7 @@ public:
 
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
-        auto selection = static_cast<size_type>(dspace.selectionSize());
+        auto selection = numeric_cast<size_type>(dspace.selectionSize());
         auto dataSize = selection;
 
 #ifndef GENH5_NO_DATA_AUTORESIZE

@@ -149,7 +149,7 @@ public:
      */
     template <typename T>
     DataSet writeDataSet(StringView const& name,
-                         details::AbstractData<T> const& data
+                         AbstractData<T> const& data
                          ) const noexcept(false);
 
     /**
@@ -242,7 +242,7 @@ template <typename... Ts>
 inline DataSet
 writeDataSetHelper(Group const& obj,
                    StringView const& name,
-                   details::AbstractData<Ts...> const& data) noexcept(false)
+                   GenH5::AbstractData<Ts...> const& data) noexcept(false)
 {
     auto dset = obj.createDataSet(name, data.dataType(), data.dataSpace());
 
@@ -292,7 +292,7 @@ Group::writeDataSet(StringView const& name,
 template <typename T>
 inline DataSet
 Group::writeDataSet(StringView const& name,
-                    details::AbstractData<T> const& data) const noexcept(false)
+                    GenH5::AbstractData<T> const& data) const noexcept(false)
 {
     return details::writeDataSetHelper(*this, name, data);
 }

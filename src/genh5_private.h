@@ -49,7 +49,7 @@ getName(hid_t id, Functor const& getNameFunctor)
     size_t bufferLen = buffer.size();
 
     auto acutalLen =
-        static_cast<size_t>(getNameFunctor(id, bufferLen, buffer.data()));
+        numeric_cast<size_t>(getNameFunctor(id, bufferLen, buffer.data()));
 
     if (acutalLen > bufferLen)
     {

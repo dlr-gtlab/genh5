@@ -137,7 +137,7 @@ public:
      */
     template <typename T>
     Node const& writeAttribute(StringView const& name,
-                               details::AbstractData<T> const& data
+                               AbstractData<T> const& data
                                ) const noexcept(false);
 
     /**
@@ -299,7 +299,7 @@ protected:
  * @brief The NodeInfo struct. Contains basic information of a node and can be
  * used to instantiate a desired node type.
  */
-struct GENH5_EXPORT NodeInfo
+struct NodeInfo
 {
     /// relative path
     String path{};
@@ -327,7 +327,7 @@ struct GENH5_EXPORT NodeInfo
      * @param parent Parent object
      * @return Dataset
      */
-    DataSet toDataSet(Group const& parent) const noexcept(false);
+    GENH5_EXPORT DataSet toDataSet(Group const& parent) const noexcept(false);
 
     /**
      * @brief Constructs a group object from the node location.
@@ -335,7 +335,7 @@ struct GENH5_EXPORT NodeInfo
      * @param parent Parent object
      * @return Group
      */
-    Group toGroup(Group const& parent) const noexcept(false);
+    GENH5_EXPORT Group toGroup(Group const& parent) const noexcept(false);
 
     /**
      * @brief Convenience function to construct an abstract node object on
@@ -343,11 +343,11 @@ struct GENH5_EXPORT NodeInfo
      * @param parent Parent object
      * @return Group or Dataset
      */
-    std::unique_ptr<Node> toNode(Group const& parent) const noexcept(false);
+    GENH5_EXPORT std::unique_ptr<Node> toNode(Group const& parent) const noexcept(false);
 };
 
 
-struct GENH5_EXPORT AttributeInfo
+struct AttributeInfo
 {
     /// name
     String name{};
@@ -359,7 +359,7 @@ struct GENH5_EXPORT AttributeInfo
      * @param parent Parent object
      * @return Attribute
      */
-    Attribute toAttribute(Node const& parent) const noexcept(false);
+    GENH5_EXPORT Attribute toAttribute(Node const& parent) const noexcept(false);
 
     /**
      * @brief Constructs an attribute object from the node location.
@@ -367,8 +367,8 @@ struct GENH5_EXPORT AttributeInfo
      * @param path Parent object
      * @return Attribute
      */
-    Attribute toAttribute(Node const& object,
-                          String const& path) const noexcept(false);
+    GENH5_EXPORT Attribute toAttribute(Node const& object,
+                                       String const& path) const noexcept(false);
 };
 
 namespace details
@@ -378,7 +378,7 @@ template <typename... Ts>
 inline Node const&
 writeAttributeHelper(Node const& obj,
                      StringView const& name,
-                     details::AbstractData<Ts...> const& data) noexcept(false)
+                     GenH5::AbstractData<Ts...> const& data) noexcept(false)
 {
     auto attr = obj.createAttribute(name, data.dataType(), data.dataSpace());
 
@@ -428,7 +428,7 @@ Node::writeAttribute(StringView const& name,
 template <typename T>
 inline Node const&
 Node::writeAttribute(StringView const& name,
-                     details::AbstractData<T> const& data) const noexcept(false)
+                     GenH5::AbstractData<T> const& data) const noexcept(false)
 {
     return details::writeAttributeHelper(*this, name, data);
 }

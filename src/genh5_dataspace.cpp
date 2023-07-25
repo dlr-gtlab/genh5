@@ -45,7 +45,9 @@ GenH5::DataSpace::DataSpace(hid_t id) :
 }
 
 GenH5::DataSpace::DataSpace(Dimensions const& dimensions) noexcept(false) :
-    m_id(H5Screate_simple(dimensions.size(), dimensions.data(), nullptr))
+    m_id(H5Screate_simple(numeric_cast<int>(dimensions.size()),
+                          dimensions.data(),
+                          nullptr))
 {
     if (m_id < 0)
     {

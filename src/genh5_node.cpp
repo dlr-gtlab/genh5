@@ -119,7 +119,6 @@ GenH5::Node::createAttribute(StringView const& name,
 
         // "finally" block for cleanup
         auto cleanup = finally(H5Aclose, attr);
-        Q_UNUSED(cleanup)
 
         return Attribute{attr};
     }
@@ -163,7 +162,6 @@ GenH5::Node::openAttribute(StringView const& name) const noexcept(false)
 
     // "finally" block for cleanup
     auto cleanup = finally(H5Aclose, attr);
-    Q_UNUSED(cleanup)
 
     return Attribute{attr};
 }
@@ -194,7 +192,6 @@ GenH5::Node::openAttribute(StringView const& path,
 
     // "finally" block for cleanup
     auto cleanup = finally(H5Aclose, attr);
-    Q_UNUSED(cleanup)
 
     return Attribute{attr};
 }

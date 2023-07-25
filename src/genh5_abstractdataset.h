@@ -50,7 +50,7 @@ public:
                Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool write(details::AbstractData<T> const& data,
+    bool write(AbstractData<T> const& data,
                Optional<DataType> dtype = {}) const noexcept(false);
 
     /**
@@ -66,7 +66,7 @@ public:
               Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool read(details::AbstractData<T>& data,
+    bool read(AbstractData<T>& data,
               Optional<DataType> dtype = {}) const noexcept(false);
 
 protected:
@@ -117,11 +117,11 @@ AbstractDataSet::write(Vector<T> const& data,
 
 template<typename T>
 inline bool
-AbstractDataSet::write(details::AbstractData<T> const& data,
+AbstractDataSet::write(AbstractData<T> const& data,
                        Optional<DataType> dtype) const noexcept(false)
 {
     auto dspace = dataSpace();
-    if (static_cast<hssize_t>(data.size()) < dspace.selectionSize())
+    if (numeric_cast<hssize_t>(data.size()) < dspace.selectionSize())
     {
         log::ErrStream()
                 << GENH5_MAKE_EXECEPTION_STR()
@@ -150,7 +150,7 @@ AbstractDataSet::read(Vector<T>& data,
 
 template<typename T>
 inline bool
-AbstractDataSet::read(details::AbstractData<T>& data,
+AbstractDataSet::read(AbstractData<T>& data,
                       Optional<DataType> dtype) const noexcept(false)
 {
     auto dspace = dataSpace();

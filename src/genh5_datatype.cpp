@@ -97,7 +97,7 @@ GenH5::DataType::array(DataType const& type,
             GENH5_MAKE_EXECEPTION_STR() "Failed to create array type";
 
     return makeType([id = type.m_id, len = dims.size(), ptr = dims.data()](){
-        return H5Tarray_create(id, len, ptr);
+        return H5Tarray_create(id, numeric_cast<unsigned>(len), ptr);
     }, errMsg);
 }
 
@@ -135,7 +135,7 @@ GenH5::DataType::compound(size_t dataSize,
 
     // check if types are valid
     size_t i = 0;
-    for (auto const& m : qAsConst(members))
+    for (auto const& m : asConst(members))
     {
         if (m.name.empty())
         {
@@ -288,7 +288,7 @@ GenH5::DataType::compoundMembers() const
     CompoundMembers members;
     members.reserve(n);
 
-    for (uint i = 0; i < static_cast<uint>(n); ++i)
+    for (unsigned i = 0; i < numeric_cast<unsigned>(n); ++i)
     {
         char* str = H5Tget_member_name(m_id, i);
         String memberName{str};
@@ -380,7 +380,7 @@ GenH5::DataType::toString() const
                 string += "{ \""
                        +  m.name + "\", "
                        +  m.type.toString() + ", at "
-                       +  String::number(static_cast<qulonglong>(m.offset))
+                       +  String::number(numeric_cast<qulonglong>(m.offset))
                        +  " }, ";
             }
             if (changed) string.remove(string.size() - 2, 2);
@@ -480,10 +480,10 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
         {
             auto const fMembers = first.compoundMembers();
             auto const oMembers = other.compoundMembers();
-            int size = fMembers.size();
+            size_t size = fMembers.size();
             if (size == oMembers.size())
             {
-                for (int i = 0; i < size; ++i)
+                for (size_t i = 0; i < size; ++i)
                 {
                     if (fMembers[i] != oMembers[i])
                     {
