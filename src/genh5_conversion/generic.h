@@ -9,10 +9,7 @@
 #ifndef GENH5_CONVERSION_GENERIC_H
 #define GENH5_CONVERSION_GENERIC_H
 
-#include "genh5_conversion/type.h"
 #include "genh5_conversion/buffer.h"
-#include "genh5_typetraits.h"
-#include "genh5_utils.h"
 
 namespace GenH5
 {

@@ -47,11 +47,13 @@ static const GenH5::DataType s_varString{GenH5::DataType::string(H5T_VARIABLE)};
 
 static const GenH5::DataType s_version{
     GenH5::DataType::compound(sizeof(GenH5::Version), {
-        {"major", offsetof(GenH5::Version, major), GenH5::dataType<int>()},
-        {"minor", offsetof(GenH5::Version, minor), GenH5::dataType<int>()},
-        {"patch", offsetof(GenH5::Version, patch), GenH5::dataType<int>()}
+        {"major", offsetof(GenH5::Version, major), s_int},
+        {"minor", offsetof(GenH5::Version, minor), s_int},
+        {"patch", offsetof(GenH5::Version, patch), s_int}
     })
 };
+
+static const GenH5::DataType s_reference{GenH5::makePredType(H5T_STD_REF_OBJ)};
 
 GenH5::DataType const& GenH5::DataType::Bool = s_bool;
 GenH5::DataType const& GenH5::DataType::Char = s_char;
@@ -67,7 +69,10 @@ GenH5::DataType const& GenH5::DataType::Float = s_float;
 GenH5::DataType const& GenH5::DataType::Double = s_double;
 
 GenH5::DataType const& GenH5::DataType::VarString = s_varString;
+
 GenH5::DataType const& GenH5::DataType::Version = s_version;
+
+GenH5::DataType const& GenH5::DataType::Reference = s_reference;
 
 GenH5::DataType
 GenH5::DataType::string(size_t size, bool useUtf8) noexcept(false)

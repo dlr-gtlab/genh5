@@ -9,7 +9,6 @@
 #ifndef GENH5_UTILS_H
 #define GENH5_UTILS_H
 
-#include "genh5_mpl.h"
 #include "genh5_typetraits.h"
 #include "genh5_exception.h"
 #include "genh5_logging.h"
@@ -154,7 +153,7 @@ is_within_numnerical_limits(Input t) noexcept
         log::ErrStream()
             << "### OUT OF NUMERICAL BOUNDS (unsigned vs signed): "
             << t << " < 0 || "
-            << t << " > " << std::numeric_limits<Target>::max();;
+            << t << " > " << std::numeric_limits<Target>::max();
     }
 
     return s;

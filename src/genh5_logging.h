@@ -10,7 +10,6 @@
 #define GENH5_LOGGING_H
 
 #include "genh5_exports.h"
-#include "genh5_typedefs.h"
 
 #include <functional>
 #include <sstream>

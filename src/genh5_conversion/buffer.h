@@ -10,7 +10,6 @@
 #define GENH5_CONVERSION_BUFFER_H
 
 #include "genh5_conversion/type.h"
-#include "genh5_typetraits.h"
 #include "genh5_utils.h"
 
 #define GENH5_DECLARE_BUFFER_TYPE(TYPE, BUFFER) \

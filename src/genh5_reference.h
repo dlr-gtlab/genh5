@@ -9,8 +9,8 @@
 #ifndef GENH5_REFERENCE_H
 #define GENH5_REFERENCE_H
 
-#include "genh5_conversion/bindings.h"
-#include "genh5_location.h"
+#include "genh5_exports.h"
+#include "genh5_typedefs.h"
 
 #include "H5Rpublic.h"
 
@@ -21,6 +21,7 @@ class File;
 class Group;
 class DataSet;
 class Attribute;
+class Location;
 
 /**
  * @brief The Reference class

@@ -2,21 +2,15 @@
 #include "hdf5.h"
 #include "genh5.h"
 
-int main()
+int main(int argc, char** argv)
 {
     GenH5::File file("valgrind.h5", GenH5::Overwrite);
 
     GenH5::Group const& root = file.root();
 
-    std::string test = "test";
-    root.writeDataSet0D("bla", test);
+    auto dset = root.writeDataSet0D("bla", 42);
 
-    auto res = root.readDataSet0D<std::string>("bla");
-
-    auto dset = root.openDataSet("bla");
-
-    free(res.raw());
-
+    root.writeDataSet0D("ref", dset.toReference());
 
     return 0;
 }

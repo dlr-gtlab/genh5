@@ -12,6 +12,9 @@ if (TARGET hdf5::hdf5_cpp AND NOT TARGET hdf5_cpp-shared)
   add_library(hdf5_cpp-shared ALIAS hdf5::hdf5_cpp)
 endif()
 
+# Get Qt5
+find_package(Qt5 COMPONENTS Core REQUIRED)
+
 set(EXAMPLE_SOURCE_FILES
   main.cpp
 )
@@ -24,4 +27,6 @@ add_executable(valgrind
   ${EXAMPLE_HEADER_FILES}
 )
 
-target_link_libraries(valgrind GenH5)
+target_link_libraries(valgrind
+    #Qt5::Core
+    GenH5)

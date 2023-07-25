@@ -10,7 +10,7 @@
 #ifndef GENH5_BYTEARRAY_H
 #define GENH5_BYTEARRAY_H
 
-#include <genh5_typedefs.h>
+#include "genh5_typedefs.h"
 
 namespace GenH5
 {
@@ -30,17 +30,17 @@ public:
     using const_iterator         = typename container_type::const_iterator;
     using reverse_iterator       = typename container_type::reverse_iterator;
     using const_reverse_iterator = typename container_type::const_reverse_iterator;
-    using size_type             = typename container_type::size_type;
+    using size_type              = typename container_type::size_type;
 
-    using pointer               = value_type*;
-    using const_pointer         = value_type const*;
-    using reference             = value_type&;
-    using const_reference       = value_type const&;
+    using pointer                = value_type*;
+    using const_pointer          = value_type const*;
+    using reference              = value_type&;
+    using const_reference        = value_type const&;
 
     basic_byte_array() = default;
     basic_byte_array(GenH5::String const& s)
     {
-        m_data.resize(s.size() +1 );
+        m_data.resize(s.size() + 1);
         std::copy(s.begin(), s.end(), std::begin(m_data));
     }
     basic_byte_array(T const* s)
