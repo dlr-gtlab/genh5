@@ -29,7 +29,7 @@ class GENH5_EXPORT Reference
 {
 public:
 
-    static constexpr auto bufferSize = H5R_REF_BUF_SIZE;
+    static constexpr size_t bufferSize = H5R_REF_BUF_SIZE;
 
     using Alignment  = decltype (H5R_ref_t::u.align);
     using BufferType = decltype (*H5R_ref_t::u.__data);

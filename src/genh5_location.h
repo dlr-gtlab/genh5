@@ -11,7 +11,7 @@
 
 #include "genh5_stringview.h"
 #include "genh5_object.h"
-#include "genh5_typetraits.h"
+#include "genh5_utils.h"
 
 #include <memory>
 
