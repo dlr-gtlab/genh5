@@ -58,7 +58,7 @@ template<typename Vec>
 Vec mid(Vec const& d, size_t pos, hssize_t len = -1)
 {
     auto start = std::next(std::cbegin(d), pos);
-    auto dist = std::distance(start, std::end(d));
+    auto dist = static_cast<hssize_t>(std::distance(start, std::end(d)));
     return Vec{start, std::next(start, len < 0 ? dist : std::min(len, dist))};
 }
 
