@@ -188,7 +188,7 @@ public:
      * @return Does the version attribute exist
      */
     [[deprecated("Use hasAttribute(<name>) instead")]]
-    bool hasVersionAttribute(StringView const& string = versionAttributeName()) const;
+    bool hasVersionAttribute(StringView const& string = "GENH5_VERSION") const;
 
     /**
      * @brief Creates a attribute containing the version specified.
@@ -199,7 +199,7 @@ public:
      * @return This
      */
     [[deprecated("Use writeAttribute0D(<name>, <version>) instead")]]
-    Node const& writeVersionAttribute(StringView const& string = versionAttributeName(),
+    Node const& writeVersionAttribute(StringView const& string = "GENH5_VERSION",
                                       Version version = Version::current()
                                       ) const noexcept(false);
 
@@ -210,7 +210,7 @@ public:
      * @return Version
      */
     [[deprecated("Use readAttribute0D<GenH5::Version>(<name>) instead")]]
-    Version readVersionAttribute(StringView const& string = versionAttributeName()
+    Version readVersionAttribute(StringView const& string = "GENH5_VERSION"
                                  ) const noexcept(false);
 
     /*

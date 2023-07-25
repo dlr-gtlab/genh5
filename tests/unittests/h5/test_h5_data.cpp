@@ -1061,7 +1061,7 @@ TEST_F(TestH5Data, buffer_staticReserve)
 
     // buffer should have cleared
     StaticBuffer<QString> buffer;
-    EXPECT_EQ(buffer().capacity(), 0);
+    EXPECT_EQ(buffer().size(), 0);
 }
 
 TEST_F(TestH5Data, buffer_clearing)

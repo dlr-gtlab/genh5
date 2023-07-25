@@ -35,19 +35,20 @@ GenH5::File::File(hid_t id) :
 
 GenH5::File::File(StringView const& path, FileAccessFlags flags)
 {
-    std::string dir = path;
-    auto r_iter = std::find(std::rbegin(dir), std::rend(dir), '/');
-    dir.erase(r_iter.base(), std::end(dir));
+    std::string dir;
+
+    auto r_iter = std::find(std::rbegin(path), std::rend(path), '/');
+
+    if (r_iter != std::rend(path)) dir = std::string{std::begin(path), r_iter.base()};
 
     struct stat sb;
-    bool dirExists = stat(dir.c_str(), &sb) == 0 && (sb.st_mode & S_IFDIR);
+    bool dirExists = dir.empty() || (stat(dir.c_str(), &sb) == 0 && (sb.st_mode & S_IFDIR));
 
     if (!dirExists)
     {
         throw FileException{
             GENH5_MAKE_EXECEPTION_STR()
-            "Accessing file failed (directory does not exist: " +
-            path.get() + ')'
+            "Accessing file failed (directory does not exist: " + dir + ')'
         };
     }
 

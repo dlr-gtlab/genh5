@@ -21,6 +21,12 @@ struct Tests : public testing::Test
     }
 };
 
+TEST_F(Tests, test_0)
+{
+    auto data = new int(42);
+    (void)data;
+}
+
 TEST_F(Tests, test_1)
 {
     using GenH5::Version;
