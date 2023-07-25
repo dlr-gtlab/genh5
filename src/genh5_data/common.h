@@ -475,9 +475,9 @@ public:
     Container mid(size_t pos, hssize_t len = -1) const
     {
         auto start = std::next(std::cbegin(m_data), pos);
-        auto dist = std::distance(start, std::end(m_data));
+        auto dist = static_cast<hssize_t>(std::distance(start, std::end(m_data)));
         return Container{
-            start, std::next(start, len < 0 ? dist : std::min(len, dist))
+             start, std::next(start, len < 0 ? dist : std::min(len, dist))
         };
     }
 

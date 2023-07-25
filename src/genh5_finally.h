@@ -17,7 +17,8 @@ namespace GenH5
 
 /**
  * @brief The Finally class.
- * Calls a member function on an object in the destructor. Used for cleaning up.
+ * Calls a function in the destructor. May be used for cleaning up/closing
+ * resources.
  */
 template <typename Functor>
 class Finally
