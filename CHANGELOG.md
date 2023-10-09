@@ -1,3 +1,8 @@
+<!--
+SPDX-License-Identifier: CC0-1.0
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+-->
+
 # Changelog
 All notable changes to this project will be documented in this file.
 

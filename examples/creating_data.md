@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
+SPDX-License-Identifier: MPL-2.0+
+-->
+
 # Data API 
 
 This library provides multiple template based data classes adn typedefs, that should generally be used for reading and writing data to datasets or attributes. 
