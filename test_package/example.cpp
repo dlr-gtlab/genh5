@@ -1,3 +1,8 @@
+/* GenH5
+ * SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+ * SPDX-License-Identifier: MPL-2.0+
+ */
+
 #include <genh5_data.h>
 #include <genh5_file.h>
 #include <genh5_dataset.h>

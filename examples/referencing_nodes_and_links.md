@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
+SPDX-License-Identifier: MPL-2.0+
+-->
+
 # Referencing Nodes and Links
 
 HDF5 objects like datasets, groups and attributes can also be referenced. A reference stores the "index" of the object in the HDF5 file. It is useful for storing an HDF5 object without having to save the internal object path.

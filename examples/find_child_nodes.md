@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
+SPDX-License-Identifier: MPL-2.0+
+-->
+
 # Find child nodes and attributes
 
 The structure of an HDF5 file can easily be traversed. 

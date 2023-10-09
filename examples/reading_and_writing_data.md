@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
+SPDX-License-Identifier: MPL-2.0+
+-->
+
 # Reading and writing data from and to a dataset
 
 See [file handling and interal path traversal](file_handling_and_traversal.md) for more details on how to open and create a dataset or attribute.

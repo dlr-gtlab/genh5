@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+# SPDX-License-Identifier: MPL-2.0+
+
 cmake_minimum_required(VERSION 3.8)
 project(GenH5 VERSION 3.0.2)
 

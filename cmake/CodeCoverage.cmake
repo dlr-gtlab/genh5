@@ -1,5 +1,5 @@
-# Copyright (c) 2012 - 2017, Lars Bilke
-# All rights reserved.
+# SPDX-FileCopyrightText: (c) 2012 - 2017, Lars Bilke
+# SPDX-License-Identifier: BSL-1.0
 #
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:

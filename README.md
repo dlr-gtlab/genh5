@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
+SPDX-License-Identifier: MPL-2.0+
+-->
+
 # GTlab HDF5 Wrapper
 
 This wrapper is build upon the HDF5 C/C++ API. It does not aim to cover all functionalities of HDF5 but the main aspects. The wrapper is fully compatibel with the C/C++ API. 
