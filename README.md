@@ -4,13 +4,17 @@ SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 SPDX-License-Identifier: MPL-2.0+
 -->
 
-# GTlab HDF5 Wrapper
+# GenH5
 
-This wrapper is build upon the HDF5 C/C++ API. It does not aim to cover all functionalities of HDF5 but the main aspects. The wrapper is fully compatibel with the C/C++ API. 
+This library is built upon the HDF5 C/C++ API. It does not aim to cover all functionalities of HDF5 but the main aspects. The wrapper is fully compatibel with the C/C++ API. 
 
 The online documentation can be found here: https://at-twk.pages.gitlab.dlr.de/gtlab-hdf5-wrapper/index.html
 
 A good introduction to HDF5 can be found here: https://portal.hdfgroup.org/display/HDF5/Introduction+to+HDF5
+
+## License
+
+The source code of GenH5 is licensed under the Mozilla Public License Version 2.0, see [LICENSES/MPL-2.0.txt](LICENSES/MPL-2.0.txt).
 
 ## Functionalities
 
