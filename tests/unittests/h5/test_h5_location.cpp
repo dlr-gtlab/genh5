@@ -28,15 +28,15 @@ protected:
                           GenH5::Create};
         ASSERT_TRUE(file.isValid());
 
-        group = file.root().createGroup(QByteArrayLiteral("group"));
+        group = file.root().createGroup("group");
         ASSERT_TRUE(group.isValid());
 
-        dataset = group.createDataSet(QByteArrayLiteral("dataset"),
+        dataset = group.createDataSet("dataset",
                                       GenH5::dataType<int>(),
                                       GenH5::DataSpace::Scalar);
         ASSERT_TRUE(dataset.isValid());
 
-        attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
+        attribute = dataset.createAttribute("attribute",
                                             GenH5::dataType<int>(),
                                             GenH5::DataSpace::Scalar);
         ASSERT_TRUE(attribute.isValid());
@@ -52,27 +52,27 @@ TEST_F(TestH5Location, linkName)
 {
     EXPECT_THROW(GenH5::File().root().name(), GenH5::GroupException);
 
-    EXPECT_EQ(GenH5::Group().name(), QByteArray{});
-    EXPECT_EQ(GenH5::DataSet().name(), QByteArray{});
-    EXPECT_EQ(GenH5::Attribute().name(), QByteArray{});
+    EXPECT_EQ(GenH5::Group().name(), GenH5::String{});
+    EXPECT_EQ(GenH5::DataSet().name(), GenH5::String{});
+    EXPECT_EQ(GenH5::Attribute().name(), GenH5::String{});
 
-    EXPECT_EQ(file.root().name(), QByteArrayLiteral("/"));
-    EXPECT_EQ(group.name(), QByteArrayLiteral("group"));
-    EXPECT_EQ(dataset.name(), QByteArrayLiteral("dataset"));
-    EXPECT_EQ(attribute.name(), QByteArrayLiteral("attribute"));
+    EXPECT_EQ(file.root().name(), "/");
+    EXPECT_EQ(group.name(), "group");
+    EXPECT_EQ(dataset.name(), "dataset");
+    EXPECT_EQ(attribute.name(), "attribute");
 }
 
 TEST_F(TestH5Location, linkPath)
 {
     EXPECT_THROW(GenH5::File().root().path(), GenH5::GroupException);
 
-    EXPECT_EQ(GenH5::Group().path(), QByteArray{});
-    EXPECT_EQ(GenH5::DataSet().path(), QByteArray{});
-    EXPECT_EQ(GenH5::Attribute().path(), QByteArray{});
+    EXPECT_EQ(GenH5::Group().path(), GenH5::String{});
+    EXPECT_EQ(GenH5::DataSet().path(), GenH5::String{});
+    EXPECT_EQ(GenH5::Attribute().path(), GenH5::String{});
 
-    EXPECT_EQ(file.root().path(), QByteArrayLiteral("/"));
-    EXPECT_EQ(group.path(), QByteArrayLiteral("/group"));
-    EXPECT_EQ(dataset.path(), QByteArrayLiteral("/group/dataset"));
+    EXPECT_EQ(file.root().path(), "/");
+    EXPECT_EQ(group.path(), "/group");
+    EXPECT_EQ(dataset.path(), "/group/dataset");
     EXPECT_EQ(attribute.path(), dataset.path());
 }
 
@@ -144,18 +144,20 @@ TEST_F(TestH5Location, fileRefCount)
 
 TEST_F(TestH5Location, exists)
 {
-    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("group")));
-    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("group/")));
-    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("/group/")));
+    EXPECT_TRUE(file.root().exists("group"));
+    EXPECT_TRUE(file.root().exists("group/"));
+    EXPECT_TRUE(file.root().exists("/group/"));
 
-    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("group/dataset")));
+    EXPECT_TRUE(file.root().exists("group/dataset"));
     // leading slash should not matter
-    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("/group/dataset/")));
+    EXPECT_TRUE(file.root().exists("/group/dataset/"));
+
+    EXPECT_TRUE((file.root().exists(QVector<std::string>{"group", "dataset"})));
 
     // this should not exist
-    EXPECT_FALSE(file.root().exists(QByteArrayLiteral("dataset")));
+    EXPECT_FALSE(file.root().exists("dataset"));
     // invalid path name
-    EXPECT_FALSE(group.exists(QByteArrayLiteral("/dataset/")));
+    EXPECT_FALSE(group.exists("/dataset/"));
     // however this should exist
-    EXPECT_TRUE(group.exists(QByteArrayLiteral("dataset/")));
+    EXPECT_TRUE(group.exists("dataset/"));
 }

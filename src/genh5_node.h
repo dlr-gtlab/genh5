@@ -79,7 +79,7 @@ public:
      * @param name of the attribute
      * @return whether attibuet exists
      */
-    bool hasAttribute(String const& name) const noexcept;
+    bool hasAttribute(StringView const& name) const noexcept;
 
     /*
      * CREATE/OPEN ATTRIBUTE
@@ -94,7 +94,7 @@ public:
      * @param dspace Dataspace of the attribute
      * @return Attribute
      */
-    Attribute createAttribute(String const& name,
+    Attribute createAttribute(StringView const& name,
                               DataType const& dtype,
                               DataSpace const& dspace) const noexcept(false);
 
@@ -103,15 +103,15 @@ public:
      * @param name Name of the attribute
      * @return Attribute
      */
-    Attribute openAttribute(String const& name) const noexcept(false);
+    Attribute openAttribute(StringView const& name) const noexcept(false);
 
     /**
      * @brief Opens the attribute speicified by its path and name.
      * @param name Name of the attribute
      * @return Attribute
      */
-    Attribute openAttribute(String const& path,
-                            String const& name) const noexcept(false);
+    Attribute openAttribute(StringView const& path,
+                            StringView const& name) const noexcept(false);
 
     /*
      *  READ/WRITE ATTRIBUTE
@@ -126,8 +126,8 @@ public:
     template <typename Container,
               typename if_container = traits::value_t<Container>,
               traits::if_has_not_template_type<Container> = true>
-    Node const& writeAttribute(String const& name, Container&& data
-                               ) const noexcept(false);
+    Node const& writeAttribute(StringView const& name,
+                               Container&& data) const noexcept(false);
 
     /**
      * @brief Overload.
@@ -136,8 +136,8 @@ public:
      * @return This
      */
     template <typename T>
-    Node const& writeAttribute(String const& name,
-                               details::AbstractData<T> const& data
+    Node const& writeAttribute(StringView const& name,
+                               AbstractData<T> const& data
                                ) const noexcept(false);
 
     /**
@@ -149,8 +149,8 @@ public:
      */
     template <typename Container,
               traits::if_has_not_template_type<Container> = true>
-    Node const& writeAttribute0D(String const& name, Container&& data
-                                 ) const noexcept(false);
+    Node const& writeAttribute0D(StringView const& name,
+                                 Container&& data) const noexcept(false);
 
     /**
      * @brief High level method for opening and reading data from an attribute.
@@ -158,7 +158,7 @@ public:
      * @return Data read
      */
     template <typename T1, typename... Ts>
-    Data<T1, Ts...> readAttribute(String const& name) const noexcept(false);
+    Data<T1, Ts...> readAttribute(StringView const& name) const noexcept(false);
 
     /**
      * @brief High level method for opening and reading 0d data from an
@@ -167,7 +167,7 @@ public:
      * @return Data read
      */
     template <typename T1, typename... Ts>
-    Data0D<T1, Ts...> readAttribute0D(String const& name) const noexcept(false);
+    Data0D<T1, Ts...> readAttribute0D(StringView const& name) const noexcept(false);
 
     /*
      *  VERSION ATTRIBUTE
@@ -178,6 +178,7 @@ public:
      * @brief Returns the default name of a version attribute
      * @return Default name
      */
+    [[deprecated]]
     static String versionAttributeName();
 
     /**
@@ -186,7 +187,8 @@ public:
      * @param string Attribute name
      * @return Does the version attribute exist
      */
-    bool hasVersionAttribute(String const& string = versionAttributeName()) const;
+    [[deprecated("Use hasAttribute(<name>) instead")]]
+    bool hasVersionAttribute(StringView const& string = "GENH5_VERSION") const;
 
     /**
      * @brief Creates a attribute containing the version specified.
@@ -196,7 +198,8 @@ public:
      * @param version Version to write
      * @return This
      */
-    Node const& writeVersionAttribute(String const& string = versionAttributeName(),
+    [[deprecated("Use writeAttribute0D(<name>, <version>) instead")]]
+    Node const& writeVersionAttribute(StringView const& string = "GENH5_VERSION",
                                       Version version = Version::current()
                                       ) const noexcept(false);
 
@@ -206,7 +209,8 @@ public:
      * @param string Attribute name
      * @return Version
      */
-    Version readVersionAttribute(String const& string = versionAttributeName()
+    [[deprecated("Use readAttribute0D<GenH5::Version>(<name>) instead")]]
+    Version readVersionAttribute(StringView const& string = "GENH5_VERSION"
                                  ) const noexcept(false);
 
     /*
@@ -220,7 +224,7 @@ public:
      * @return Attribute info structs
      */
     Vector<AttributeInfo> findAttributes(IterationIndex indexType = IndexName,
-                                         IterationOrder indexOrder = NativeOrder
+                                         IterationOrder indexOrder = AscendingOrder
                                          ) const noexcept;
     /**
      * @brief Overload. Returns a list of all attributes of the Node
@@ -230,9 +234,9 @@ public:
      * @param indexOrder Order of the list
      * @return Attribute info structs
      */
-    Vector<AttributeInfo> findAttributes(String const& path,
+    Vector<AttributeInfo> findAttributes(StringView const& path,
                                          IterationIndex indexType = IndexName,
-                                         IterationOrder indexOrder = NativeOrder
+                                         IterationOrder indexOrder = AscendingOrder
                                          ) const noexcept;
 
     /**
@@ -245,7 +249,7 @@ public:
      */
     herr_t iterateAttributes(AttributeIterationFunction iterFunction,
                              IterationIndex indexType = IndexName,
-                             IterationOrder indexOrder = NativeOrder
+                             IterationOrder indexOrder = AscendingOrder
                              ) const noexcept;
     /**
      * @brief Overload. Iterates over each attribute of the Node specified by
@@ -256,10 +260,10 @@ public:
      * @param indexOrder Order
      * @return Error
      */
-    herr_t iterateAttributes(String const& path,
+    herr_t iterateAttributes(StringView const& path,
                              AttributeIterationFunction iterFunction,
                              IterationIndex indexType = IndexName,
-                             IterationOrder indexOrder = NativeOrder
+                             IterationOrder indexOrder = AscendingOrder
                              ) const noexcept;
 
     /*
@@ -271,7 +275,7 @@ public:
      * @param name Name of the attribute
      * @return Attribute info struct
      */
-    AttributeInfo attributeInfo(String const& name) const noexcept(false);
+    AttributeInfo attributeInfo(StringView const& name) const noexcept(false);
 
     /**
      * @brief Returns the info struct of the attribute specified by path and
@@ -279,8 +283,8 @@ public:
      * @param name Name of the attribute
      * @return Attribute info struct
      */
-    AttributeInfo attributeInfo(String const& path,
-                                String const& name) const noexcept(false);
+    AttributeInfo attributeInfo(StringView const& path,
+                                StringView const& name) const noexcept(false);
 
 protected:
 
@@ -295,7 +299,7 @@ protected:
  * @brief The NodeInfo struct. Contains basic information of a node and can be
  * used to instantiate a desired node type.
  */
-struct GENH5_EXPORT NodeInfo
+struct NodeInfo
 {
     /// relative path
     String path{};
@@ -323,7 +327,7 @@ struct GENH5_EXPORT NodeInfo
      * @param parent Parent object
      * @return Dataset
      */
-    DataSet toDataSet(Group const& parent) const noexcept(false);
+    GENH5_EXPORT DataSet toDataSet(Group const& parent) const noexcept(false);
 
     /**
      * @brief Constructs a group object from the node location.
@@ -331,7 +335,7 @@ struct GENH5_EXPORT NodeInfo
      * @param parent Parent object
      * @return Group
      */
-    Group toGroup(Group const& parent) const noexcept(false);
+    GENH5_EXPORT Group toGroup(Group const& parent) const noexcept(false);
 
     /**
      * @brief Convenience function to construct an abstract node object on
@@ -339,11 +343,11 @@ struct GENH5_EXPORT NodeInfo
      * @param parent Parent object
      * @return Group or Dataset
      */
-    std::unique_ptr<Node> toNode(Group const& parent) const noexcept(false);
+    GENH5_EXPORT std::unique_ptr<Node> toNode(Group const& parent) const noexcept(false);
 };
 
 
-struct GENH5_EXPORT AttributeInfo
+struct AttributeInfo
 {
     /// name
     String name{};
@@ -355,7 +359,7 @@ struct GENH5_EXPORT AttributeInfo
      * @param parent Parent object
      * @return Attribute
      */
-    Attribute toAttribute(Node const& parent) const noexcept(false);
+    GENH5_EXPORT Attribute toAttribute(Node const& parent) const noexcept(false);
 
     /**
      * @brief Constructs an attribute object from the node location.
@@ -363,8 +367,8 @@ struct GENH5_EXPORT AttributeInfo
      * @param path Parent object
      * @return Attribute
      */
-    Attribute toAttribute(Node const& object,
-                          String const& path) const noexcept(false);
+    GENH5_EXPORT Attribute toAttribute(Node const& object,
+                                       String const& path) const noexcept(false);
 };
 
 namespace details
@@ -373,8 +377,8 @@ namespace details
 template <typename... Ts>
 inline Node const&
 writeAttributeHelper(Node const& obj,
-                     String const& name,
-                     details::AbstractData<Ts...> const& data) noexcept(false)
+                     StringView const& name,
+                     GenH5::AbstractData<Ts...> const& data) noexcept(false)
 {
     auto attr = obj.createAttribute(name, data.dataType(), data.dataSpace());
 
@@ -382,7 +386,7 @@ writeAttributeHelper(Node const& obj,
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to write data to attribute '" +
-            name.toStdString() + '\''
+            name.get() + '\''
         };
     }
 
@@ -391,7 +395,7 @@ writeAttributeHelper(Node const& obj,
 
 template <typename Tdata, typename... Ts>
 inline Tdata
-readAttributeHelper(Node const& obj, String const& name) noexcept(false)
+readAttributeHelper(Node const& obj, StringView const& name) noexcept(false)
 {
     auto attr = obj.openAttribute(name);
 
@@ -402,7 +406,7 @@ readAttributeHelper(Node const& obj, String const& name) noexcept(false)
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to read data from attribute '" +
-            name.toStdString() + '\''
+            name.get() + '\''
         };
     }
 
@@ -414,7 +418,7 @@ readAttributeHelper(Node const& obj, String const& name) noexcept(false)
 template <typename Container, typename if_container,
           traits::if_has_not_template_type<Container>>
 inline Node const&
-Node::writeAttribute(String const& name,
+Node::writeAttribute(StringView const& name,
                      Container&& data) const noexcept(false)
 {
     return details::writeAttributeHelper(
@@ -423,15 +427,15 @@ Node::writeAttribute(String const& name,
 
 template <typename T>
 inline Node const&
-Node::writeAttribute(String const& name,
-                     details::AbstractData<T> const& data) const noexcept(false)
+Node::writeAttribute(StringView const& name,
+                     GenH5::AbstractData<T> const& data) const noexcept(false)
 {
     return details::writeAttributeHelper(*this, name, data);
 }
 
 template <typename Container, traits::if_has_not_template_type<Container>>
 inline Node const&
-Node::writeAttribute0D(String const& name,
+Node::writeAttribute0D(StringView const& name,
                        Container&& data) const noexcept(false)
 {
     return details::writeAttributeHelper(
@@ -440,14 +444,14 @@ Node::writeAttribute0D(String const& name,
 
 template <typename T1, typename... Ts>
 inline Data<T1, Ts...>
-Node::readAttribute(String const& name) const noexcept(false)
+Node::readAttribute(StringView const& name) const noexcept(false)
 {
     return details::readAttributeHelper<Data<T1, Ts...>>(*this, name);
 }
 
 template <typename T1, typename... Ts>
 inline Data0D<T1, Ts...>
-Node::readAttribute0D(String const& name) const noexcept(false)
+Node::readAttribute0D(StringView const& name) const noexcept(false)
 {
     return details::readAttributeHelper<Data0D<T1, Ts...>>(*this, name);
 }

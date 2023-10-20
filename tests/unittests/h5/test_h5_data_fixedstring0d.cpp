@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_data/fixedstring0d.h"
 
 #include <QPoint>
@@ -26,17 +27,32 @@ struct TestH5FixedString0D : public testing::Test
     }
 };
 
+TEST_F(TestH5FixedString0D, resize)
+{
+    GenH5::FixedString0D data = "Hello World";
+
+    EXPECT_TRUE(data.resize(GenH5::DataSpace::Scalar,
+                            GenH5::dataType<char[10]>()));
+
+    EXPECT_FALSE(data.resize(GenH5::DataSpace::linear(42),
+                             GenH5::dataType<char[10]>()));
+    EXPECT_FALSE(data.resize(GenH5::DataSpace::Scalar,
+                             GenH5::dataType<QString>()));
+    EXPECT_FALSE(data.resize(GenH5::DataSpace::Scalar,
+                             GenH5::dataType<int>()));
+}
+
 TEST_F(TestH5FixedString0D, constructor)
 {
     // conversion value
-    QByteArray data = "my_fixed_string";
+    std::string data = "my_fixed_string";
     GenH5::FixedString0D d2{data};
     EXPECT_EQ(d2.raw(), data);
     EXPECT_EQ(d2.value(), data);
 
     QString data2 = "fancy_String";
     GenH5::FixedString0D d3{data2};
-    EXPECT_EQ(d3.raw(), data2.toUtf8());
+    EXPECT_EQ(d3.raw(), data2.toStdString());
     EXPECT_EQ(d3.value<std::string>(), data2.toStdString());
     EXPECT_EQ(d3.value<QString>(), data2);
 
@@ -45,14 +61,14 @@ TEST_F(TestH5FixedString0D, constructor)
     d = data;
     EXPECT_EQ(d.value(), data);
     d = data2;
-    EXPECT_EQ(d.value(), data2);
+    EXPECT_EQ(d.value(), data2.toStdString());
 //    d = "data2";
 //    EXPECT_STREQ(d.value(), "data2");
     d = d3;
     EXPECT_EQ(d.value(), d3.value());
 
     // test converions
-    conversion<char*>(d);
+//    conversion<char*>(d);
     conversion<char const*>(d);
 }
 

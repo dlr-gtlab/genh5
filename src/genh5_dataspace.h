@@ -40,10 +40,10 @@ public:
         return DataSpace{Dimensions{length}};
     }
     /// overload for signed integral types
-    template <typename Tint, GenH5::traits::if_signed_integral<Tint> = true>
+    template <typename Tint, traits::if_signed_integral<Tint> = true>
     static DataSpace linear(Tint length) noexcept(false)
     {
-        return linear(static_cast<hsize_t>(length));
+        return linear(numeric_cast<hsize_t>(length));
     }
 
     /// Instantiates a new Datatype and assigns the id without incrementing it

@@ -32,6 +32,7 @@ add_subdirectory(src)
 if (BUILD_UNITTESTS)
     enable_testing()
     add_subdirectory(tests/unittests)
+    add_subdirectory(tests/examples)
 endif ()
 
 

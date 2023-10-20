@@ -26,7 +26,7 @@ inline bool isDefaultCompoundType(GenH5::DataType dtype, GenH5::DataType other)
 
     CompoundMembers const tMembers = dtype.compoundMembers();
     CompoundMembers const oMembers = other.compoundMembers();
-    int size = tMembers.size();
+    size_t size = tMembers.size();
 
     // Compound size must match
     if (size != oMembers.size())
@@ -34,7 +34,7 @@ inline bool isDefaultCompoundType(GenH5::DataType dtype, GenH5::DataType other)
         return false;
     }
 
-    for (int i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         if (// the offset must be the same (identical memory layout)
             tMembers[i].offset != oMembers[i].offset ||
@@ -43,7 +43,7 @@ inline bool isDefaultCompoundType(GenH5::DataType dtype, GenH5::DataType other)
             // names should not match
             tMembers[i].name   == oMembers[i].name ||
             // we expect a default compound type name
-            oMembers[i].name != String{"type_"} + QString::number(i))
+            oMembers[i].name != String{"type_"} + std::to_string(i))
         {
             return false;
         }

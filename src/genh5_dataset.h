@@ -97,7 +97,7 @@ public:
                Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool write(details::AbstractData<T>& data,
+    bool write(AbstractData<T>& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace = {},
                Optional<DataType> dtype = {}) const noexcept(false);
@@ -113,64 +113,17 @@ public:
     bool read(void* data,
               DataSpace const& fileSpace,
               DataSpace const& memSpace,
-              Optional<DataType> dtype = {}) noexcept(false);
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
     bool read(Vector<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype = {}) noexcept(false);
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     template<typename T>
-    bool read(details::AbstractData<T>& data,
+    bool read(AbstractData<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype = {}) noexcept(false);
-
-    /*
-     *  WRITE ATTRIBUTE
-     */
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute
-     * @param name Name of attribute
-     * @param data Data to write
-     * @return This
-     */
-    template <typename T>
-    DataSet const& writeAttribute(String const& name, T&& data
-                                  ) const noexcept(false)
-    {
-        Node::writeAttribute(name, std::forward<T>(data));
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute0D
-     * @param name Name of attribute
-     * @param data 0D Data to write
-     * @return This
-     */
-    template <typename Container,
-              traits::if_has_not_template_type<Container> = true>
-    DataSet const& writeAttribute0D(String const& name, Container&& data
-                                    ) const noexcept(false)
-    {
-        Node::writeAttribute0D(name, std::forward<Container>(data));
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeVersionAttribute
-     * @param string Attribute name
-     * @param version Version to write
-     * @return This
-     */
-    DataSet const& writeVersionAttribute(String const& string = versionAttributeName(),
-                                         Version version = Version::current()
-                                         ) const noexcept(false)
-    {
-        Node::writeVersionAttribute(string, version);
-        return *this;
-    }
+              Optional<DataType> dtype = {}) const noexcept(false);
 
     /// swaps all members
     void swap(DataSet& other) noexcept;
@@ -219,14 +172,14 @@ DataSet::write(Vector<T> const& data,
 
 template<typename T>
 inline bool
-DataSet::write(details::AbstractData<T>& data,
+DataSet::write(AbstractData<T>& data,
                DataSpace const& fileSpace,
                Optional<DataSpace> memSpace,
                Optional<DataType> dtype) const noexcept(false)
 {
     auto selected = fileSpace.selectionSize();
 
-    if (data.size() < selected)
+    if (numeric_cast<hssize_t>(data.size()) < selected)
     {
         log::ErrStream()
                 << GENH5_MAKE_EXECEPTION_STR()
@@ -253,7 +206,7 @@ template<typename T>
 inline bool
 DataSet::read(Vector<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype) noexcept(false)
+              Optional<DataType> dtype) const noexcept(false)
 {
     data.resize(fileSpace.selectionSize());
 
@@ -263,9 +216,9 @@ DataSet::read(Vector<T>& data,
 
 template<typename T>
 inline bool
-DataSet::read(details::AbstractData<T>& data,
+DataSet::read(AbstractData<T>& data,
               DataSpace const& fileSpace,
-              Optional<DataType> dtype) noexcept(false)
+              Optional<DataType> dtype) const noexcept(false)
 {
     if (!data.resize(fileSpace, dtype.isDefault() ? dataType() : *dtype))
     {

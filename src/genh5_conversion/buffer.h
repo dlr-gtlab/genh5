@@ -10,6 +10,7 @@
 #define GENH5_CONVERSION_BUFFER_H
 
 #include "genh5_conversion/type.h"
+#include "genh5_utils.h"
 
 #define GENH5_DECLARE_BUFFER_TYPE(TYPE, BUFFER) \
     template <> \
@@ -117,6 +118,70 @@ struct buffer_element<Comp<Ts...>>
 {
     using type = RComp<buffer_t<Ts>...>;
 };
+
+namespace details
+{
+
+/** APPLY TO BUFFER **/
+template <typename...>
+struct apply_to_buffer_impl;
+
+// value_type == buffer_type
+template <typename value_type>
+struct apply_to_buffer_impl<value_type, Vector<value_type>>
+{
+    template <typename Lambda>
+    static void apply(Vector<value_type>&, Lambda&&)
+    {
+        // NO-OP
+    }
+};
+
+// value_type != buffer_type
+template <typename value_type, typename buffer_type>
+struct apply_to_buffer_impl<value_type, buffer_type>
+{
+    template <typename Lambda>
+    static void apply(buffer_type& buffer, Lambda&& lambda)
+    {
+        lambda(buffer);
+    }
+};
+
+// for each compound element
+template <typename value_type, typename... Ts>
+struct apply_to_buffer_impl<value_type, Comp<Ts...>>
+{
+    using buffer_type = Comp<Ts...>;
+
+    template <typename Lambda>
+    static void apply(buffer_type& buffer, Lambda&& lambda)
+    {
+        mpl::static_for<sizeof...(Ts)>([&](const auto idx){
+           using Tsrc = traits::comp_element_t<idx, value_type>;
+           using Tbuffer = traits::comp_element_t<idx, buffer_type>;
+
+           apply_to_buffer_impl<Tsrc, Tbuffer>::apply(
+               get<idx>(buffer), std::forward<Lambda>(lambda));
+        });
+    }
+};
+
+/**
+ * @brief Applies a method (functor) to the buffer
+ * (for each buffer element in case of a compound buffer)
+ * @param buffer Buffer
+ * @param lambda Functor to apply
+ */
+template <typename T, typename Lambda>
+inline void
+applyToBuffer(buffer_t<T>& buffer, Lambda&& lambda)
+{
+    apply_to_buffer_impl<traits::base_t<conversion_t<T>>, buffer_t<T>>
+        ::apply(buffer, std::forward<Lambda>(lambda));
+}
+
+} // namespace details
 
 } // namespace GenH5
 

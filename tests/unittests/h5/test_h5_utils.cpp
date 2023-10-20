@@ -19,6 +19,23 @@ class TestH5Utils : public testing::Test
 protected:
 };
 
+TEST_F(TestH5Utils, numeric_cast)
+{
+    uint64_t u;
+    u = std::numeric_limits<uint64_t>::max();
+    EXPECT_FALSE(GenH5::details::is_within_numnerical_limits<int64_t>(u));
+
+    u = std::numeric_limits<uint64_t>::min();
+    EXPECT_TRUE(GenH5::details::is_within_numnerical_limits<int64_t>(u));
+
+    int64_t s;
+    s = std::numeric_limits<int64_t>::max();
+    EXPECT_TRUE(GenH5::details::is_within_numnerical_limits<uint64_t>(s));
+
+    s = std::numeric_limits<int64_t>::min();
+    EXPECT_FALSE(GenH5::details::is_within_numnerical_limits<uint64_t>(s));
+}
+
 TEST_F(TestH5Utils, prod)
 {
     // by T out
@@ -163,7 +180,7 @@ TEST_F(TestH5Utils, makeArraysFromList)
 
     for (int i = 0; i < size; ++i)
     {
-        EXPECT_EQ(res[i], floats.mid(i * N, N));
+        EXPECT_EQ(res[i], mid(floats, i * N, N));
     }
 }
 
@@ -183,7 +200,7 @@ TEST_F(TestH5Utils, makeStringArray)
     // unpack
     String resA;
     GenH5::unpack(arrayA, resA);
-    EXPECT_EQ(stringA.mid(0, 11), resA);
+    EXPECT_EQ((String{std::begin(resA), std::begin(resA) + 11}), resA);
 
     // make string too short
     String stringB = "123456789";
@@ -235,7 +252,7 @@ TEST_F(TestH5Utils, makeStringArrays)
         auto str = strs[i].mid(0, N);
         auto& vec = res[i];
         EXPECT_EQ(vec.size(), N);
-        EXPECT_EQ(str, QByteArray(vec.constData(), N));
+        EXPECT_EQ(str, QByteArray(vec.data(), N));
     }
 }
 

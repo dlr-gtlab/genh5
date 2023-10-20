@@ -7,6 +7,8 @@
  */
 
 #include "gtest/gtest.h"
+
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_group.h"
 #include "genh5_file.h"
 #include "genh5_attribute.h"
@@ -21,7 +23,7 @@ class TestH5Iteration : public testing::Test
 {
 protected:
 
-    GenH5::Vector<QByteArray> m_groups{
+    GenH5::Vector<GenH5::String> m_groups{
         "my_group_1",
         "my_group_1/sub1",
         "my_group_1/sub2",
@@ -32,7 +34,7 @@ protected:
         "my_group_2/C/final",
     };
 
-    GenH5::Vector<QByteArray> m_dsets{
+    GenH5::Vector<GenH5::String> m_dsets{
         "my_fancy_dset",
         "my_group_1/dset1",
         "my_group_1/sub1/dsetA",
@@ -41,15 +43,15 @@ protected:
         "my_group_2/C/final/final_dset",
     };
 
-    int countChildNodes(GenH5::Vector<QByteArray> const& list,
+    int countChildNodes(GenH5::Vector<GenH5::String> const& list,
                         GenH5::Group const& parent)
     {
-        if (parent.path().isEmpty()) // relative to root
+        if (parent.path().empty()) // relative to root
         {
-            return static_cast<int>(
+            return GenH5::numeric_cast<int>(
                         std::count_if(list.cbegin(), list.cend(),
-                                      [](QByteArray const& item){
-                return !item.contains('/');
+                              [](auto const& item){
+                return !QByteArray::fromStdString(item).contains('/');
             }));
         }
         return -1;
@@ -60,11 +62,11 @@ protected:
     {
         qDebug().nospace()
                 << "checking nodes relative to: '" << parent.path() << "'";
-        auto list = m_groups + m_dsets;
+        auto all = concat(m_groups, m_dsets);
         for (auto const& info : nodes)
         {
             EXPECT_TRUE(info.isGroup() || info.isDataSet());
-            EXPECT_TRUE(list.contains(info.path));
+            EXPECT_TRUE(contains(all, info.path));
             EXPECT_TRUE(info.toNode(parent)->isValid());
         }
     }
@@ -77,7 +79,7 @@ protected:
         for (auto const& info : nodes)
         {
             EXPECT_TRUE(info.isGroup());
-            EXPECT_TRUE(m_groups.contains(info.path));
+            EXPECT_TRUE(contains(m_groups, info.path));
             EXPECT_TRUE(info.toGroup(parent).isValid());
             EXPECT_TRUE(info.toNode(parent)->isValid());
         }
@@ -91,7 +93,7 @@ protected:
         for (auto const& info : nodes)
         {
             EXPECT_TRUE(info.isDataSet());
-            EXPECT_TRUE(m_dsets.contains(info.path));
+            EXPECT_TRUE(contains(m_dsets, info.path));
             EXPECT_TRUE(info.toDataSet(parent).isValid());
             EXPECT_TRUE(info.toNode(parent)->isValid());
         }
@@ -172,7 +174,7 @@ TEST_F(TestH5Iteration, findChildObjects)
     // all objects
     auto rootDAll = root.findChildNodes(GenH5::FindDirectOnly,
                                         GenH5::NoFilter);
-    EXPECT_EQ(rootDAll.size(), countChildNodes(m_groups + m_dsets, GenH5::Group{}));
+    EXPECT_EQ(rootDAll.size(), countChildNodes(concat(m_groups, m_dsets), GenH5::Group{}));
     checkNodes(rootDAll, root);
 
     auto rootRAll = root.findChildNodes(GenH5::FindRecursive,

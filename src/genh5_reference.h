@@ -9,7 +9,8 @@
 #ifndef GENH5_REFERENCE_H
 #define GENH5_REFERENCE_H
 
-#include "genh5_location.h"
+#include "genh5_exports.h"
+#include "genh5_typedefs.h"
 
 #include "H5Rpublic.h"
 
@@ -20,6 +21,7 @@ class File;
 class Group;
 class DataSet;
 class Attribute;
+class Location;
 
 /**
  * @brief The Reference class
@@ -28,7 +30,7 @@ class GENH5_EXPORT Reference
 {
 public:
 
-    static constexpr auto bufferSize = H5R_REF_BUF_SIZE;
+    static constexpr size_t bufferSize = H5R_REF_BUF_SIZE;
 
     using Alignment  = decltype (H5R_ref_t::u.align);
     using BufferType = decltype (*H5R_ref_t::u.__data);
@@ -36,7 +38,7 @@ public:
     Reference();
     explicit Reference(H5R_ref_t ref)  noexcept;
     explicit Reference(Alignment data)  noexcept;
-    explicit Reference(QByteArray buffer) noexcept(false);
+    explicit Reference(String buffer) noexcept(false);
     explicit Reference(Location const& location) noexcept(false);
 
     /**
@@ -67,7 +69,7 @@ public:
      * serialize and deserialize a reference.
      * @return data array
      */
-    QByteArray buffer() const noexcept;
+    String buffer() const noexcept;
 
     /**
      * @brief try dereferencing the object to a group.

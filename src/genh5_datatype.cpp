@@ -47,11 +47,13 @@ static const GenH5::DataType s_varString{GenH5::DataType::string(H5T_VARIABLE)};
 
 static const GenH5::DataType s_version{
     GenH5::DataType::compound(sizeof(GenH5::Version), {
-        {"major", offsetof(GenH5::Version, major), GenH5::dataType<int>()},
-        {"minor", offsetof(GenH5::Version, minor), GenH5::dataType<int>()},
-        {"patch", offsetof(GenH5::Version, patch), GenH5::dataType<int>()}
+        {"major", offsetof(GenH5::Version, major), s_int},
+        {"minor", offsetof(GenH5::Version, minor), s_int},
+        {"patch", offsetof(GenH5::Version, patch), s_int}
     })
 };
+
+static const GenH5::DataType s_reference{GenH5::makePredType(H5T_STD_REF_OBJ)};
 
 GenH5::DataType const& GenH5::DataType::Bool = s_bool;
 GenH5::DataType const& GenH5::DataType::Char = s_char;
@@ -67,7 +69,10 @@ GenH5::DataType const& GenH5::DataType::Float = s_float;
 GenH5::DataType const& GenH5::DataType::Double = s_double;
 
 GenH5::DataType const& GenH5::DataType::VarString = s_varString;
+
 GenH5::DataType const& GenH5::DataType::Version = s_version;
+
+GenH5::DataType const& GenH5::DataType::Reference = s_reference;
 
 GenH5::DataType
 GenH5::DataType::string(size_t size, bool useUtf8) noexcept(false)
@@ -96,9 +101,8 @@ GenH5::DataType::array(DataType const& type,
     static const std::string errMsg =
             GENH5_MAKE_EXECEPTION_STR() "Failed to create array type";
 
-    return makeType(
-                [id = type.m_id, len = dims.length(), ptr = dims.constData()](){
-        return H5Tarray_create(id, len, ptr);
+    return makeType([id = type.m_id, len = dims.size(), ptr = dims.data()](){
+        return H5Tarray_create(id, numeric_cast<unsigned>(len), ptr);
     }, errMsg);
 }
 
@@ -135,10 +139,10 @@ GenH5::DataType::compound(size_t dataSize,
     }
 
     // check if types are valid
-    int i = 0;
-    for (auto const& m : qAsConst(members))
+    size_t i = 0;
+    for (auto const& m : asConst(members))
     {
-        if (m.name.isEmpty())
+        if (m.name.empty())
         {
             throw DataTypeException{
                 GENH5_MAKE_EXECEPTION_STR()
@@ -163,11 +167,11 @@ GenH5::DataType::compound(size_t dataSize,
     }, errMsg);
 
     // insert members
-    for (i = 0; i < members.length(); ++i)
+    for (i = 0; i < members.size(); ++i)
     {
         auto const& m = members.at(i);
 
-        if (H5Tinsert(dtype.m_id, m.name.constData(), m.offset, m.type.m_id) < 0)
+        if (H5Tinsert(dtype.m_id, m.name.data(), m.offset, m.type.m_id) < 0)
         {
             throw DataTypeException{
                 GENH5_MAKE_EXECEPTION_STR() "Failed to insert member no. " +
@@ -289,7 +293,7 @@ GenH5::DataType::compoundMembers() const
     CompoundMembers members;
     members.reserve(n);
 
-    for (uint i = 0; i < static_cast<uint>(n); ++i)
+    for (unsigned i = 0; i < numeric_cast<unsigned>(n); ++i)
     {
         char* str = H5Tget_member_name(m_id, i);
         String memberName{str};
@@ -307,7 +311,7 @@ GenH5::DataType::compoundMembers() const
             };
         }
 
-        members.append({
+        members.push_back({
             std::move(memberName),
             offset,
             DataType::fromId(type)
@@ -381,7 +385,7 @@ GenH5::DataType::toString() const
                 string += "{ \""
                        +  m.name + "\", "
                        +  m.type.toString() + ", at "
-                       +  String::number(static_cast<qulonglong>(m.offset))
+                       +  String::number(numeric_cast<qulonglong>(m.offset))
                        +  " }, ";
             }
             if (changed) string.remove(string.size() - 2, 2);
@@ -481,10 +485,10 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
         {
             auto const fMembers = first.compoundMembers();
             auto const oMembers = other.compoundMembers();
-            int size = fMembers.size();
+            size_t size = fMembers.size();
             if (size == oMembers.size())
             {
-                for (int i = 0; i < size; ++i)
+                for (size_t i = 0; i < size; ++i)
                 {
                     if (fMembers[i] != oMembers[i])
                     {

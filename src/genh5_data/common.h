@@ -10,7 +10,7 @@
 #define GENH5_DATA_COMMON_H
 
 #include "genh5_optional.h"
-
+#include "genh5_conversion.h"
 #include "genh5_data/base.h"
 #include "genh5_data/buffer.h"
 
@@ -19,9 +19,9 @@ namespace GenH5
 
 /** DATA VECTOR **/
 template<typename T>
-class CommonData : public details::AbstractData<T>
+class CommonData : public AbstractData<T>
 {
-    using base_class =  details::AbstractData<T>;
+    using base_class =  AbstractData<T>;
 
 public:
 
@@ -36,6 +36,9 @@ public:
 
     using iterator              = typename container_type::iterator;
     using const_iterator        = typename container_type::const_iterator;
+    using reverse_iterator       = typename container_type::reverse_iterator;
+    using const_reverse_iterator = typename container_type::const_reverse_iterator;
+
 
     using pointer               = value_type*;
     using const_pointer         = value_type const*;
@@ -128,7 +131,11 @@ public:
     // container type
     void push_back(container_type data)
     {
-        m_data.append(std::move(data));
+        m_data.insert(
+            m_data.end(),
+            std::make_move_iterator(data.begin()),
+            std::make_move_iterator(data.end())
+        );
     }
     // value type
     void push_back(value_type data)
@@ -142,7 +149,7 @@ public:
     void push_back(Container&& c)
     {
         using GenH5::convert; // ADL
-        auto size = static_cast<size_type>(c.size());
+        auto size = numeric_cast<size_type>(c.size());
         m_buffer.reserve(size);
         m_data.reserve(size);
         std::transform(std::cbegin(c), std::cend(c),
@@ -257,6 +264,7 @@ public:
     void unpack(Container& c) const
     {
         using GenH5::convertTo; // ADL
+        // TODO: cast to size_type of container
         c.reserve(size());
         std::transform(std::cbegin(m_data), std::cend(m_data),
                        std::back_inserter(c), [](auto const& value){
@@ -269,7 +277,7 @@ public:
 
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
-        auto selection = static_cast<size_type>(dspace.selectionSize());
+        auto selection = numeric_cast<size_type>(dspace.selectionSize());
         auto dataSize = selection;
 
 #ifndef GENH5_NO_DATA_AUTORESIZE
@@ -378,7 +386,7 @@ public:
     /** STL **/
     void clear() { m_data.clear(); m_dims.clear(); }
     bool empty() const { return m_data.empty(); }
-    size_type size() const override { return m_data.size(); }
+    size_t size() const override { return m_data.size(); }
     size_type capacity() const { return m_data.capacity(); }
 
     void reserve(size_type len) { return m_data.reserve(len); }
@@ -391,21 +399,28 @@ public:
     reference back() { return m_data.back(); }
     const_reference back() const { return m_data.back(); }
 
-    void remove(size_type i, uint n = 1) { m_data.remove(i, n); }
+    void remove(size_type i, size_type n = 1)
+    {
+        auto next = std::next(begin(), i);
+        erase(next, std::next(next, n));
+    }
 
-    iterator begin() { return m_data.begin(); }
+    void erase(const_iterator const& where) { m_data.erase(where); }
+    void erase(const_iterator const& first, const_iterator const& last) { m_data.erase(first, last); }
+
+    iterator begin() noexcept { return m_data.begin(); }
     const_iterator begin() const noexcept { return m_data.cbegin(); }
-    iterator rbegin() noexcept { return m_data.rbegin(); }
-    const_iterator rbegin() const noexcept { return m_data.rbegin(); }
     const_iterator cbegin() const noexcept { return m_data.cbegin(); }
-    const_iterator crbegin() const noexcept { return m_data.crbegin(); }
+    reverse_iterator rbegin() noexcept { return m_data.rbegin(); }
+    const_reverse_iterator rbegin() const noexcept { return m_data.rbegin(); }
+    const_reverse_iterator crbegin() const noexcept { return m_data.crbegin(); }
 
-    iterator end() { return m_data.end(); }
+    iterator end() noexcept { return m_data.end(); }
     const_iterator end() const noexcept { return m_data.cend(); }
-    iterator rend() noexcept { return m_data.rend(); }
-    const_iterator rend() const noexcept { return m_data.rend(); }
     const_iterator cend() const noexcept { return m_data.cend(); }
-    const_iterator crend() const noexcept { return m_data.crbegin(); }
+    reverse_iterator rend() noexcept { return m_data.rend(); }
+    const_reverse_iterator rend() const noexcept { return m_data.rend(); }
+    const_reverse_iterator crend() const noexcept { return m_data.crbegin(); }
 
     // 1D
     reference at(size_type idx) {
@@ -447,9 +462,23 @@ public:
     template <typename U>
     void append(U&& arg) { push_back(std::forward<U>(arg)); }
 
-    container_type mid(int pos, int len = -1) const
+    /**
+     * @brief Returns a subrange which contains elements starting at position
+     * pos. If length is -1, all elements after pos are included; otherwise
+     * length elements or the rest will be included.
+     * @param pos Post to start from
+     * @param len Number of elements to include at maximum. -1 for all elements.
+     * @tparam Container Optional return type.
+     * @return Subrange
+     */
+    template <typename Container = container_type>
+    Container mid(size_t pos, hssize_t len = -1) const
     {
-        return m_data.mid(pos, len);
+        auto start = std::next(std::cbegin(m_data), pos);
+        auto dist = static_cast<hssize_t>(std::distance(start, std::end(m_data)));
+        return Container{
+             start, std::next(start, len < 0 ? dist : std::min(len, dist))
+        };
     }
 
 protected:

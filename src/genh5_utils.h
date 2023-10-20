@@ -9,10 +9,15 @@
 #ifndef GENH5_UTILS_H
 #define GENH5_UTILS_H
 
-#include "genh5_globals.h"
-#include "genh5_mpl.h"
 #include "genh5_typetraits.h"
 #include "genh5_exception.h"
+#include "genh5_logging.h"
+
+#include <iostream>
+#include <algorithm>
+#include <numeric>
+#include <iterator>
+#include <cassert>
 
 namespace GenH5
 {
@@ -55,10 +60,10 @@ idx(Dimensions const& dims, Vector<hsize_t> const& idxs)
     }
 
     hsize_t idx = 0;
-    for (auto i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
-        idx += idxs[i] * std::accumulate(std::cbegin(dims) + i + 1,
-                                         std::cend(dims), 1ull,
+        idx += idxs[i] * std::accumulate(std::next(std::begin(dims), i + 1),
+                                         std::end(dims), 1ull,
                                          [](auto prod, auto dim){
             return prod * dim;
         });
@@ -82,6 +87,94 @@ get(Ttuple&& tuple)
 {
     return std::get<idx>(std::forward<Ttuple>(tuple));
 }
+
+/** CASTS **/
+
+template <typename T>
+constexpr inline T const&
+asConst(T& t) noexcept { return t; }
+
+namespace details
+{
+
+template <typename Target, typename Input,
+          std::enable_if_t<
+              std::is_signed<Target>::value ==
+              std::is_signed<Input>::value, bool> = true>
+constexpr inline bool
+is_within_numnerical_limits(Input t) noexcept
+{
+    using std::numeric_limits;
+
+    bool s = (t >= numeric_limits<Target>::min() &&
+              t <= numeric_limits<Target>::max());
+
+    if (!s) {
+        log::ErrStream()
+            << "### OUT OF NUMERICAL BOUNDS: "
+            << t << " < " << numeric_limits<Target>::min() << " || "
+            << t << " > " << numeric_limits<Target>::max();
+    }
+
+    return s;
+}
+
+template <typename Target, typename Input,
+          std::enable_if_t<
+               std::is_signed<Target>::value &&
+              !std::is_signed<Input>::value, bool> = true>
+constexpr inline bool
+is_within_numnerical_limits(Input t) noexcept
+{
+    using std::numeric_limits;
+
+    bool s = (t <= static_cast<uint64_t>(numeric_limits<Target>::max()));
+
+    if (!s) {
+        log::ErrStream()
+            << "### OUT OF NUMERICAL BOUNDS (signed vs unsigned): "
+            << t << " > " << numeric_limits<Target>::max();
+    }
+
+    return s;
+}
+
+template <typename Target, typename Input,
+          std::enable_if_t<
+              !std::is_signed<Target>::value &&
+               std::is_signed<Input>::value, bool> = true>
+constexpr inline bool
+is_within_numnerical_limits(Input t) noexcept
+{
+    bool s = (t >= 0 &&
+              static_cast<uint64_t>(t) <= std::numeric_limits<Target>::max());
+
+    if (!s) {
+        log::ErrStream()
+            << "### OUT OF NUMERICAL BOUNDS (unsigned vs signed): "
+            << t << " < 0 || "
+            << t << " > " << std::numeric_limits<Target>::max();
+    }
+
+    return s;
+}
+
+} // namespace details
+
+template <typename Target, typename Input,
+          typename Target_decayed = traits::decay_crv_t<Target>,
+          typename Input_decayed  = traits::decay_crv_t<Input>,
+          std::enable_if_t<
+              std::is_integral<Target_decayed>::value &&
+              std::is_integral<Input_decayed>::value, bool> = true>
+constexpr inline Target
+numeric_cast(Input&& t) noexcept
+{
+    assert((details::is_within_numnerical_limits<Target_decayed, Input_decayed>(t)));
+    return static_cast<Target>(std::forward<Input>(t));
+}
+
+/** REVERSE COMPOUND **/
 
 namespace details
 {
@@ -113,7 +206,7 @@ makeArray(Container&& container)
 {
     R array{};
     std::copy_n(std::cbegin(container),
-                std::min(N, static_cast<size_t>(container.size())),
+                std::min(N, numeric_cast<size_t>(container.size())),
                 std::begin(array));
     return array;
 }
@@ -148,10 +241,10 @@ makeArraysFromList(Container&& container) noexcept(false)
             std::to_string(N) + " != 0)"
         };
     }
-    int length = container.size() / N;
+    size_t length = container.size() / N;
     R arrays;
     arrays.reserve(length);
-    for (int i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
     {
         Array<C, N> array{};
         std::copy(std::cbegin(container) + i * N,
@@ -206,12 +299,12 @@ makeComp(Containers&&... containersIn) noexcept(false)
 
     // for iterating more easily over variadic arguments
     auto containers = std::make_tuple(&containersIn...);
-    auto size = get<0>(containers)->size();
+    auto size = numeric_cast<size_t>(get<0>(containers)->size());
     tuples.resize(size);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
         auto* container = get<idx>(containers);
-        if (size != container->size())
+        if (size != numeric_cast<size_t>(container->size()))
         {
             throw InvalidArgumentError{
                 GENH5_MAKE_EXECEPTION_STR_ID("makeComp")
@@ -221,7 +314,7 @@ makeComp(Containers&&... containersIn) noexcept(false)
             };
         }
 
-        int i = 0;
+        size_t i = 0;
         for (auto const& value : *container)
         {
             get<idx>(tuples[i++]) = value;
@@ -276,6 +369,7 @@ template <typename T, typename Container,
 inline void
 unpack(Vector<VarLen<T>> const& varlens, Container& container)
 {
+    // TODO: cast to size_type of container
     container.reserve(varlens.size());
     std::transform(std::cbegin(varlens), std::cend(varlens),
                    std::back_inserter(container), [](auto const& varlen){
@@ -305,6 +399,7 @@ unpack(Vector<Tuple> const& tuples, Containers&... containersIn)
     auto containers = std::make_tuple(&containersIn...);
 
     mpl::static_for<sizeof... (Containers)>([&](auto const idx){
+        // TODO: cast to size_type of container
         get<idx>(containers)->reserve(tuples.size());
     });
 
@@ -327,115 +422,10 @@ unpackNested(Nested&& nested, Containers&... containersIn)
         get<idx>(containers)->resize(nested.size());
     });
 
-    for (int i = 0; i < nested.size(); ++i)
+    for (size_t i = 0; i < nested.size(); ++i)
     {
         unpack(nested[i], containersIn[i]...);
     }
-}
-
-/**
- * @brief The Finally class.
- * Calls a member function on an object in the destructor. Used for cleaning up.
- */
-template <typename Functor>
-class Finally
-{
-public:
-
-    explicit Finally(Functor func) :
-        m_func{std::move(func)}
-    { }
-
-    // no copy
-    Finally(Finally const&) = delete;
-    Finally& operator=(Finally const&) = delete;
-
-    // move allowed
-    Finally(Finally&& other) :
-        m_func{other.m_func},
-        m_invoked{other.m_invoked}
-    {
-        other.clear();
-    };
-
-    Finally& operator=(Finally&& other)
-    {
-        using std::swap; // ADL
-        Finally tmp{std::move(other)};
-        swap(m_func, tmp.m_func);
-        swap(m_invoked, tmp.m_invoked);
-        return *this;
-    };
-
-    ~Finally() { invoke(); }
-
-    /**
-     * @brief Check if function or object is null
-     * @return
-     */
-    bool isNull() const
-    {
-        return m_invoked;
-    }
-
-    /**
-     * @brief Calls the cleanup function. Object will go invalid.
-     */
-    void exec()
-    {
-        invoke();
-        clear();
-    }
-
-    /**
-     * @brief Clears object
-     */
-    void clear()
-    {
-        m_invoked = true;
-    }
-
-private:
-
-    // actual function to call
-    Functor m_func;
-
-    /// Indicates that method was already
-    /// called
-    bool m_invoked = false;
-
-    /**
-     * @brief Calls the cleanup function.
-     */
-    void invoke()
-    {
-        // call cleanup function
-        if (!isNull()) m_func();
-    }
-};
-
-/**
- * @brief Makes a finally object from a lambda
- * @param t object
- * @param func Function to call on cleanup
- */
-template<typename Functor, traits::if_not_pointer<Functor> = true>
-GENH5_NODISCARD
-auto finally(Functor func)
-{
-    return Finally<Functor>{std::move(func)};
-}
-
-template<typename R, typename... Args>
-GENH5_NODISCARD
-auto finally(R(*func)(Args...), Args... args)
-{
-    // construct helper lambda
-    return finally(
-        [func, args...](){
-            func(args...);
-        }
-    );
 }
 
 } // namespace GenH5

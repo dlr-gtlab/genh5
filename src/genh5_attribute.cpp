@@ -65,13 +65,15 @@ GenH5::Attribute::deleteLink() noexcept(false)
         };
     }
 
+    auto path = this->path();
+    auto name = this->name();
+
     // returns error type
-    if (H5Adelete_by_name(file().id(), path().constData(),
-                          name().constData(), H5P_DEFAULT) < 0)
+    if (H5Adelete_by_name(file().id(), path.data(), name.data(), H5P_DEFAULT) < 0)
     {
         throw LocationException{
             GENH5_MAKE_EXECEPTION_STR() "Deleting attribute '" +
-            path().toStdString() + ":" + name().toStdString() + "' failed"
+            path + ":" + name + "' failed"
         };
     }
 

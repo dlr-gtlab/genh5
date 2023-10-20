@@ -6,6 +6,7 @@
 #include <QPoint>
 #include <QPointF>
 
+#define GENH5_USE_QT_BINDINGS
 #include "genh5.h"
 
 #include "H5Cpp.h"
@@ -15,10 +16,16 @@ struct Tests : public testing::Test
     GenH5::File makeFile(const char* name)
     {
         h5TestHelper->newFilePath();
-        QByteArray filePath = h5TestHelper->tempPath().toUtf8() + "/" + name;
+        auto filePath = h5TestHelper->tempPath().toStdString() + "/" + name;
         return GenH5::File{filePath, GenH5::Overwrite};
     }
 };
+
+TEST_F(Tests, test_0)
+{
+    auto data = new int(42);
+    (void)data;
+}
 
 TEST_F(Tests, test_1)
 {
@@ -31,8 +38,6 @@ TEST_F(Tests, test_1)
 
     // pod
     auto dset = file.root().writeDataSet0D("bool", true);
-
-
 
     auto scalar = file.root().createGroup("Scalar");
 
@@ -80,16 +85,17 @@ TEST_F(Tests, test_1)
     };
     linear.writeDataSet("complex_nested", complexVlenArrayData);
 
-    GenH5::CompData<VarLen<bool>> complexVlenBoolData{
-        GenH5::VarLen<bool>{
-            true, false, true, true
-        },
-        GenH5::VarLen<bool>{
-            true,
-        },
-        { }
-    };
-    linear.writeDataSet("complex_vlen_bool", complexVlenBoolData);
+    // std::vector<bool>::data does not exist!
+//    GenH5::CompData<VarLen<bool>> complexVlenBoolData{
+//        GenH5::VarLen<bool>{
+//            true, false, true, true
+//        },
+//        GenH5::VarLen<bool>{
+//            true,
+//        },
+//        { }
+//    };
+//    linear.writeDataSet("complex_vlen_bool", complexVlenBoolData);
 
     GenH5::CompData<VarLen<Version>> complexVlenVersionData{
         VarLen<Version>{

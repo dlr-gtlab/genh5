@@ -18,7 +18,7 @@ class TestH5Node : public testing::Test { };
 
 TEST_F(TestH5Node, versionAttribute)
 {
-    ASSERT_FALSE(GenH5::Node::versionAttributeName().isEmpty());
+    ASSERT_FALSE(GenH5::Node::versionAttributeName().empty());
 
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
 

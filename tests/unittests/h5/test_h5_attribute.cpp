@@ -21,12 +21,12 @@ TEST_F(TestH5Attribute, info)
 {
     GenH5::Data<int> intData{1, 2, 3, 4, 5};
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
-    auto group = file.root().createGroup(QByteArrayLiteral("group"));
-    auto dataset = group.createDataSet(QByteArrayLiteral("dataset"),
+    auto group = file.root().createGroup("group");
+    auto dataset = group.createDataSet("dataset",
                                   intData.dataType(),
                                   intData.dataSpace());
 
-    QByteArray attrName = "testA";
+    GenH5::String attrName = "testA";
     dataset.createAttribute(attrName,
                             intData.dataType(),
                             intData.dataSpace());
@@ -60,16 +60,16 @@ TEST_F(TestH5Attribute, deleteLink)
 
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
     // create valid attribute
-    attr = file.root().createAttribute(QByteArrayLiteral("test"),
+    attr = file.root().createAttribute("test",
                                        GenH5::dataType<int>(),
                                        GenH5::DataSpace::linear(10));
     EXPECT_TRUE(attr.isValid());
-    EXPECT_TRUE(file.root().hasAttribute(QByteArrayLiteral("test")));
+    EXPECT_TRUE(file.root().hasAttribute("test"));
 
     // delete dataset
     attr.deleteLink();
     EXPECT_FALSE(attr.isValid());
-    EXPECT_FALSE(file.root().hasAttribute(QByteArrayLiteral("test")));
+    EXPECT_FALSE(file.root().hasAttribute("test"));
 }
 
 TEST_F(TestH5Attribute, deleteLinkNested)

@@ -9,8 +9,9 @@
 #ifndef GENH5_LOCATION_H
 #define GENH5_LOCATION_H
 
+#include "genh5_stringview.h"
 #include "genh5_object.h"
-#include "genh5_typedefs.h"
+#include "genh5_utils.h"
 
 #include <memory>
 
@@ -46,14 +47,31 @@ public:
      * @param path Path to check
      * @return exists
      */
-    bool exists(String const& path) const noexcept;
+    bool exists(StringView const& path) const noexcept;
 
     /**
      * @brief exists
      * @param path Path elements to check
      * @return exists
      */
-    bool exists(Vector<String> const& path) const noexcept;
+    template <typename Container,
+              typename T = traits::value_t<Container>,
+              traits::if_convertible<T, String> = true>
+    bool exists(Container const& path) const noexcept
+    {
+        hid_t id = this->id();
+        String subPath{};
+
+        for (auto const& entry : asConst(path))
+        {
+            subPath += entry;
+            subPath += '/';
+
+            if (!exists(id, subPath.data())) return false;
+        }
+
+        return true;
+    }
 
     /**
      * @brief internal path
@@ -85,6 +103,16 @@ protected:
      * @brief Location
      */
     explicit Location() noexcept;
+
+private:
+
+    /**
+     * @brief Returns true if the name exists on the location denoted by locId.
+     * @param locId Location id
+     * @param name Name to querry
+     * @return True if name exists in the location
+     */
+    static bool exists(hid_t locId, const char* name);
 };
 
 /**
@@ -102,7 +130,6 @@ GENH5_EXPORT String getObjectName(Location const& location) noexcept;
 GENH5_EXPORT String getObjectPath(Location const& location) noexcept;
 
 } // namespace GenH5
-
 
 
 #endif // GENH5_LOCATION_H
