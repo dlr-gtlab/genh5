@@ -88,14 +88,14 @@ public:
      * @param name name of the group
      * @return Group
      */
-    Group createGroup(String const& name) const noexcept(false);
+    Group createGroup(StringView const& name) const noexcept(false);
 
     /**
      * @brief Creates a group. If the group already exists,it will be opened.
      * @param name name of the group
      * @return Group
      */
-    Group openGroup(String const& name) const noexcept(false);
+    Group openGroup(StringView const& name) const noexcept(false);
 
     /*
      * CREATE/OPEN DATASET
@@ -112,7 +112,7 @@ public:
      * chunked but not compressed.
      * @return Dataset
      */
-    DataSet createDataSet(String const& name,
+    DataSet createDataSet(StringView const& name,
                           DataType const& dtype,
                           DataSpace const& dspace,
                           Optional<DataSetCProperties> cProps = {}
@@ -123,7 +123,7 @@ public:
      * @param name Name of the dataset
      * @return Dataset
      */
-    DataSet openDataSet(String const& name) const noexcept(false);
+    DataSet openDataSet(StringView const& name) const noexcept(false);
 
     /*
      *  READ/WRITE DATASET
@@ -138,7 +138,7 @@ public:
     template <typename Container,
               typename if_container = traits::value_t<Container>,
               traits::if_has_not_template_type<Container> = true>
-    DataSet writeDataSet(String const& name, Container&& data
+    DataSet writeDataSet(StringView const& name, Container&& data
                          ) const noexcept(false);
 
     /**
@@ -148,8 +148,8 @@ public:
      * @return Dataset
      */
     template <typename T>
-    DataSet writeDataSet(String const& name,
-                         details::AbstractData<T> const& data
+    DataSet writeDataSet(StringView const& name,
+                         AbstractData<T> const& data
                          ) const noexcept(false);
 
     /**
@@ -161,7 +161,7 @@ public:
      */
     template <typename Container,
               traits::if_has_not_template_type<Container> = true>
-    DataSet writeDataSet0D(String const& name, Container&& data
+    DataSet writeDataSet0D(StringView const& name, Container&& data
                            ) const noexcept(false);
 
     /**
@@ -170,7 +170,7 @@ public:
      * @return Data read
      */
     template <typename T1, typename... Ts>
-    Data<T1, Ts...> readDataSet(String const& name) const noexcept(false);
+    Data<T1, Ts...> readDataSet(StringView const& name) const noexcept(false);
 
     /**
      * @brief High level method for opening and reading 0d data from a dataset.
@@ -178,54 +178,7 @@ public:
      * @return Data read
      */
     template <typename T1, typename... Ts>
-    Data0D<T1, Ts...> readDataSet0D(String const& name) const noexcept(false);
-
-    /*
-     *  WRITE ATTRIBUTE
-     */
-
-    /**
-     * @brief Delegates the function call to Node::writeVersionAttribute
-     * @param string Attribute name
-     * @param version Version to write
-     * @return This
-     */
-    Group const& writeVersionAttribute(String const& string = versionAttributeName(),
-                                       Version version = Version::current()
-                                       ) const noexcept(false)
-    {
-        Node::writeVersionAttribute(string, version);
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute
-     * @param name Name of attribute
-     * @param data Data to write
-     * @return This
-     */
-    template <typename T>
-    Group const& writeAttribute(String const& name, T&& data
-                                ) const noexcept(false)
-    {
-        Node::writeAttribute(name, std::forward<T>(data));
-        return *this;
-    }
-
-    /**
-     * @brief Delegates the function call to Node::writeAttribute0D
-     * @param name Name of attribute
-     * @param data 0D Data to write
-     * @return This
-     */
-    template <typename Container,
-              traits::if_has_not_template_type<Container> = true>
-    Group const& writeAttribute0D(String const& name, Container&& data
-                                  ) const noexcept(false)
-    {
-        Node::writeAttribute0D(name, std::forward<Container>(data));
-        return *this;
-    }
+    Data0D<T1, Ts...> readDataSet0D(StringView const& name) const noexcept(false);
 
     /*
      *  FIND CHILD NODES
@@ -243,7 +196,7 @@ public:
     Vector<NodeInfo> findChildNodes(IterationType iterType = FindDirectOnly,
                                     IterationFilter iterFilter = NoFilter,
                                     IterationIndex iterIndex = IndexName,
-                                    IterationOrder iterOrder = NativeOrder
+                                    IterationOrder iterOrder = AscendingOrder
                                     ) const noexcept;
 
     /**
@@ -260,7 +213,7 @@ public:
                              IterationType iterType = FindDirectOnly,
                              IterationFilter iterFilter = NoFilter,
                              IterationIndex iterIndex = IndexName,
-                             IterationOrder iterOrder = NativeOrder
+                             IterationOrder iterOrder = AscendingOrder
                              ) const noexcept;
 
     /**
@@ -268,7 +221,7 @@ public:
      * @param name path to the node
      * @return Attribute info struct
      */
-    NodeInfo nodeInfo(String path) const noexcept(false);
+    NodeInfo nodeInfo(StringView const& path) const noexcept(false);
 
     /// swaps all members
     void swap(Group& other) noexcept;
@@ -288,8 +241,8 @@ namespace details
 template <typename... Ts>
 inline DataSet
 writeDataSetHelper(Group const& obj,
-                   String const& name,
-                   details::AbstractData<Ts...> const& data) noexcept(false)
+                   StringView const& name,
+                   GenH5::AbstractData<Ts...> const& data) noexcept(false)
 {
     auto dset = obj.createDataSet(name, data.dataType(), data.dataSpace());
 
@@ -297,7 +250,7 @@ writeDataSetHelper(Group const& obj,
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to write data to dataset '" +
-            name.toStdString() + '\''
+            name.get() + '\''
         };
     }
 
@@ -306,7 +259,7 @@ writeDataSetHelper(Group const& obj,
 
 template <typename Tdata, typename... Ts>
 inline Tdata
-readDataSetHelper(Group const& obj, String const& name) noexcept(false)
+readDataSetHelper(Group const& obj, StringView const& name) noexcept(false)
 {
     auto dset = obj.openDataSet(name);
 
@@ -317,7 +270,7 @@ readDataSetHelper(Group const& obj, String const& name) noexcept(false)
     {
         throw DataSetException{
             GENH5_MAKE_EXECEPTION_STR() "Failed to read data from dataset '" +
-            name.toStdString() + '\''
+            name.get() + '\''
         };
     }
 
@@ -329,7 +282,7 @@ readDataSetHelper(Group const& obj, String const& name) noexcept(false)
 template <typename Container, typename if_container,
           traits::if_has_not_template_type<Container>>
 inline DataSet
-Group::writeDataSet(String const& name,
+Group::writeDataSet(StringView const& name,
                     Container&& data) const noexcept(false)
 {
     return details::writeDataSetHelper(
@@ -338,15 +291,15 @@ Group::writeDataSet(String const& name,
 
 template <typename T>
 inline DataSet
-Group::writeDataSet(String const& name,
-                    details::AbstractData<T> const& data) const noexcept(false)
+Group::writeDataSet(StringView const& name,
+                    GenH5::AbstractData<T> const& data) const noexcept(false)
 {
     return details::writeDataSetHelper(*this, name, data);
 }
 
 template <typename Container, traits::if_has_not_template_type<Container>>
 inline DataSet
-Group::writeDataSet0D(String const& name,
+Group::writeDataSet0D(StringView const& name,
                       Container&& data) const noexcept(false)
 {
     return details::writeDataSetHelper(
@@ -355,14 +308,14 @@ Group::writeDataSet0D(String const& name,
 
 template <typename T1, typename... Ts>
 inline Data<T1, Ts...>
-Group::readDataSet(String const& name) const noexcept(false)
+Group::readDataSet(StringView const& name) const noexcept(false)
 {
     return details::readDataSetHelper<Data<T1, Ts...>>(*this, name);
 }
 
 template <typename T1, typename... Ts>
 inline Data0D<T1, Ts...>
-Group::readDataSet0D(String const& name) const noexcept(false)
+Group::readDataSet0D(StringView const& name) const noexcept(false)
 {
     return details::readDataSetHelper<Data0D<T1, Ts...>>(*this, name);
 }

@@ -30,15 +30,15 @@ protected:
                           GenH5::Create);
         ASSERT_TRUE(file.isValid());
 
-        group = file.root().createGroup(QByteArrayLiteral("group"));
+        group = file.root().createGroup("group");
         ASSERT_TRUE(group.isValid());
 
-        dataset = group.createDataSet(QByteArrayLiteral("dataset"),
+        dataset = group.createDataSet("dataset",
                                       GenH5::dataType<int>(),
                                       GenH5::DataSpace::Scalar);
         ASSERT_TRUE(dataset.isValid());
 
-        attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
+        attribute = dataset.createAttribute("attribute",
                                             GenH5::dataType<int>(),
                                             GenH5::DataSpace::Scalar);
         ASSERT_TRUE(attribute.isValid());

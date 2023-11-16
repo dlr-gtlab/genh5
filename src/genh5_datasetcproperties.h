@@ -11,6 +11,7 @@
 
 #include "genh5_idcomponent.h"
 #include "genh5_object.h"
+#include "genh5_typedefs.h"
 
 namespace GenH5
 {

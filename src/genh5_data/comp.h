@@ -24,7 +24,7 @@ inline void
 pushBackHelper(Tdata& data, Tbuffer& buffer, Lambda&& lambda, Args&&... argsIn)
 {
     auto args = std::make_tuple(&argsIn...);
-    auto size = static_cast<int>(get<0>(args)->size());
+    auto size = numeric_cast<size_t>(get<0>(args)->size());
 
     mpl::static_for<sizeof...(Args)>([&](auto const idx){
         if (size != get<idx>(args)->size())
@@ -41,11 +41,12 @@ pushBackHelper(Tdata& data, Tbuffer& buffer, Lambda&& lambda, Args&&... argsIn)
     data.reserve(size);
     buffer.reserve(size);
 
-    for (int i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         // *(std::cbegin(...)+i) same as [i] but also works for init_lists
-        data.append(lambda(std::make_tuple(*(std::cbegin(argsIn)+i)...),
-                           buffer.get()));
+        data.push_back(lambda(std::make_tuple(
+                                  *(std::next(std::cbegin(argsIn), i))...
+                              ), buffer.get()));
     }
 }
 
@@ -121,7 +122,7 @@ public:
                                      conversion_t<RComp<Ts...>>> = true>
     void push_back(Args&&... args) noexcept(false)
     {
-        base_class::m_data.append(
+        base_class::m_data.push_back(
                     reverseComp(
                         std::make_tuple(std::forward<Args>(args)...)));
     }
@@ -137,7 +138,7 @@ public:
     {
         using GenH5::convert; // ADL
 
-        base_class::m_data.append(
+        base_class::m_data.push_back(
                     convert(std::make_tuple(std::forward<Args>(args)...),
                             base_class::m_buffer.get()));
     }
@@ -220,6 +221,7 @@ public:
         auto containers = std::make_tuple(&containersIn...);
 
         mpl::static_for<sizeof...(Ts)>([&](auto const idx){
+            // TODO: cast to size_type of container
             get<idx>(containers)->reserve(base_class::size());
         });
 
@@ -249,6 +251,7 @@ public:
 
         using T = traits::value_t<Container>;
         Container c;
+        // TODO: add cast to size_type of container
         c.reserve(base_class::size());
         std::transform(std::cbegin(base_class::m_data),
                        std::cend(base_class::m_data),

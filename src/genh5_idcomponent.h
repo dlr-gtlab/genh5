@@ -49,7 +49,7 @@ GENH5_EXPORT bool isValidId(hid_t id);
 GENH5_EXPORT H5I_type_t classType(hid_t id);
 
 template <H5I_type_t Type>
-class IdComponent
+class GENH5_EXPORT IdComponent
 {
 public:
 

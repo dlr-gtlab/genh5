@@ -7,6 +7,8 @@
  */
 
 #include "gtest/gtest.h"
+
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_dataset.h"
 #include "genh5_file.h"
 #include "genh5_group.h"
@@ -36,7 +38,7 @@ protected:
         root = file.root();
         ASSERT_TRUE(root.isValid());
 
-        dataset = root.createDataSet(QByteArrayLiteral("test"),
+        dataset = root.createDataSet("test",
                                      intData.dataType(),
                                      intData.dataSpace());
         ASSERT_TRUE(dataset.isValid());
@@ -61,8 +63,7 @@ protected:
         GenH5::Data<T> data{values};
 
         // create new dataset
-        auto dset = root.createDataSet(QByteArrayLiteral("test_") +
-                                       QByteArray(name),
+        auto dset = root.createDataSet(GenH5::String{"test_"} + name,
                                        data.dataType(),
                                        data.dataSpace());
         EXPECT_TRUE(dset.dataSpace() == data.dataSpace());
@@ -205,8 +206,8 @@ TEST_F(TestH5AbstractDataSet, writeNull)
 TEST_F(TestH5AbstractDataSet, writeTooFewElements)
 {
     // when data.length != dataspace.sum
-    // to few elements
-    QVector<int> dataShort{intData.mid(0, 3)};
+    // too few elements
+    GenH5::Vector<int> dataShort = intData.mid(0, 3);
     // writing less than needed is not allowed
     EXPECT_FALSE(dataset.write(dataShort));
 }
@@ -214,15 +215,15 @@ TEST_F(TestH5AbstractDataSet, writeTooFewElements)
 TEST_F(TestH5AbstractDataSet, writeTooManyElements)
 {
     // when data.length != dataspace.sum
-    // to many elements
-    GenH5::Vector<int> dataLong = intData.mid(0, 3) + intData;
+    // too many elements
+    GenH5::Vector<int> dataLong = concat(intData.mid(0, 3), intData.raw());
 
     // writing more than needed is technically allowed
     EXPECT_TRUE(dataset.write(dataLong));
     // but only the first entries were actually written
     GenH5::Data<int> readData;
     EXPECT_TRUE(dataset.read(readData));
-    EXPECT_EQ(readData.values(), dataLong.mid(0, intData.length()));
+    EXPECT_EQ(readData.values(), mid(dataLong, 0, intData.length()));
 }
 
 TEST_F(TestH5AbstractDataSet, RWsimple1D)
@@ -317,7 +318,7 @@ TEST_F(TestH5AbstractDataSet, RWcomplex)
     auto strData = data2.getValues<0, QStringList>();
     auto ptsData = data2.getValues<1>();
 
-    ASSERT_EQ(ptsData, points);
+    ASSERT_EQ(ptsData, GenH5::Vector<GenH5::Vector<QPointF>>(points));
     ASSERT_EQ(strData, origStrs);
 }
 
@@ -365,7 +366,7 @@ TEST_F(TestH5AbstractDataSet, RWcompoundArrayAsSimple)
 
     GenH5::CompData<QString[3]> data{d1, d2, d3, d4};
 
-    ASSERT_TRUE(data.dataType().compoundMembers().first().type.isArray());
+    ASSERT_TRUE(data.dataType().compoundMembers().front().type.isArray());
 
     auto dset = root.createDataSet("comp_string[3]",
                                    data.dataType(),

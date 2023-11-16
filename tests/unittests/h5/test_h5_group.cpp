@@ -7,6 +7,8 @@
  */
 
 #include "gtest/gtest.h"
+
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_node.h"
 #include "genh5_file.h"
 #include "genh5_group.h"
@@ -58,12 +60,12 @@ TEST_F(TestH5Group, invalid)
 TEST_F(TestH5Group, deleteLink)
 {
     // create valid attribute
-    auto group = file.root().createGroup(QByteArrayLiteral("test"));
-    EXPECT_TRUE(file.root().exists(QByteArrayLiteral("test")));
+    auto group = file.root().createGroup("test");
+    EXPECT_TRUE(file.root().exists("test"));
 
     // delete group
     EXPECT_NO_THROW(group.deleteLink());
-    EXPECT_FALSE(file.root().exists(QByteArrayLiteral("test")));
+    EXPECT_FALSE(file.root().exists("test"));
 }
 
 TEST_F(TestH5Group, deleteLinkNested)

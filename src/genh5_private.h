@@ -10,10 +10,8 @@
 #define GENH5_PRIVATE_H
 
 #include "genh5_group.h"
-#include "genh5_typetraits.h"
 
 #include "H5Ipublic.h"
-#include "H5Ppublic.h"
 #include "H5Apublic.h"
 
 #include <utility>
@@ -44,26 +42,25 @@ template <typename Functor>
 inline GenH5::String
 getName(hid_t id, Functor const& getNameFunctor)
 {
-    if (!GenH5::isValidId(id))
-    {
-        return {};
-    }
+    if (!GenH5::isValidId(id)) return {};
 
-    String buffer{32, ' '};
-    size_t bufferLen = static_cast<size_t>(buffer.size());
+    std::vector<char> buffer(32);
+    std::fill(std::begin(buffer), std::end(buffer), '\0');
+    size_t bufferLen = buffer.size();
 
     auto acutalLen =
-            static_cast<size_t>(getNameFunctor(id, bufferLen, buffer.data()));
+        numeric_cast<size_t>(getNameFunctor(id, bufferLen, buffer.data()));
 
     if (acutalLen > bufferLen)
     {
         bufferLen = acutalLen + 1;
-        buffer.resize(static_cast<int>(bufferLen));
+        buffer.resize(bufferLen);
         getNameFunctor(id, bufferLen, buffer.data());
     }
 
     // remove of excess whitespaces and trailing '\0'
-    return buffer.trimmed().chopped(1);
+    auto iter = std::find(std::begin(buffer), std::end(buffer), '\0');
+    return std::string{std::begin(buffer), iter};
 }
 
 } // namespace details
@@ -82,7 +79,7 @@ inline NodeInfo getNodeInfo(hid_t groupId, char const* nodeName,
     H5Oclose(id);
 
     NodeInfo info;
-    info.path = QByteArray{nodeName};
+    info.path = String{nodeName};
     info.type = type;
     info.corder = nodeInfo->corder_valid ? nodeInfo->corder : -1;
     info.token = nodeInfo->u.token;
@@ -113,7 +110,7 @@ accumulateNodes(hid_t groupId, char const* nodeName,
     {
         return 0;
     }
-    *data->nodes << std::move(info);
+    data->nodes->push_back(std::move(info));
     return 0;
 }
 
@@ -153,7 +150,7 @@ getAttributeInfo(char const* attrName, H5A_info_t const* attrInfo)
     assert(attrInfo);
 
     AttributeInfo info;
-    info.name = QByteArray{attrName};
+    info.name = String{attrName};
     info.corder = attrInfo->corder_valid ? attrInfo->corder : -1;
     return info;
 }
@@ -165,7 +162,7 @@ accumulateAttributes(hid_t /*locId*/, char const* attrName,
     assert(dataPtr);
 
     auto* nodes = static_cast<Vector<AttributeInfo>*>(dataPtr);
-    *nodes << getAttributeInfo(attrName, attrInfo);
+    nodes->push_back(getAttributeInfo(attrName, attrInfo));
     return 0;
 }
 

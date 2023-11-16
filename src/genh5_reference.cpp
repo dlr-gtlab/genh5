@@ -11,6 +11,7 @@
 #include "genh5_attribute.h"
 #include "genh5_group.h"
 #include "genh5_dataset.h"
+#include "genh5_finally.h"
 
 #include "H5Apublic.h"
 #include "H5Ppublic.h"
@@ -26,7 +27,7 @@ GenH5::Reference::Reference(Alignment data) noexcept
     m_ref.u.align = data;
 }
 
-GenH5::Reference::Reference(QByteArray buffer)  noexcept(false)
+GenH5::Reference::Reference(String buffer)  noexcept(false)
 {
     if (buffer.size() != bufferSize)
     {
@@ -52,15 +53,18 @@ GenH5::Reference::Reference(Location const& location) noexcept(false)
         };
     }
 
+    auto const& path = location.path();
+
     herr_t error;
     if (classType(location.id()) == H5I_ATTR)
     {
-        error = H5Rcreate_attr(location.file().id(), location.path(),
-                               location.name(), H5P_DEFAULT, &m_ref);
+        auto const& name = location.name();
+        error = H5Rcreate_attr(location.file().id(), path.data(), name.data(),
+                               H5P_DEFAULT, &m_ref);
     }
     else
     {
-        error = H5Rcreate_object(location.file().id(), location.path(),
+        error = H5Rcreate_object(location.file().id(), path.data(),
                                  H5P_DEFAULT, &m_ref);
     }
 
@@ -68,7 +72,7 @@ GenH5::Reference::Reference(Location const& location) noexcept(false)
     {
         throw ReferenceException{
             GENH5_MAKE_EXECEPTION_STR() "Referencing location '" +
-            location.name().toStdString() + "' failed"
+            location.path() + "' failed"
         };
     }
 
@@ -86,7 +90,7 @@ GenH5::Reference::isValid() const noexcept
     return alignment() > 0;
 }
 
-QByteArray
+GenH5::String
 GenH5::Reference::buffer() const noexcept
 {
     return {reinterpret_cast<char const*>(m_ref.u.__data), bufferSize};
@@ -113,7 +117,6 @@ GenH5::Reference::toGroup(File const& file) const noexcept(false)
     }
 
     auto cleanup = finally(H5Oclose, group);
-    Q_UNUSED(cleanup)
 
     // access shared file in root group as the local one may not be the same
     return Group{group};
@@ -134,17 +137,14 @@ GenH5::Reference::toDataSet(File const& file) const noexcept(false)
     }
 
     auto cleanup = finally(H5Oclose, dset);
-    Q_UNUSED(cleanup)
 
     // access shared file in root group as the local one may not be the same
     return DataSet{dset};
 }
 
 GenH5::Attribute
-GenH5::Reference::toAttribute(File const& file) const noexcept(false)
+GenH5::Reference::toAttribute(File const&) const noexcept(false)
 {
-    Q_UNUSED(file)
-
     auto ref = m_ref;
     hid_t attr = H5Ropen_attr(&ref, H5P_DEFAULT, H5P_DEFAULT);
 //    hid_t attr = H5Rdereference(file.root().id(), H5P_DEFAULT, H5R_OBJECT, &m_ref);
@@ -156,7 +156,6 @@ GenH5::Reference::toAttribute(File const& file) const noexcept(false)
     }
 
     auto cleanup = finally(H5Aclose, attr);
-    Q_UNUSED(cleanup)
 
     // access shared file in root group as the local one may not be the same
     return Attribute{attr};

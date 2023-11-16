@@ -9,10 +9,7 @@
 #ifndef GENH5_CONVERSION_GENERIC_H
 #define GENH5_CONVERSION_GENERIC_H
 
-#include "genh5_conversion/type.h"
 #include "genh5_conversion/buffer.h"
-#include "genh5_typetraits.h"
-#include "genh5_utils.h"
 
 namespace GenH5
 {
@@ -86,7 +83,13 @@ convert(VarLen<T> const& values, buffer_t<VarLen<T>>& buffer)
     buffer.push_back({});
     details::hvl_buffer<T>& hvlB = buffer.back();
 
-    hvlB.data.reserve(values.size());
+    auto size = values.size();
+    // reserve enough memory
+    hvlB.data.reserve(size);
+    details::applyToBuffer<T>(hvlB.buffer, [=](auto& buffer){
+        buffer.reserve(buffer.size() + size);
+    });
+
     for (auto const& val : values)
     {
         hvlB.data.push_back(convert(val, hvlB.buffer));
@@ -138,7 +141,7 @@ convertTo(hvl_t hvl)
 
     if (hvl.p)
     {
-        conv.reserve(static_cast<int>(hvl.len));
+        conv.reserve(hvl.len);
         for (size_t i = 0; i < hvl.len; ++i)
         {
             // interpret buffer as the conversion type (eg. char* for str types)

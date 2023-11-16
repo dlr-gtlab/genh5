@@ -10,7 +10,6 @@
 #define GENH5_LOGGING_H
 
 #include "genh5_exports.h"
-#include "genh5_typedefs.h"
 
 #include <functional>
 #include <sstream>
@@ -45,12 +44,6 @@ public:
     ErrStream& operator<<(T const&t )
     {
         m_stream << t;
-        return *this;
-    }
-
-    ErrStream& operator<<(String const& t)
-    {
-        m_stream << t.constData();
         return *this;
     }
 

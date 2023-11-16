@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_data.h"
 
 #include "testhelper.h"
@@ -101,10 +102,9 @@ TEST_F(TestH5Data, sameConversionType)
     d.push_back(nativeContainer);
     EXPECT_EQ(d.values(), d1.values());
     d.push_back(15);
-    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values()));
     d.push_back(list);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values()));
     d.push_back(size_t{52});
 
     // test converions
@@ -159,16 +159,13 @@ TEST_F(TestH5Data, differentConversionType)
     d.push_back(nativeContainer);
     EXPECT_EQ(d.values(), d1.values());
     d.push_back(val1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values()));
     d.push_back(list);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values()));
     d.push_back(str);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values() + d5.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values(), d5.values()));
     d.push_back(initList);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values() + d5.values() + d6.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values(), d5.values(), d6.values()));
 
     // test converions
     conversion<QString>(d);
@@ -246,13 +243,11 @@ TEST_F(TestH5Data, array_sameConversionType)
     d.push_back(nativeContainer);
     EXPECT_EQ(d.values(), d1.values());
     d.push_back(val1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values()));
     d.push_back(list);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values()));
     d.push_back(cval1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values() + d5.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values(), d5.values()));
 
     // test converions
     conversion<ArrayT>(d);
@@ -336,16 +331,13 @@ TEST_F(TestH5Data, array_differentConversionType)
     d.push_back(nativeContainer);
     EXPECT_EQ(d.values(), d1.values());
     d.push_back(val1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values()));
     d.push_back(list);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values()));
     d.push_back(cval1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values() + d5.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values(), d5.values()));
     d.push_back(initList);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values() + d5.values() + d6.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values(), d5.values(), d6.values()));
 
     // test converions
     conversion<ArrayT>(d);
@@ -413,13 +405,11 @@ TEST_F(TestH5Data, varlen_differentConversionType)
     d.push_back(nativeContainer);
     EXPECT_EQ(d.values(), d1.values());
     d.push_back(hvl1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values()));
     d.push_back(list);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values()));
     d.push_back(val1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values() + d5.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values(), d5.values()));
 
     // test converions
     conversion<VarLenT>(d);
@@ -525,13 +515,11 @@ TEST_F(TestH5Data, compound_differentConversionType)
     d.push_back(nativeContainer);
     EXPECT_EQ(d.values(), d1.values());
     d.push_back(conVal1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values()));
     d.push_back(list);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values()));
     d.push_back(val1);
-    EXPECT_EQ(d.values(), d1.values() + d2.values() +
-              d4.values() + d5.values());
+    EXPECT_EQ(d.values(), concat(d1.values(), d2.values(), d4.values(), d5.values()));
 
     // test converions
     conversion<CompT>(d);
@@ -811,8 +799,8 @@ TEST_F(TestH5Data, compoundValueIdxTest)
 
     GenH5::CompData<QByteArray, int> data{bas, ints};
     data.push_back(bas, ints);
-    data.push_back(bas.first(), ints.first());
-    data.push_back(bas.first().data(), ints.first());
+    data.push_back(bas.front(), ints.front());
+    data.push_back(bas.front().data(), ints.front());
 
     ASSERT_NO_THROW(data.setDimensions(dims));
     ASSERT_EQ(data.dataSpace().dimensions(), dims);
@@ -1073,7 +1061,7 @@ TEST_F(TestH5Data, buffer_staticReserve)
 
     // buffer should have cleared
     StaticBuffer<QString> buffer;
-    EXPECT_EQ(buffer().capacity(), 0);
+    EXPECT_EQ(buffer().size(), 0);
 }
 
 TEST_F(TestH5Data, buffer_clearing)
@@ -1151,16 +1139,16 @@ TEST_F(TestH5Data, buffer_constData)
     using GenH5::details::StaticBuffer;
 
     StaticBuffer<QString> buffer;
-    buffer().append(QString{"test"}.toUtf8());
+    buffer().push_back("test");
 
-    auto firstA = buffer().first().data();
-    auto cdataA = buffer().constData();
+    auto firstA = buffer().front().data();
+    auto cdataA = qAsConst(buffer()).data();
 
     // reallocate buffer
     buffer().resize(1000);
 
-    auto firstB = buffer().first().data();
-    auto cdataB = buffer().constData();
+    auto firstB = buffer().front().data();
+    auto cdataB = qAsConst(buffer()).data();
 
     GenH5::convert(QString{"wda"}, buffer);
 
@@ -1170,26 +1158,100 @@ TEST_F(TestH5Data, buffer_constData)
     EXPECT_EQ(firstA, firstB);
 }
 
-#if 0
+#if 1
+
+#include "genh5_finally.h"
+
+template <typename T>
+struct BUFFER
+{
+    ~BUFFER() { delete[] m_first; }
+
+    BUFFER& push_back(T t)
+    {
+        size_t rem = remaining();
+        if (rem == 0)
+        {
+            size_t size = 1.5 * capacity() + 1;
+            reserve(size);
+        }
+
+        *(m_last - 1) = std::move(t);
+        m_last += 1;
+        return *this;
+    }
+
+    void reserve(size_t size)
+    {
+        if (capacity() >= size) return;
+
+
+        auto oldFirst = m_first;
+        auto oldSize = this->size();
+
+        auto cleanup = GenH5::finally([=](){ delete[] oldFirst; });
+
+        m_first = new T[size]{};
+        m_capacity = m_first + size;
+
+        if (oldFirst)
+        {
+            for (size_t i = 0; i < oldSize; ++i)
+            {
+                m_first[i] = std::move(oldFirst[i]);
+            }
+        }
+        m_last = m_first + oldSize + 1;
+    }
+
+    size_t size() const { return _lastElement() - m_first; }
+    bool empty() const { return size() == 0; }
+    size_t capacity() const { return m_capacity - m_first; }
+    size_t remaining() const { return m_capacity - _lastElement(); }
+
+    T const& front() const { assert(m_first); return *m_first; }
+    T const& back() const { assert(_lastElement()); return *_lastElement(); }
+    T const* data() const { assert(m_first); return m_first; }
+
+    T* m_first{};
+    T* m_last{};
+    T* m_capacity{};
+
+private:
+
+    inline constexpr T* _lastElement() const noexcept {
+        return m_last == nullptr ? nullptr : m_last-1;
+    }
+};
+
 // using std vectors will invalidate char*
 TEST_F(TestH5Data, buffer_constData2)
 {
-    using GenH5::details::StaticBuffer;
+    std::vector<GenH5::ByteArray> buffer;
+    qDebug() << "1:" << buffer.size() << buffer.capacity(); // << buffer.remaining();
 
-    std::vector<std::string> buffer;
     buffer.push_back("test");
 
+    qDebug() << "2:" << buffer.size() << buffer.capacity(); // << buffer.remaining();
 
     auto firstA = buffer.front().data();
     auto cdataA = buffer.data();
 
+    qDebug() << (void*)firstA;
+    qDebug() << cdataA;
+
     // reallocate buffer
-    buffer.resize(1000);
+    buffer.reserve(1000);
+    qDebug() << "4:" << buffer.size() << buffer.capacity(); // << buffer.remaining();
 
     auto firstB = buffer.front().data();
     auto cdataB = buffer.data();
 
+    qDebug() << (void*)firstB;
+    qDebug() << cdataB;
+
     buffer.push_back("wda");
+    qDebug() << "5:" << buffer.size() << buffer.capacity(); // << buffer.remaining();
 
     // data pointers should have changed
     EXPECT_NE(cdataA, cdataB);

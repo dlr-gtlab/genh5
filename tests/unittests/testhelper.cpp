@@ -21,7 +21,7 @@ TestHelper::instance()
     return &instance;
 }
 
-QByteArray
+GenH5::String
 TestHelper::newFilePath() const
 {
     QDir dir(tempPath());
@@ -32,8 +32,8 @@ TestHelper::newFilePath() const
         return {};
     }
 
-    return dir.absoluteFilePath(QUuid::createUuid().toString() +
-                                GenH5::File::dotFileSuffix()).toUtf8();
+    return dir.absoluteFilePath(QUuid::createUuid().toString() + ".h5")
+        .toStdString();
 }
 
 QString
@@ -68,15 +68,15 @@ TestHelper::randomStringList(int length) const
     return retVal;
 }
 
-QVector<QByteArray>
+GenH5::Vector<QByteArray>
 TestHelper::randomByteArrays(int length) const
 {
-    QVector<QByteArray> retVal;
+    GenH5::Vector<QByteArray> retVal;
     retVal.reserve(length);
 
     for (int i = 0; i < length; ++i)
     {
-        retVal.append(QUuid::createUuid().toString().toUtf8());
+        retVal.push_back(QUuid::createUuid().toString().toUtf8());
     }
 
     return retVal;

@@ -141,9 +141,10 @@ using if_greater_than = std::enable_if_t<(A > B), bool>;
 // used to enable template for signed integral types
 template <typename Tint>
 using if_signed_integral =
-            std::enable_if_t<std::is_integral<Tint>::value &&
-                             std::is_signed<Tint>::value, bool>;
+    std::enable_if_t<std::is_integral<Tint>::value &&
+                         std::is_signed<Tint>::value, bool>;
 
+// used to check if template is not a pointer type
 template <typename T>
 using if_not_pointer =
             std::enable_if_t<!std::is_pointer<T>::value, bool>;
@@ -153,10 +154,15 @@ template <typename T>
 using if_has_not_template_type =
             std::enable_if_t<!has_template_type<decay_crv_t<T>>::value, bool>;
 
+// used to check if T is convertible to U
+template <typename T, typename U>
+using if_convertible =
+    std::enable_if_t<std::is_convertible<T, U>::value, bool>;
+
 // used to check if T is not convertible to U
 template <typename T, typename U>
 using if_not_convertible =
-            std::enable_if_t<!std::is_convertible<T, U>::value, bool>;
+    std::enable_if_t<!std::is_convertible<T, U>::value, bool>;
 
 
 } // namespace traits

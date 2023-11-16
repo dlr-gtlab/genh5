@@ -24,9 +24,11 @@ protected:
     virtual void SetUp() override
     {
         filePath = h5TestHelper->newFilePath();
+        qfilePath = QString::fromStdString(filePath);
     }
 
-    QByteArray filePath;
+    GenH5::String filePath;
+    QString qfilePath;
 };
 
 TEST_F(TestH5File, isValid)
@@ -63,16 +65,16 @@ TEST_F(TestH5File, filePath)
 {
     GenH5::File file;
     // default file object should not have a filepath or filename associated
-    EXPECT_EQ(file.fileName(), QString{});
-    EXPECT_EQ(file.fileBaseName(), QString{});
-    EXPECT_EQ(file.filePath(), QByteArray{});
+    EXPECT_EQ(file.fileName(), GenH5::String{});
+    EXPECT_EQ(file.fileBaseName(), GenH5::String{});
+    EXPECT_EQ(file.filePath(), GenH5::String{});
 
     // a created file should have the valid filename and filepath associated
-    auto fileName = filePath.split('/').last();
+    auto fileName = qfilePath.split('/').last();
     file = GenH5::File(filePath, GenH5::Create);
     EXPECT_EQ(file.filePath(), filePath);
-    EXPECT_EQ(file.fileName(), fileName);
-    EXPECT_EQ(file.fileBaseName() + GenH5::File::dotFileSuffix(), fileName);
+    EXPECT_EQ(file.fileName(), fileName.toStdString());
+    EXPECT_EQ(file.fileBaseName() + ".h5", fileName.toStdString());
 }
 
 TEST_F(TestH5File, creation)
@@ -85,53 +87,47 @@ TEST_F(TestH5File, creation)
     // Open -> fail
     EXPECT_THROW(GenH5::File(filePath, GenH5::Open),
                  GenH5::FileException);
-    ASSERT_FALSE(QFileInfo::exists(filePath));
+    ASSERT_FALSE(QFileInfo::exists(qfilePath));
 
     EXPECT_THROW(GenH5::File(filePath, { GenH5::Open | GenH5::ReadOnly }),
                  GenH5::FileException);
-    ASSERT_FALSE(QFileInfo::exists(filePath));
+    ASSERT_FALSE(QFileInfo::exists(qfilePath));
 
     qDebug() << "### EXPECTING ERROR: unable to open file";
     EXPECT_THROW(GenH5::File(filePath, { GenH5::Open | GenH5::ReadWrite }),
                  GenH5::FileException);
-    ASSERT_FALSE(QFileInfo::exists(filePath));
+    ASSERT_FALSE(QFileInfo::exists(qfilePath));
     qDebug() << "### END";
 
     // create new file
     file = GenH5::File(filePath, GenH5::Create);
     EXPECT_TRUE(file.isValid());
-    EXPECT_TRUE(QFileInfo::exists(filePath));
+    EXPECT_TRUE(QFileInfo::exists(qfilePath));
 
     EXPECT_THROW(GenH5::File(filePath, GenH5::Create),
                  GenH5::FileException);
 
-    EXPECT_TRUE(QFileInfo::exists(filePath));
+    EXPECT_TRUE(QFileInfo::exists(qfilePath));
     EXPECT_NO_THROW(file.close()); // clear file
 
     // file will be overwritten
     file = GenH5::File(filePath, GenH5::Overwrite);
     EXPECT_TRUE(file.isValid());
-    EXPECT_TRUE(QFileInfo::exists(filePath));
+    EXPECT_TRUE(QFileInfo::exists(qfilePath));
 
     // file must be closed
     EXPECT_NO_THROW(file.close());
     EXPECT_FALSE(file.isValid());
 
     QDir dir{h5TestHelper->tempPath()};
-    ASSERT_TRUE(dir.remove(filePath));
+    ASSERT_TRUE(dir.remove(qfilePath));
 
     // file does not exist -> fail
     EXPECT_THROW(GenH5::File(filePath, GenH5::Open),
                  GenH5::FileException);
-    ASSERT_FALSE(QFileInfo::exists(filePath));
+    ASSERT_FALSE(QFileInfo::exists(qfilePath));
 
     file = GenH5::File(filePath, { GenH5::Open | GenH5::Create });
     ASSERT_TRUE(file.isValid());
-    EXPECT_TRUE(QFileInfo::exists(filePath));
-}
-
-TEST_F(TestH5File, fileSuffix)
-{
-    EXPECT_FALSE(GenH5::File::fileSuffix().isEmpty());
-    EXPECT_FALSE(GenH5::File::dotFileSuffix().isEmpty());
+    EXPECT_TRUE(QFileInfo::exists(qfilePath));
 }

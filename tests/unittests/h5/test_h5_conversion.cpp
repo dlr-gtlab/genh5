@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#define GENH5_USE_QT_BINDINGS
 #include "genh5_conversion.h"
 
 #include <QPoint>
@@ -98,11 +99,11 @@ TEST_F(TestConversion, bindings_conversionTypes)
 TEST_F(TestConversion, bindings_bufferTypes)
 {
     /** STL **/
-    assertBufferType<std::string,QByteArray>();
+    assertBufferType<std::string, GenH5::ByteArray>();
 
     /** Qt **/
-    assertBufferType<QString, QByteArray>();
-    assertBufferType<QByteArray, QByteArray>();
+    assertBufferType<QString, GenH5::ByteArray>();
+    assertBufferType<QByteArray, GenH5::ByteArray>();
 }
 
 // QPOINT
@@ -151,7 +152,7 @@ TEST_F(TestConversion, array_bufferTypes)
 
     assertBufferType<Array<int, 12>, int>();
     assertBufferType<Array<double, 42>, double>();
-    assertBufferType<Array<QString, 42>, QByteArray>();
+    assertBufferType<Array<QString, 42>, GenH5::ByteArray>();
 
     assertBufferType<size_t[25], size_t>();
     assertBufferType<char[25], char>();
@@ -207,7 +208,7 @@ TEST_F(TestConversion, compound_bufferTypes)
     assertCompBufferType<Comp<double>,
                          Comp<Vector<double>>>();
     assertCompBufferType<Comp<QString, QPoint>,
-                         Comp<Vector<QByteArray>, Vector<QPoint>>>();
+                         Comp<Vector<GenH5::ByteArray>, Vector<QPoint>>>();
     assertCompBufferType<Comp<int, double, size_t, QPoint>,
                          Comp<Vector<int>, Vector<double>,
                               Vector<size_t>, Vector<QPoint>>>();
@@ -254,7 +255,7 @@ TEST_F(TestConversion, complex_bufferTypes)
     assertCompBufferType<Comp<Array<size_t, 1>, Comp<VarLen<int>, QString>>,
                          Comp<Vector<size_t>,
                               RComp<Vector<GenH5::details::hvl_buffer<int>>,
-                                    Vector<QByteArray>>
+                                    Vector<GenH5::ByteArray>>
                               >
                           >();
 
@@ -264,7 +265,7 @@ TEST_F(TestConversion, complex_bufferTypes)
                      GenH5::details::hvl_buffer<Comp<double, QPoint>>>();
 
     assertBufferType<Array<Comp<QString, GenH5::Version>, 42>,
-                     RComp<Vector<QByteArray>, Vector<GenH5::Version>>>();
+                     RComp<Vector<GenH5::ByteArray>, Vector<GenH5::Version>>>();
 
     assertBufferType<VarLen<int>[5],
                      GenH5::details::hvl_buffer<int>>();
@@ -304,19 +305,20 @@ TEST_F(TestConversion, convertStrings)
     using GenH5::convertTo;
 
     // buffer for strings
-    GenH5::Vector<QByteArray> buffer;
+    GenH5::Vector<GenH5::ByteArray> buffer;
+    buffer.reserve(3);
 
     /** QT **/
     char const* c1_ = "hello world";
     char* c1 = convert(QByteArray{"hello world"}, buffer);
-    EXPECT_EQ(buffer.length(), 1);
+    EXPECT_EQ(buffer.size(), 1);
     EXPECT_STREQ(c1, c1_);
 
     EXPECT_EQ(QByteArray{c1}, convertTo<QByteArray>(c1));
 
     char const* c2_ = "Test";
     char* c2 = convert(QString{"Test"}, buffer);
-    EXPECT_EQ(buffer.length(), 2);
+    EXPECT_EQ(buffer.size(), 2);
     EXPECT_STREQ(c2, c2_);
 
     EXPECT_EQ(QString{c2}, convertTo<QString>(c2));
@@ -324,7 +326,7 @@ TEST_F(TestConversion, convertStrings)
     /** STL **/
     char const* c3_ = "Fancy String";
     char* c3 = convert(std::string{"Fancy String"}, buffer);
-    EXPECT_EQ(buffer.length(), 3);
+    EXPECT_EQ(buffer.size(), 3);
     EXPECT_STREQ(c3, c3_);
 
     EXPECT_EQ(std::string{c3}, convertTo<std::string>(c3));
@@ -358,6 +360,7 @@ TEST_F(TestConversion, convertArray)
     ArrayT arrayOrig{"Hello World", "ABC", "Fancy String", "DEF"};
 
     GenH5::buffer_t<ArrayT> buffer;
+    buffer.reserve(4);
     Array<char*, 4> res = convert(arrayOrig, buffer);
 
     EXPECT_EQ(res.size(), arrayOrig.size());
@@ -377,6 +380,7 @@ TEST_F(TestConversion, convertCArray)
     ArrayT arrayOrig{"Hello World", "ABC", "Fancy String", "DEF"};
 
     GenH5::buffer_t<ArrayT> buffer;
+    buffer.reserve(5);
     Array<char*, 5> res = convert(arrayOrig, buffer);
 
     EXPECT_EQ(res.size(), 5);
@@ -425,6 +429,7 @@ TEST_F(TestConversion, convertArrayComp)
     };
 
     GenH5::buffer_t<CompT[4]> buffer;
+    std::get<1>(buffer).reserve(4);
     Array<Comp<double, char*>, 4> res = convert(arrayOrig, buffer);
 
     ArrayT array = convertTo<ArrayT>(res);
@@ -445,7 +450,7 @@ TEST_F(TestConversion, convertVarLen)
     hvl_t res = convert(varlenOrig, buffer);
 
     ASSERT_EQ(buffer.size(), 1);
-    auto& first = buffer.first();
+    auto& first = buffer.front();
     EXPECT_EQ(res.p, first.data.data());
     EXPECT_EQ(res.len, first.data.size());
     EXPECT_EQ(res.len, varlenOrig.size());
@@ -471,7 +476,7 @@ TEST_F(TestConversion, convertVarLenCustom)
                    "Conversion type mismatch");
 
     ASSERT_EQ(buffer.size(), 1);
-    auto& first = buffer.first();
+    auto& first = buffer.front();
     EXPECT_EQ(res.p, first.data.data());
     EXPECT_EQ(res.len, first.data.size());
     EXPECT_EQ(res.len, varlenOrig.size());

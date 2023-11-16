@@ -23,13 +23,13 @@ namespace GenH5
  */
 enum FileAccessFlag
 {
-    Create = 1,
-    Open = 2,
-    Overwrite = 4,
-    ReadOnly = 8,
-    ReadWrite = 16
+    Create    = 1 << 0,
+    Open      = 1 << 1,
+    Overwrite = 1 << 2,
+    ReadOnly  = 1 << 3,
+    ReadWrite = 1 << 4,
 };
-Q_DECLARE_FLAGS(FileAccessFlags, FileAccessFlag)
+using FileAccessFlags = size_t;
 
 /**
  * @brief The File class
@@ -39,22 +39,11 @@ class GENH5_EXPORT File : public Object
 public:
 
     /**
-     * @brief A default hdf5 file suffix not including dot
-     * @return file suffix
-     */
-    static String fileSuffix() noexcept;
-    /**
-     * @brief same as fileSuffix including dot
-     * @return file suffix
-     */
-    static String dotFileSuffix() noexcept;
-
-    /**
      * @brief File
      */
     File();
     explicit File(hid_t id);
-    explicit File(String path, FileAccessFlags flags = ReadWrite);
+    explicit File(StringView const& path, FileAccessFlags flags = ReadWrite);
 
     /**
      * @brief id or handle of the hdf5 resource.

@@ -19,6 +19,11 @@ if (NOT TARGET gtest)
     include(AddGoogleTest)
 endif()
 
+# Get Qt5
+find_package(Qt5 COMPONENTS Core REQUIRED)
+
+set(CMAKE_CXX_STANDARD 14)
+
 add_executable(H5UnitTest
     h5/test_h5.cpp
     h5/test_h5_abstractdataset.cpp
@@ -47,6 +52,6 @@ add_executable(H5UnitTest
 
 target_include_directories(H5UnitTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(H5UnitTest PRIVATE GenH5 gtest hdf5_cpp-shared)
+target_link_libraries(H5UnitTest PRIVATE GenH5 gtest Qt5::Core hdf5_cpp-shared)
 
 add_test(NAME Unittests COMMAND H5UnitTest)

@@ -9,14 +9,11 @@
 #ifndef GENH5_DATA_BASE_H
 #define GENH5_DATA_BASE_H
 
+#include "genh5_conversion/defaults.h"
 #include "genh5_datatype.h"
 #include "genh5_dataspace.h"
-#include "genh5_conversion.h"
 
 namespace GenH5
-{
-
-namespace details
 {
 
 template<typename T>
@@ -32,7 +29,7 @@ public:
     AbstractData& operator=(AbstractData&&) = default;
 
     using template_type = T;
-    using size_type     = typename conversion_container_t<T>::size_type;
+    using size_type     = size_t;
 
     // only necessary for when creating compound types
     using compound_names = CompoundNames<traits::comp_size<T>::value>;
@@ -96,6 +93,13 @@ protected:
     // compound type names
     compound_names m_typeNames{};
 };
+
+namespace details
+{
+
+template <typename...T>
+using AbstractData [[deprecated("Use GenH5::AbstractData instead")]]
+                    = GenH5::AbstractData<T...>;
 
 } // namespace details
 
