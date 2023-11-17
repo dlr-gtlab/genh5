@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
+SPDX-License-Identifier: MPL-2.0+
+-->
+
 # Conversion System
 
 This library implements a flexible and generic way of mapping C++ types to HDF5 datatypes and 

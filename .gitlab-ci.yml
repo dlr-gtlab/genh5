@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MPL-2.0+
+# SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
 # Variables that are defined globally for the pipeline
 variables:
   PIPELINEVERSION: "2.1.0"
@@ -289,6 +292,19 @@ codingstyle:
 cppcheck:
   stage: codequality
   extends: .cppCheckReportTemplate
+
+check-license:
+   stage: codequality
+   tags: ["docker", "linux"]
+   extends: [".run-always"]
+   needs: []
+   image: at-twk-hal9000.intra.dlr.de:5000/dlr-at/buster-dev
+   before_script:
+    - python3 -m pip install reuse
+   script:
+    - reuse lint
+   variables:
+     GIT_SUBMODULE_STRATEGY: "none"
 
 pages:
   stage: badges

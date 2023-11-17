@@ -1,3 +1,9 @@
+/* 
+ * GenH5
+ * SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+ * SPDX-License-Identifier: MPL-2.0+
+ */
+
 #ifndef GENH5_CONVERSION_BINDINGS_H
 #define GENH5_CONVERSION_BINDINGS_H
 

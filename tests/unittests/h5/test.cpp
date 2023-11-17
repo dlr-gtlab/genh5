@@ -1,4 +1,8 @@
-
+/* GenH5
+ * SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+ * SPDX-License-Identifier: MPL-2.0+
+ */
+ 
 #include "gtest/gtest.h"
 #include "testhelper.h"
 

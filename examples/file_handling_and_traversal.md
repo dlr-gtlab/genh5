@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+
+SPDX-License-Identifier: MPL-2.0+
+-->
+
 # File handling and internal path traversal
 
 The following examples describe how to use API to open and create files, groups, datasets and attributes. 
