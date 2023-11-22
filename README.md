@@ -6,6 +6,8 @@ SPDX-License-Identifier: MPL-2.0+
 
 # GenH5
 
+Just a test... do not merge
+
 This library is built upon the HDF5 C/C++ API. It does not aim to cover all functionalities of HDF5 but the main aspects. The wrapper is fully compatibel with the C/C++ API. 
 
 The online documentation can be found here: https://at-twk.pages.gitlab.dlr.de/gtlab-hdf5-wrapper/index.html
