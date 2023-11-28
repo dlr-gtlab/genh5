@@ -2,3 +2,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: GenH5
 Upstream-Contact: Marius Bröcker <marius.broecker@dlr.de>
 Source: 
+
+Files: .bumpversion.cfg
+Copyright: 2023 German Aerospace Center (DLR) <martin.siggel@dlr.de>
+License: MPL-2.0+
