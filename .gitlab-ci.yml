@@ -291,7 +291,7 @@ codingstyle:
  
 cppcheck:
   stage: codequality
-  extends: .cppCheckReportTemplate
+  extends: .cppCheckTemplate
 
 check-license:
    stage: codequality
