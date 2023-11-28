@@ -292,6 +292,8 @@ codingstyle:
 cppcheck:
   stage: codequality
   extends: .cppCheckTemplate
+  variables:
+    GIT_SUBMODULE_STRATEGY: "none"
 
 check-license:
    stage: codequality
