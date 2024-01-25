@@ -1,6 +1,0 @@
-# SPDX-License-Identifier: CC0-1.0
-# SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
-
-[submodule "tests/pipeline-scripts"]
-	path = tests/pipeline-scripts
-	url = https://gitlab.dlr.de/at-twk/gitlab-pipeline-scripts.git
