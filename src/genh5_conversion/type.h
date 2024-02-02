@@ -12,8 +12,6 @@
 
 #include "genh5_typedefs.h"
 
-#include "H5Tpublic.h"
-
 #define GENH5_DECLARE_CONVERSION_TYPE(NATIVE, CONVERTED) \
     template <> \
     struct GenH5::conversion<NATIVE> : \
@@ -60,7 +58,7 @@ struct conversion<T[N]> :
 // varlen element
 template <typename T>
 struct conversion<VarLen<T>> :
-        details::conversion_impl<VarLen<T>, hvl_t> {};
+        details::conversion_impl<VarLen<T>, varlen_t> {};
 
 // compound types
 template <typename ...Ts>

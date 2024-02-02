@@ -19,27 +19,6 @@
 namespace GenH5
 {
 
-/**
- * @brief The IterationType enum. use to specify the search depth when
- * iterating over child nodes.
- */
-enum IterationType
-{
-    FindDirectOnly = 0,
-    FindRecursive = 1
-};
-
-/**
- * @brief The IterationFilter enum. Can be used to filter out certain object
- * type when iterating over child nodes.
- */
-enum IterationFilter
-{
-    NoFilter = 0,
-    FilterGroups = 1,
-    FilterDataSets = 2
-};
-
 /// callback function type for iterating over nodes
 using NodeIterationFunction =
     std::function<herr_t(Group const&, NodeInfo const&)>;
@@ -277,7 +256,7 @@ public:
 private:
 
     /// group id
-    IdComponent<H5I_GROUP> m_id;
+    IdComponent<IdType::Group> m_id;
 
     friend class Reference;
 };

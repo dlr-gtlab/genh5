@@ -33,7 +33,7 @@ public:
     using buffer_element_type   = buffer_element_t<T>;
     using buffer_type           = buffer_t<T>;
 
-    DataSpace dataSpace() const override { return DataSpace::Scalar; }
+    DataSpace dataSpace() const override { return DataSpace::Scalar(); }
 
     /** general constructors **/
     // types names only

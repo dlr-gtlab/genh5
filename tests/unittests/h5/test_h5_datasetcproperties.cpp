@@ -14,8 +14,6 @@
 
 #include "testhelper.h"
 
-#include "H5Zpublic.h"
-
 /// This is a test fixture that does a init for each test
 class TestH5DataSetCProperties : public testing::Test
 {
@@ -74,13 +72,6 @@ TEST_F(TestH5DataSetCProperties, compression)
     EXPECT_EQ(propCompressed.deflation(), 9);
 }
 
-TEST_F(TestH5DataSetCProperties, hasDeflateFilter)
-{
-    bool isAvail = H5Zfilter_avail(H5Z_FILTER_DEFLATE);
-    qDebug() << "HAS DEFLATE:" << isAvail;
-//    EXPECT_TRUE(isAvail);
-}
-
 TEST_F(TestH5DataSetCProperties, createDataSetOptionalParam)
 {
     GenH5::File file{h5TestHelper->newFilePath(), GenH5::Create};
@@ -88,7 +79,7 @@ TEST_F(TestH5DataSetCProperties, createDataSetOptionalParam)
 
     // optional was explicitly created -> not default and not chunked
     auto dset1 = file.root().createDataSet(QByteArrayLiteral("testA"),
-                                           GenH5::DataType::Float,
+                                           GenH5::DataType::Float(),
                                            GenH5::DataSpace::linear(10),
                                            GenH5::DataSetCProperties{});
 
@@ -97,7 +88,7 @@ TEST_F(TestH5DataSetCProperties, createDataSetOptionalParam)
     // optional is default -> by default dset will be chunked
     auto dset2 = file.root().createDataSet(
                                 QByteArrayLiteral("testB"),
-                                GenH5::DataType::VarString,
+                                GenH5::DataType::VarString(),
                                 GenH5::DataSpace::linear(10),
                                 GenH5::Optional<GenH5::DataSetCProperties>{});
 

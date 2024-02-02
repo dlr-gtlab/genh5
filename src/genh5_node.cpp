@@ -214,7 +214,7 @@ GenH5::Node const&
 GenH5::Node::writeVersionAttribute(String const& string,
                                    Version version) const noexcept(false)
 {
-    auto attr = createAttribute(string, dataType<Version>(), DataSpace::Scalar);
+    auto attr = createAttribute(string, dataType<Version>(), DataSpace::Scalar());
     if (!attr.write(&version))
     {
         throw AttributeException{
@@ -231,8 +231,8 @@ GenH5::Node::readVersionAttribute(String const& string) const noexcept(false)
     Version version{-1, -1, -1};
     Attribute attr = openAttribute(string);
 
-    if (attr.dataType()  != DataType::Version ||
-        attr.dataSpace() != DataSpace::Scalar)
+    if (attr.dataType()  != DataType::Version() ||
+        attr.dataSpace() != DataSpace::Scalar())
     {
         throw AttributeException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid version attribute format (" +

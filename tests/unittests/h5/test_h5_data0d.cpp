@@ -149,12 +149,13 @@ TEST_F(TestH5Data0D, array_constructor_differentConversionType)
 
 TEST_F(TestH5Data0D, varlen_constructor_differentConversionType)
 {
+    using GenH5::varlen_t;
     using GenH5::VarLen;
     using VarLenT = VarLen<double>;
 
     VarLenT val1{42, 11, 53.1};
 
-    hvl_t hvl1{};
+    varlen_t hvl1{};
 
     // conversion value
     GenH5::Data0D<VarLenT> d2{hvl1};

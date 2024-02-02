@@ -99,7 +99,7 @@ GenH5::Attribute::nodeInfo() const noexcept(false)
     auto path = this->path();
     if (path == "/") // root
     {
-        return NodeInfo{path, ObjectType::H5I_GROUP};
+        return NodeInfo{path, IdType::Group};
     }
     return file().root().nodeInfo(std::move(path));
 }

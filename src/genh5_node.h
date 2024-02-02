@@ -33,27 +33,6 @@ using AttributeIterationFunction =
         std::function<herr_t(Node const&, AttributeInfo const&)>;
 
 /**
- * @brief The IterationIndex enum. Can be used to specify the index type when
- * iterating over objects.
- */
-enum IterationIndex
-{
-    IndexName = H5_INDEX_NAME, /// index by name
-    IndexCreationOrder = H5_INDEX_CRT_ORDER /// index by creation order
-};
-
-/**
- * @brief The IterationOrder enum. Can be used to specify the order in which
- * the objects.should be listed when iterating.
- */
-enum IterationOrder
-{
-    NativeOrder = H5_ITER_NATIVE, // no particular order
-    AscendingOrder = H5_ITER_INC, // ascending
-    DescendingOrder = H5_ITER_DEC // descending
-};
-
-/**
  * @brief The Node class
  */
 class GENH5_EXPORT Node : public Location
@@ -301,22 +280,22 @@ struct GENH5_EXPORT NodeInfo
     /// relative path
     String path{};
     /// object type
-    ObjectType type{H5I_BADID};
+    IdType type{IdType::BadId};
     /// creation order
     int64_t corder{-1};
     /// object token
-    H5O_token_t token{};
+    token_t token{};
 
     /**
      * @brief Whether the nodeinfo belongs to a dataset
      * @return Is datset
      */
-    constexpr bool isDataSet() const { return type == H5I_DATASET; }
+    constexpr bool isDataSet() const { return type == IdType::DataSet; }
     /**
      * @brief  Whether the nodeinfo belongs to a dataset
      * @return Is group
      */
-    constexpr bool isGroup() const { return type == H5I_GROUP; }
+    constexpr bool isGroup() const { return type == IdType::Group; }
 
     /**
      * @brief Constructs a dataset object from the node location.

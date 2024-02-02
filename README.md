@@ -134,6 +134,20 @@ cmake --build .
 
 The `conan install` downloads qt5 and hdf5 and sets the paths to cmake accordingly.
 
+### Link HDF5 statically
+
+To avoid vesion conflicts of the HDF5 lib used by GenH5 and the HDF5 lib used for example by Python packages, it is recommended to build GenH5 as a shared lib but link HDF5 statically.
+
+```bash
+mkdir build_static && cd build_static
+conan install .. -s build_type=Release -o shared=False
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_UNITTESTS=ON -DBUILD_SHARED_LIBS=ON
+cmake --build .
+```
+
+The option `-o shared=False` indicates that a static HDF5 lib should be fetched.
+The CMake flag `-DBUILD_SHARED_LIBS` indicates that GenH5 should be build as an dynamic linked library.
+
 ## Release
 
 ### Bump2version
