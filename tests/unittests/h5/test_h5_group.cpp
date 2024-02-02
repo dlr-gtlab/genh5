@@ -140,8 +140,8 @@ TEST_F(TestH5Group, openDataSet)
     qDebug() << "### END";
 
     EXPECT_TRUE(root.createDataSet("my_fancy_dset",
-                                   GenH5::DataType::Int,
-                                   GenH5::DataSpace::Scalar).isValid());
+                                   GenH5::DataType::Int(),
+                                   GenH5::DataSpace::Scalar()).isValid());
 
     EXPECT_NO_THROW(root.openDataSet("my_fancy_dset"));
     EXPECT_TRUE(root.openDataSet("my_fancy_dset").isValid());
@@ -165,8 +165,8 @@ TEST_F(TestH5Group, openAttribute)
     qDebug() << "### END";
 
     EXPECT_TRUE(root.createAttribute("my_fancy_attr",
-                                     GenH5::DataType::Int,
-                                     GenH5::DataSpace::Scalar).isValid());
+                                     GenH5::DataType::Int(),
+                                     GenH5::DataSpace::Scalar()).isValid());
 
     EXPECT_NO_THROW(root.openAttribute("my_fancy_attr"));
     EXPECT_TRUE(root.openAttribute("my_fancy_attr").isValid());

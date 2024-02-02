@@ -87,7 +87,7 @@ public:
 private:
 
     /// create properties id
-    IdComponent<H5I_GENPROP_LST> m_id;
+    IdComponent<IdType::PropertyList> m_id;
 };
 
 } // namespace GenH5

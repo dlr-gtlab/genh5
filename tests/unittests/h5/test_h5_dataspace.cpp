@@ -31,8 +31,8 @@ TEST_F(TestH5DataSpace, isValid)
     // a dataspace with any elements is valid
     EXPECT_TRUE(dspaceSimple.isValid());
     EXPECT_TRUE(dspaceMulti.isValid());
-    EXPECT_TRUE(GenH5::DataSpace::Null.isValid());
-    EXPECT_TRUE(GenH5::DataSpace::Scalar.isValid());
+    EXPECT_TRUE(GenH5::DataSpace::Null().isValid());
+    EXPECT_TRUE(GenH5::DataSpace::Scalar().isValid());
     EXPECT_TRUE(GenH5::DataSpace::linear(42).isValid());
     EXPECT_TRUE((GenH5::DataSpace{12, 5}.isValid()));
 }
@@ -43,8 +43,8 @@ TEST_F(TestH5DataSpace, size)
     EXPECT_EQ(dspaceSimple.size(), 42);
     EXPECT_EQ(dspaceMulti.size(), 42);
 
-    EXPECT_EQ(GenH5::DataSpace::Null.size(), 0);
-    EXPECT_EQ(GenH5::DataSpace::Scalar.size(), 1);
+    EXPECT_EQ(GenH5::DataSpace::Null().size(), 0);
+    EXPECT_EQ(GenH5::DataSpace::Scalar().size(), 1);
     EXPECT_EQ(GenH5::DataSpace::linear(42).size(), 42);
     EXPECT_EQ((GenH5::DataSpace{12, 5}.size()), 60);
 }
@@ -65,8 +65,8 @@ TEST_F(TestH5DataSpace, equal)
 TEST_F(TestH5DataSpace, ndims)
 {
     EXPECT_EQ(GenH5::DataSpace{}.nDims(), 0);
-    EXPECT_EQ(GenH5::DataSpace::Null.nDims(), 0);
-    EXPECT_EQ(GenH5::DataSpace::Scalar.nDims(), 0);
+    EXPECT_EQ(GenH5::DataSpace::Null().nDims(), 0);
+    EXPECT_EQ(GenH5::DataSpace::Scalar().nDims(), 0);
     EXPECT_EQ(GenH5::DataSpace::linear(42).nDims(), 1);
     EXPECT_EQ((GenH5::DataSpace{1, 2, 3}.nDims()), 3);
 
@@ -78,11 +78,11 @@ TEST_F(TestH5DataSpace, ndims)
 TEST_F(TestH5DataSpace, dimensions)
 {
     EXPECT_EQ(GenH5::DataSpace{}.dimensions(), GenH5::Dimensions{});
-    EXPECT_EQ(GenH5::DataSpace::Null.dimensions(), GenH5::Dimensions{});
-    EXPECT_EQ(GenH5::DataSpace::Scalar.dimensions(), GenH5::Dimensions{});
+    EXPECT_EQ(GenH5::DataSpace::Null().dimensions(), GenH5::Dimensions{});
+    EXPECT_EQ(GenH5::DataSpace::Scalar().dimensions(), GenH5::Dimensions{});
 
-    auto x = GenH5::DataSpace::Scalar;
-    EXPECT_EQ(x.dimensions(), GenH5::Dimensions{});
+    auto space = GenH5::DataSpace::Scalar();
+    EXPECT_EQ(space.dimensions(), GenH5::Dimensions{});
 
     EXPECT_EQ(GenH5::DataSpace::linear(42).dimensions(),
               GenH5::Dimensions{42});
@@ -94,8 +94,8 @@ TEST_F(TestH5DataSpace, dimensions)
 TEST_F(TestH5DataSpace, selection)
 {
     EXPECT_EQ(GenH5::DataSpace{}.selectionSize(), 0);
-    EXPECT_EQ(GenH5::DataSpace::Null.selectionSize(), 0);
-    EXPECT_EQ(GenH5::DataSpace::Scalar.selectionSize(), 1);
+    EXPECT_EQ(GenH5::DataSpace::Null().selectionSize(), 0);
+    EXPECT_EQ(GenH5::DataSpace::Scalar().selectionSize(), 1);
     EXPECT_EQ(GenH5::DataSpace::linear(1).selectionSize(), 1);
     EXPECT_EQ(GenH5::DataSpace::linear(42).selectionSize(), 42);
     EXPECT_EQ((GenH5::DataSpace{2, 3, 7}.selectionSize()), 42);

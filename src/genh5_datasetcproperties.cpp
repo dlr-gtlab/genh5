@@ -11,7 +11,8 @@
 #include "genh5_dataspace.h"
 #include "genh5_private.h"
 
-#include "H5Ppublic.h"
+#include <H5Ppublic.h>
+#include <H5Zpublic.h>
 
 static constexpr int s_cmax = 9u;
 static constexpr int s_cmin = 0u;

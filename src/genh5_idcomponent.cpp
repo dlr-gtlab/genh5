@@ -8,21 +8,24 @@
  */
 
 #include "genh5_idcomponent.h"
+#include "H5Ipublic.h"
 
-int GenH5::incId(hid_t id)
+int
+GenH5::incId(hid_t id)
 {
     return H5Iinc_ref(id);
 }
 
-int GenH5::decId(hid_t id)
+int
+GenH5::decId(hid_t id)
 {
     return H5Idec_ref(id);
 }
 
-H5I_type_t
+GenH5::IdType
 GenH5::classType(hid_t id)
 {
-    return H5Iget_type(id);
+    return static_cast<IdType>(H5Iget_type(id));
 }
 
 bool

@@ -31,24 +31,22 @@ class GENH5_EXPORT DataType : public Object
 {
 public:
 
-    using Type = H5T_class_t;
+    static DataType const& Bool();
+    static DataType const& Char();
 
-    static DataType const& Bool;
-    static DataType const& Char;
+    static DataType const& Int();
+    static DataType const& Long();
+    static DataType const& LLong();
+    static DataType const& UInt();
+    static DataType const& ULong();
+    static DataType const& ULLong();
 
-    static DataType const& Int;
-    static DataType const& Long;
-    static DataType const& LLong;
-    static DataType const& UInt;
-    static DataType const& ULong;
-    static DataType const& ULLong;
+    static DataType const& Float();
+    static DataType const& Double();
 
-    static DataType const& Float;
-    static DataType const& Double;
+    static DataType const& VarString();
 
-    static DataType const& VarString;
-
-    static DataType const& Version;
+    static DataType const& Version();
 
     /// will create an string type with utf8 enabled by default
     static DataType string(size_t size, bool useUtf8 = true) noexcept(false);
@@ -78,7 +76,7 @@ public:
      * @brief type of this datatype (compound, array etc)
      * @return type
      */
-    Type type() const noexcept;
+    DataTypeClass type() const noexcept;
 
     /**
      * @brief id or handle of the hdf5 resource
@@ -154,7 +152,7 @@ public:
 protected:
 
     /// datatype id
-    IdComponent<H5I_DATATYPE> m_id;
+    IdComponent<IdType::DataType> m_id;
 };
 
 struct CompoundMember
@@ -176,7 +174,7 @@ getTypeNames(DataType const& dtype) noexcept(false)
 
     CompoundNames<N> names{};
 
-    ssize_t offset = members.size() - N;
+    hssize_t offset = members.size() - N;
     if (offset >= 0)
     {
         std::transform(std::begin(members), std::end(members) - offset,
@@ -358,7 +356,7 @@ swap(GenH5::DataType& a, GenH5::DataType& b) noexcept
     template <> \
     struct GenH5::details::datatype_impl<NATIVE_TYPE> { \
         datatype_impl(CompoundNames<0> = {}) {} \
-        operator GenH5::DataType() const { return H5_TYPE; } \
+        operator GenH5::DataType const&() const { return H5_TYPE; } \
     };
 
 #define GENH5_DECLARE_DATATYPE_IMPL(NATIVE_TYPE) \
@@ -371,24 +369,24 @@ swap(GenH5::DataType& a, GenH5::DataType& b) noexcept
     GenH5::details::datatype_impl<NATIVE_TYPE>::operator GenH5::DataType() const
 
 // default datatypes
-GENH5_DECLARE_DATATYPE(bool, DataType::Bool);
+GENH5_DECLARE_DATATYPE(bool, DataType::Bool());
 
-GENH5_DECLARE_DATATYPE(char, DataType::Char);
+GENH5_DECLARE_DATATYPE(char, DataType::Char());
 
-GENH5_DECLARE_DATATYPE(char*, DataType::VarString);
-GENH5_DECLARE_DATATYPE(char const*, DataType::VarString);
+GENH5_DECLARE_DATATYPE(char*, DataType::VarString());
+GENH5_DECLARE_DATATYPE(char const*, DataType::VarString());
 
-GENH5_DECLARE_DATATYPE(int, DataType::Int);
-GENH5_DECLARE_DATATYPE(long int, DataType::Long);
-GENH5_DECLARE_DATATYPE(long long int, DataType::LLong);
-GENH5_DECLARE_DATATYPE(unsigned int, DataType::UInt);
-GENH5_DECLARE_DATATYPE(unsigned long int, DataType::ULong);
-GENH5_DECLARE_DATATYPE(unsigned long long int, DataType::ULLong);
+GENH5_DECLARE_DATATYPE(int, DataType::Int());
+GENH5_DECLARE_DATATYPE(long int, DataType::Long());
+GENH5_DECLARE_DATATYPE(long long int, DataType::LLong());
+GENH5_DECLARE_DATATYPE(unsigned int, DataType::UInt());
+GENH5_DECLARE_DATATYPE(unsigned long int, DataType::ULong());
+GENH5_DECLARE_DATATYPE(unsigned long long int, DataType::ULLong());
 
-GENH5_DECLARE_DATATYPE(float, DataType::Float);
-GENH5_DECLARE_DATATYPE(double, DataType::Double);
+GENH5_DECLARE_DATATYPE(float, DataType::Float());
+GENH5_DECLARE_DATATYPE(double, DataType::Double());
 
-GENH5_DECLARE_DATATYPE(GenH5::Version, DataType::Version);
+GENH5_DECLARE_DATATYPE(GenH5::Version, DataType::Version());
 
 // fixed string
 template <size_t N>

@@ -15,6 +15,8 @@
 
 #include "testhelper.h"
 
+#include <H5Ipublic.h>
+
 #include <QDebug>
 
 
@@ -34,12 +36,12 @@ protected:
 
         dataset = group.createDataSet(QByteArrayLiteral("dataset"),
                                       GenH5::dataType<int>(),
-                                      GenH5::DataSpace::Scalar);
+                                      GenH5::DataSpace::Scalar());
         ASSERT_TRUE(dataset.isValid());
 
         attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
                                             GenH5::dataType<int>(),
-                                            GenH5::DataSpace::Scalar);
+                                            GenH5::DataSpace::Scalar());
         ASSERT_TRUE(attribute.isValid());
     }
 
@@ -75,25 +77,6 @@ TEST_F(TestH5Location, linkPath)
     EXPECT_EQ(group.path(), QByteArrayLiteral("/group"));
     EXPECT_EQ(dataset.path(), QByteArrayLiteral("/group/dataset"));
     EXPECT_EQ(attribute.path(), dataset.path());
-}
-
-TEST_F(TestH5Location, file)
-{
-//    EXPECT_THROW(GenH5::File().root().file(), GenH5::FileException);
-
-//    EXPECT_THROW(GenH5::Group().file(), GenH5::GroupException);
-//    EXPECT_THROW(GenH5::DataSet().file(), GenH5::GroupException);
-//    EXPECT_THROW(GenH5::Attribute().file(), GenH5::GroupException);
-
-//    // root group creates a file on the heap
-//    void* filePtr = file.root().file().get();
-//    // so these pointer should not match
-//    EXPECT_NE(&file, filePtr);
-
-//    // however alls other objects should point to the same object on heap
-//    EXPECT_EQ(group.file().get(), filePtr);
-//    EXPECT_EQ(dataset.file().get(), filePtr);
-//    EXPECT_EQ(attribute.file().get(), filePtr);
 }
 
 TEST_F(TestH5Location, fileRefCount)
