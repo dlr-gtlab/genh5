@@ -55,7 +55,6 @@ set(headers
     genh5_optional.h
     genh5_private.h
     genh5_reference.h
-    genh5_static.h
     genh5_typedefs.h
     genh5_typetraits.h
     genh5_utils.h
@@ -97,7 +96,7 @@ if (TARGET hdf5::hdf5 AND NOT TARGET hdf5-shared)
   add_library(hdf5-shared ALIAS hdf5::hdf5)
 endif()
 
-target_link_libraries(GenH5 PUBLIC Qt5::Core hdf5-shared)
+target_link_libraries(GenH5 PUBLIC Qt5::Core PRIVATE hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>

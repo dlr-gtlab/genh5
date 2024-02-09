@@ -15,8 +15,6 @@
 
 #include "testhelper.h"
 
-#include <H5public.h>
-
 #include <QDebug>
 
 /// This is a test fixture that does a init for each test

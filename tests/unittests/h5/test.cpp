@@ -118,14 +118,14 @@ TEST_F(Tests, test_1)
     compData2D.setDimensions({5, 2});
     multi.writeDataSet("compound_2d", compData2D);
 
-    auto attr = file.root().createAttribute("my_ref",
-                                            GenH5::DataType(H5::PredType::STD_REF_OBJ.getId()),
-                                            GenH5::DataSpace::Scalar());
-    auto ref  = dset.toReference();
-    attr.write(&ref);
+//    auto attr = file.root().createAttribute("my_ref",
+//                                            GenH5::DataType(H5::PredType::STD_REF_OBJ.getId()),
+//                                            GenH5::DataSpace::Scalar());
+//    auto ref  = dset.toReference();
+//    attr.write(&ref);
 
-    char bitfield = 0b10101010; // = AA
-    linear.createDataSet("bitfield",
-                              GenH5::DataType::fromId(H5Tcopy(H5T_NATIVE_B8)),
-                         GenH5::DataSpace::Scalar()).write(&bitfield);
+//    char bitfield = 0b10101010; // = AA
+//    linear.createDataSet("bitfield",
+//                              GenH5::DataType::fromId(H5Tcopy(H5T_NATIVE_B8)),
+//                         GenH5::DataSpace::Scalar()).write(&bitfield);
 }

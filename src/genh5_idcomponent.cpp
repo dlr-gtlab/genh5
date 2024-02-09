@@ -33,3 +33,9 @@ GenH5::isValidId(hid_t id)
 {
     return H5Iis_valid(id) > 0;
 }
+
+int
+GenH5::refCount(hid_t id)
+{
+    return H5Iget_ref(id);
+}

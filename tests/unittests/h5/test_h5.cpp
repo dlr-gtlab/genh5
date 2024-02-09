@@ -11,8 +11,6 @@
 #include "genh5_version.h"
 #include "genh5_globals.h"
 
-#include "H5public.h"
-
 #include "gtest/gtest.h"
 
 #include <QDebug>
@@ -28,7 +26,7 @@ TEST_F(TestH5, verionMacros)
     qDebug() << "major:   " << int{GENH5_VERSION_MAJOR};
     qDebug() << "minor:   " << int{GENH5_VERSION_MINOR};
     qDebug() << "patch:   " << int{GENH5_VERSION_PATCH};
-    qDebug() << "addition:" << QStringLiteral(GENH5_VERSION_ADDITIONAL);
+    qDebug() << "addition:" << QLatin1String(GENH5_VERSION_ADDITIONAL);
 
     auto v = GenH5::Version::current();
     qDebug().nospace() << "Version::current() = "

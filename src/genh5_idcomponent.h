@@ -20,6 +20,13 @@ namespace GenH5
 {
 
 /**
+ * @brief Returns the refcount of an id
+ * @param id Id to querry
+ * @return Reference count
+ */
+GENH5_EXPORT int refCount(hid_t id);
+
+/**
  * @brief Increments the id. Same as H5Iinc_ref.
  * @param id Id to increment
  * @return Id ref count if successful else negativ number

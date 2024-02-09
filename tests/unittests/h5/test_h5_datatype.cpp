@@ -505,13 +505,3 @@ TEST_F(TestH5DataType, equal_2)
     EXPECT_TRUE(dataType<Comp<double>>({"my_type_name"}) != dataType<Comp<float>>({"my_type_name"}));
     EXPECT_TRUE((dataType<double, int, VarLen<int>>() != dataType<VarLen<int>, int, double>()));
 }
-
-TEST_F(TestH5DataType, equalToH5cpp)
-{
-    EXPECT_TRUE(dtypeInt    == GenH5::DataType{
-                    H5::DataType(H5::PredType::NATIVE_INT).getId()});
-    EXPECT_TRUE(dtypeDouble == GenH5::DataType{
-                    H5::DataType(H5::PredType::NATIVE_DOUBLE).getId()});
-    EXPECT_TRUE(dtypeString == GenH5::DataType{
-                    H5::StrType(H5::PredType::C_S1, H5T_VARIABLE).getId()});
-}

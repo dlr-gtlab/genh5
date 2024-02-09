@@ -11,7 +11,7 @@
 #define GENH5_OBJECT_H
 
 #include "genh5_exports.h"
-#include "genh5_static.h"
+#include "genh5_typedefs.h"
 
 namespace GenH5
 {
