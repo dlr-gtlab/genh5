@@ -16,7 +16,7 @@
 /** STL **/
 GENH5_DECLARE_CONVERSION_TYPE(std::string, char*);
 GENH5_DECLARE_BUFFER_TYPE(std::string, QByteArray);
-GENH5_DECLARE_DATATYPE(std::string, DataType::VarString);
+GENH5_DECLARE_DATATYPE(std::string, DataType::VarString());
 
 namespace GenH5
 {
@@ -32,11 +32,11 @@ GENH5_DECLARE_CONVERSION(std::string const&, value, buffer)
 /** QT **/
 GENH5_DECLARE_CONVERSION_TYPE(QByteArray, char*);
 GENH5_DECLARE_BUFFER_TYPE(QByteArray, QByteArray);
-GENH5_DECLARE_DATATYPE(QByteArray, DataType::VarString);
+GENH5_DECLARE_DATATYPE(QByteArray, DataType::VarString());
 
 GENH5_DECLARE_CONVERSION_TYPE(QString, char*);
 GENH5_DECLARE_BUFFER_TYPE(QString, QByteArray);
-GENH5_DECLARE_DATATYPE(QString, DataType::VarString);
+GENH5_DECLARE_DATATYPE(QString, DataType::VarString());
 
 // experimental
 #ifdef GENH5_USE_EXTENDED_QT_BINDINGS

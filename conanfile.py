@@ -45,7 +45,7 @@ class GenH5Conan(ConanFile):
 
     def configure(self):
         # linking a static library into a shared genh5 makes the tests fail
-        self.options["hdf5"].shared = self.options.shared
+        #self.options["hdf5"].shared = self.options.shared
         self.options["qt"].shared = True
 
     def build(self):    

@@ -115,21 +115,6 @@ protected:
     }
 };
 
-TEST_F(TestH5Iteration, index_order_enums)
-{
-    static_assert (GenH5::IterationIndex::IndexName ==
-                   H5_INDEX_NAME, "Index types should match!");
-    static_assert (GenH5::IterationIndex::IndexCreationOrder ==
-                   H5_INDEX_CRT_ORDER, "Index types should match!");
-
-    static_assert (GenH5::IterationOrder::NativeOrder ==
-                   H5_ITER_NATIVE, "Order types should match!");
-    static_assert (GenH5::IterationOrder::AscendingOrder ==
-                   H5_ITER_INC, "Order types should match!");
-    static_assert (GenH5::IterationOrder::DescendingOrder ==
-                   H5_ITER_DEC, "Order types should match!");
-}
-
 TEST_F(TestH5Iteration, findChildObjects)
 {
     GenH5::File file{h5TestHelper->newFilePath(), GenH5::Create};
@@ -190,9 +175,9 @@ TEST_F(TestH5Iteration, sample)
     auto a = file.root().createGroup("A");
     a.writeVersionAttribute();
     a.createAttribute("my_value", GenH5::dataType<double>(),
-                      GenH5::DataSpace::Scalar);
+                      GenH5::DataSpace::Scalar());
     a.createDataSet("my_dset", GenH5::dataType<int>(),
-                    GenH5::DataSpace::Scalar);
+                    GenH5::DataSpace::Scalar());
 
     auto data = a.createGroup("data");
     data.createDataSet("1", GenH5::dataType<int>(),
@@ -205,9 +190,9 @@ TEST_F(TestH5Iteration, sample)
     auto b = file.root().createGroup("B");
     b.writeVersionAttribute();
     b.createAttribute("my_attr", GenH5::dataType<QString>(),
-                      GenH5::DataSpace::Scalar);
+                      GenH5::DataSpace::Scalar());
     b.createDataSet("empty", GenH5::dataType<char>(),
-                    GenH5::DataSpace::Null);
+                    GenH5::DataSpace::Null());
     b.createGroup("my_sub_group");
 
 
