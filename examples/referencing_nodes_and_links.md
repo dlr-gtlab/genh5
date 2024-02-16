@@ -12,7 +12,7 @@ HDF5 objects like datasets, groups and attributes can also be referenced. A refe
 
 > **Note:** try-catch blocks were omitted for this example
 
-Creating a reference in GenH5 is rather straightforward. All compatible objects have the method `toReference` which automatically constructs a reference.
+Creating a reference in GenH5 is rather straightforward. All compatible objects have the method `toReference()` which automatically constructs a reference.
 
 ```cpp
 GenH5::File file("my_file.h5", GenH5::ReadOnly);
@@ -23,7 +23,8 @@ GenH5::Reference ref = group.toReference();
 
 ### Dereferencing
 
-To dereference an object reference simply invoke `toGroup`, `toDataSet` or `toAttribute` on the reference object. Each method requires a HDF5 file object as a parameter: 
+To dereference an object reference simply invoke `toGroup()`, `toDataSet()` or `toAttribute()` on the reference object. 
+Each method requires an HDF5 file object as a parameter: 
 
 ```cpp
 GenH5::Group group = ref.toGroup(file);

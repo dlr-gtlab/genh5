@@ -14,11 +14,11 @@ Most methods will apply to Attributes as well.
 
 See [creating data object](creating_data.md) for more details on how to use the Data API. 
 
-> **Note:** try-catch blocks were omitted for the following examples
+> **Note:** try-catch blocks were omitted for the following examples.
 
 ## Scalar Data (0D)
 
-> **Note:** `root` can be accessed using the method `GenH5::File::root` on a file object;
+> **Note:** The root node can be accessed using `GenH5::File::root()`.
 
 One may use the `GenH5::Data0D` class to write scalar data (i.e. a single element). This class will provide additional safty checks and convenience and should be favored most of the time.
 
@@ -57,7 +57,7 @@ One may use the `GenH5::Data0D` class to write scalar data (i.e. a single elemen
     dset.write(fixedstr);
     ```
 
-When reading Scalar data simply invoke `read` on the dataset/attribute instead.
+When reading Scalar data simply invoke `read()` on the dataset/attribute instead.
 
 ### Convenience API:
 
@@ -67,10 +67,10 @@ GenH5 also provides multiple functions to read a dataset or attribute in a singl
 
     ```cpp
     // use writeAttribute0D for creating an attribute
-    root.writeDataSet0D("my_dset_0d", 42); // deduced as "int"
+    root.writeDataSet0D("my_dset_0d", 42); // datatype deduced as "int"
     ```
 
-- The same can be used for compound data using the typedef `GenH5::Comp` or `GenH5::makeComp0D`:
+- The same can be used for compound data using the typedef `GenH5::Comp` or the method `GenH5::makeComp0D()`:
 
     ```cpp
     root.writeDataSet0D(
@@ -107,7 +107,7 @@ GenH5 also provides multiple functions to read a dataset or attribute in a singl
 <details>
 <summary>Wrting GenH5::Data0D directly</summary>
 
-When using `GenH5::Data0D` or `GenH5::FixedString0D` directly use the `writeDataSet` or `writeAttribute` instead (without "0D" in the name):
+When using `GenH5::Data0D` or `GenH5::FixedString0D` directly, use the `writeDataSet()` or `writeAttribute()` instead (without "0D" in the name):
 
 ```cpp
 // use writeAttribute for creating an attribute
@@ -190,7 +190,7 @@ When reading or writing 1D (or higher ranked) data use the `GenH5::Data` typedef
     dset.write(data);
     ```
 
-When reading 1D or higher ranked data simply invoke `read` on the dataset/attribute instead.
+When reading 1D or higher ranked data simply invoke `read()` on the dataset/attribute instead.
 
 ### Convenience API:
 
@@ -204,7 +204,7 @@ Once again, GenH5 provides multiple functions to read a dataset or attribute in 
     root.writeDataSet("my_dset", myInts); // deduced as 1D data of "int"
     ```
 
-- The same can be used for compound data using the typedef `GenH5::makeComp` or `GenH5::makeCompData`:
+- The same can be used for compound data using the typedef `GenH5::makeComp()` or `GenH5::makeCompData()`:
 
     ```cpp
     QVector<double> myDoubles{1, 2, 3, 4}
@@ -231,9 +231,9 @@ Once again, GenH5 provides multiple functions to read a dataset or attribute in 
 <details>
 <summary>Reading 1D or higher ranked data</summary>
 
-To read the data use `readDataSet` or `readAttribute` instead. It requires the return type as template argument. It will always return a type of `GenH5::Data` or `GenH5::CompData`.
+To read the data use `readDataSet()` or `readAttribute()` instead. It requires the return type as template argument. It will always return a type of `GenH5::Data` or `GenH5::CompData`.
 
-> **Note:** One may also use `readDataSet` or `readAttribute`, however this will only read the first values
+> **Note:** One may also use `readDataSet0D()` or `readAttribute0D()`; however, this will only read the first values.
 
 - Reading a single integer:
 
@@ -254,9 +254,9 @@ To read the data use `readDataSet` or `readAttribute` instead. It requires the r
 
 ## Multidimensional data (2D+):
 
-As noted before, `GenH5::Data` and `GenH5::CompData` will create a 1D dataspace by default. However they can be used for creating higher dimensional data as well. There are two ways of archiving this:
+As noted before, `GenH5::Data` and `GenH5::CompData` will create a 1D dataspace by default. However, these types can be used for creating multi dimensional data as well. There are two ways of archiving this:
 
-- One way of creating say a 2D Dataset is by passing in a `GenH5::DataSpace` object with the desired dimensions, when using `createDataSet` or `createAttribute`:
+- One way of creating a 2D Dataset (for example) is by passing in a `GenH5::DataSpace` object with the desired dimensions when using `createDataSet()` or `createAttribute()`:
 
     ```cpp
     GenH5::Data<int> data{ 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -267,9 +267,9 @@ As noted before, `GenH5::Data` and `GenH5::CompData` will create a 1D dataspace 
     dset.write(data);
     ```
 
-- Alternatively one can use the `setDimensions` method on the `GenH5::Data` and `GenH5::CompData` objects (see [creating data object](creating_data.md) for more details on how to create multidimensional data). One may then access the multidimensional dataspace.
+- Alternatively, one can use the `setDimensions()` method on the `GenH5::Data` and `GenH5::CompData` objects (see [creating data object](creating_data.md) for more details on how to create multidimensional data). One may then access the multidimensional dataspace.
 
-    > **Note:** Calling `setDimensions` will not truncate nor extend the data. It is simply an optional property for "displaying" the data.
+    > **Note:** Calling `setDimensions()` will not truncate nor extend the data. It is simply an optional property for "displaying" the data.
 
     ```cpp
     GenH5::Data<int> data{ 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -280,7 +280,7 @@ As noted before, `GenH5::Data` and `GenH5::CompData` will create a 1D dataspace 
     dset.write(data);
     ```
 
-    The data object can then also be used with the convenience API using `writeDataSet` or `writeAttribute`:
+    The data object can then also be used with the convenience API using `writeDataSet()` or `writeAttribute()`:
 
     ```cpp
     GenH5::Data<int> data{ 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -293,12 +293,12 @@ As noted before, `GenH5::Data` and `GenH5::CompData` will create a 1D dataspace 
 <details>
 <summary>Reading multidimensional data</summary>
 
-Reading a higher dimensional dataset will automatically set dimensions property of `GenH5::Data`, which can be accessed using the `dimensions` function. Reading works identically to reading a 1D dataset otherwise:
+Reading a higher dimensional dataset will automatically set dimensions property of `GenH5::Data`, which can be accessed using the `dimensions()` function. Reading works identically to reading a 1D dataset otherwise:
 
 ```cpp
 // use writeAttribute for creating an attribute
 GenH5::Data<int> data = root.readDataSet<int>("my_2d_dset");
-data..dimensions() // = {4, 2}
+auto dims = data.dimensions(); // dims = {4, 2}
 ```
 
 </details>
@@ -313,7 +313,7 @@ Sometimes it is necessary/useful to access individual compound members instead o
 
 > **Note:** This is currently not possible using the convenience API
 
-- To only read Member `C`, we can use the `GeH5::CompData` typedef and call the `setTypeNames` function to set the name to `"C"` and read the dataset that way:
+- To only read Member `C`, we can use the `GeH5::CompData` typedef and call the `setTypeNames()` function to set the name to `"C"` and read the dataset that way:
 
     ```cpp
     auto dset = root.openDataSet("my_complex_dset");
@@ -338,13 +338,13 @@ Sometimes it is necessary/useful to access individual compound members instead o
     auto b = data.getValues<1>();
     ```
 
-## Tips for reading Array-Data
+## Alternative to reading Array-Data
 
-Sometimes one may wants to read array data but does not know exactly how long the datatype is at compiletimes. Therefore we cannot use the `Genh5::Array` typedef.
+Sometimes one may wants to read array data but does not know exactly how long the datatype is at compile time. Therefore we cannot use the `GenH5::Array` typedef.
 
-However the `GenH5::Data` has a small convenience function built into the `resize` method, which is used by the libary to reserve enough memory for reading data.
+However the `GenH5::Data` has a convenience feature built into the `resize()` method, which is used by the libary to reserve enough memory for reading data.
 
-Say we want to read array data containing `int`s. We can then use `GenH5::Data<int>` to read the array data as following:
+Say we want to read array data containing `int`s. We can then use `GenH5::Data<int>` to read the array data as follows:
 
 ```cpp
 auto dset = root.openDataSet("my_array_dset");
@@ -354,20 +354,22 @@ GenH5::Data<int> data;
 assert(dset.dataType().isArray());
 assert(dset.dataType().super() == GenH5::dataType<int>());
 
-dset.read(data, dset.dataType()); // read the data is if it were the dataset type
+// read the data is if it were the dataset type
+dset.read(data, dset.dataType()); 
 // OR less error prone
 dset.read(data, GenH5::DataTpye::array(GenH5::datatype<int>(),
                                        dset.dataType().arrayDimensions()));
 ```
 
-Note that we have to pass the desired datatype to the `read` method. We now have a single long 1D vector of `int`s. 
+Note that we have to pass the desired datatype to the `read()` method. We now have a single 1D vector of `int`s. 
 
-We can however make use of the `split` function to split the data into a 2D vector:
+Further, we can now make use of the `split()` function of the data object to split the data into a nested vector:
 
 ```cpp
-GenH5::Vector<GenH5::Vector<int>> data2D = data.split(GenH5::prod(dset.datatype().arrayDimensions()));
-// OR if we know how long the array data is
+// if we know how long the array data is
 GenH5::Vector<GenH5::Vector<int>> data2D = data.split(3);
+// OR summing up the array dimensions
+GenH5::Vector<GenH5::Vector<int>> data2D = data.split(GenH5::prod(dset.datatype().arrayDimensions()));
 ```
 
 ## Usage of void*
@@ -377,11 +379,11 @@ When reading or writing data to a dataset or attribute an additional method can 
 It can be used like this:
 ```cpp
 GenH5::Group const& root = file.root();
-    // use createAttribute for creating an attribute
+// use createAttribute for creating an attribute
 GenH5::DataSet dset = root.createDataSet("my_dset_0d", GenH5::dataType<int>(), GenH5::Scalar);
 
 int value = 42;
 dset.write(&value);
 ```
 
-However since these methods accepts a `void*` special care is required, to pass the value correctly. It only works if the data that is pointed to is contiguous (e.g. a plain `int`, `double`, `char*` or arrays like `float[42]`). It should not be used with user defined types like `std::string` etc.
+However, since these methods accepts a `void*` special care is required to pass the value correctly. It only works if the data that is pointed to is contiguous (e.g. a plain `int`, `double`, `char*` or arrays like `float[42]`). It should not be used with user defined types like `std::string` etc.

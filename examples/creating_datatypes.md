@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0+
 
 # Creating Datatypes
 
-The following example shows how to use this library to create simple and compound datatypes.
+The following example shows how to use this library to create both simple and complex compound datatypes.
 
 When dealing with HDF5 datatypes the library offers two approaches for creating a datatype:
 1) **Directly** using explicit methods for creating the desired dataype.
@@ -14,7 +14,7 @@ When dealing with HDF5 datatypes the library offers two approaches for creating 
 
 In general the latter approach should be used more often, as its simply more convenient and straight forward to use. 
 
-However we will start using the direct way in order to better explain how datatypes work in HDF5.
+However, we will start using the direct way in order to better explain how datatypes work in HDF5 and GenH5.
 
 > **Note:** try-catch blocks were omitted for the following examples
 
@@ -22,7 +22,7 @@ However we will start using the direct way in order to better explain how dataty
 
 ### Predefined Types
 
-> Not all datatypes of the native HDF5 library are covered currently. Feel free to create issue for any missing type.
+> Not all datatypes of the native HDF5 library are covered currently. Feel free to create an issue to support a missing type.
 
 HDF5 predefines different datatypes, which make up the most essential building blocks. 
 The library currently forwards the following native datatypes:
@@ -73,7 +73,7 @@ struct MyData
 };
 ```
 
-To create the compound type the method `GenH5::DataType::compound` can be used. It requires two arguments. 
+To create the compound type the method `GenH5::DataType::compound()` can be used. It requires two arguments. 
 1) The first denotes the size of the compound element (i.e. the size of `MyData`).
 2) The second argument is a list of all members.
 Each member is of type `GenH5::CompoundMember` and is defined by a name, an offset inside the memory layout of the compound element and its datatype (which itself may be any kind of datatype).
@@ -85,15 +85,15 @@ auto type = GenH5::DataType::compound(sizeof(MyData), {
 };
 ```
 
-To check if a datatype is a compound, use `GenH5::DataType::isCompound`. 
-The method `GenH5::DataType::compoundMembers` return a list of all members. 
-The total byte size of the compound type is accessed by invoking `GenH5::DataType::size`.
+To check if a datatype is a compound, use `GenH5::DataType::isCompound()`. 
+The method `GenH5::DataType::compoundMembers()` return a list of all members. 
+The total byte size of the compound type is accessed by invoking `GenH5::DataType::size()`.
 
 ### Array Types
 
 In HDF5 a datatype can also be used to create fixed-sized array types representing a list of data elements.
 
-This library provides the `GenH5::DataType::array` method. It accepts two arguments:
+This library provides the `GenH5::DataType::array()` method. It accepts two arguments:
 1) The datatype to chain.
 2) The size for 1D arrays or a dimension vector for ND arrays.
 
@@ -110,9 +110,9 @@ The type which makes up the array can be retrieved using `GenH5::DataType::super
 
 ### Varlen Types
 
-While an array-type has fixed length, a varlen type can be used for lists each with a variable length.
+Whereas an array-type has a fixed length for each entry, a varlen type can be used for data in which each entry has a varying length.
 
-The `GenH5::DataType::varlen` method can be used:
+The `GenH5::DataType::varLen()` method can be used:
 
 ```cpp
 auto type = GenH5::DataType::varlen(GenH5::DataType::Float);
@@ -121,14 +121,14 @@ auto type = GenH5::DataType::varlen(GenH5::DataType::Float);
 The type which makes up the varlen type can be retrieved using `GenH5::DataType::superType`.
 
 When writing varlen data, the `hvl_t` struct can be used to set the length and a pointer to the data. 
-Alternatively this library provides the `GenH5::VarLen` typedef that may be used in conjunction with `GenH5::Data<...>` to create varlen data more easily.
+Alternatively this library provides the `GenH5::VarLen` typedef that may be used in conjunction with `GenH5::Data<...>` to create varlen data more easily. 
 See [reading and writing data from and to datasets](dataset_read_write.md) for more information.
 
 ## Template-based Datatype Deduction
 
-While the direct approach can be used to create any HDF5 datatype (especially at runtime) the library provides another more generic way of creating datatypes.
+Whereas the direct approach can be used to create any HDF5 datatype (especially at runtime); the library provides another, more generic way of creating datatypes.
 
-For this purpose the `GenH5::dataType` function can be used.
+For this purpose the `GenH5::dataType()` function can be used.
 
 ### Simple Types:
 
@@ -149,7 +149,7 @@ The library also provides a way of registring new datatypes for used-defined cla
 ### Compound Types:
 
 For creating compound types multiple template arguments can be used.
-Optionally a list of names may be passed to name each member respectively.
+Optionally, a list of names may be passed to name each member respectively.
 
 ```cpp
 auto type = GenH5::dataType<QString, double>({"my_string", "my_value"});
@@ -161,7 +161,7 @@ Alternatively one may also use the `GenH5::Comp` typedef:
 auto type = GenH5::dataType<GenH5::Comp<QString, double>>({"my_string", "my_value"});
 ```
 
-Internally the function uses a `std::tuple` to create a contiguous layout. It calculates the offsets to each member automatically. If no names are provided the members will be named `"type_0"`, `"type_1"` etc.
+Internally the function uses a `std::tuple` to create a contiguous layout. It calculates the offsets to each member automatically. If no names are provided the members are named `"type_0"`, `"type_1"` etc.
 
 > When using `GenH5::dataType<...>` its ill-advised to use a user-defined struct as a memory buffer for reading/writing a dataset, as the size and offsets may not be identical. 
 Use `GenH5::CompData<...>` instead.
@@ -200,13 +200,22 @@ using GenH5::Comp;
 
 auto type = 
 GenH5::dataType< 
-    Comp<QString,
-         VarLen<int>,
-         Array<Comp<int, int>, 3>>
-         >({
-        "my_string", "my_varlen_int", "my_comp_int_array"
-});
+    Comp<
+      QString,
+      VarLen<int>,
+      Array<
+        Comp<
+          int,
+          int
+        >, 3>
+      >
+    >({
+      "my_string", 
+      "my_varlen_int", 
+      "my_comp_int_array"
+    }
+);
 ```
 
-> **Note:** There is one downfall when using nested *compound types* this way, as the nested ones cannot be named directly using the function arguments of the `GenH5::dataType<...>` function.
-They will be automatically named `"type_0"`, `"type_1"` etc.
+> **Note:** One downfall when using nested *compound types* is that nested compound types cannot be named directly using the function arguments of the `GenH5::dataType<...>` function.
+They are named `"type_0"`, `"type_1"` etc. by default instead.

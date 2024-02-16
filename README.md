@@ -6,11 +6,11 @@ SPDX-License-Identifier: MPL-2.0+
 
 # GenH5
 
-This library is built upon the HDF5 C/C++ API. It does not aim to cover all functionalities of HDF5 but the main aspects. The wrapper is fully compatibel with the C/C++ API. 
+This library is built upon the HDF5 C API. It does not aim to cover all functionalities of HDF5 but attempts to simplify the most common routines.
 
-The online documentation can be found here: https://at-twk.pages.gitlab.dlr.de/gtlab-hdf5-wrapper/index.html
+The online API documentation can be found here: https://at-twk.pages.gitlab.dlr.de/gtlab-hdf5-wrapper/index.html
 
-A good introduction to HDF5 can be found here: https://portal.hdfgroup.org/display/HDF5/Introduction+to+HDF5
+A good introduction to HDF5 can be found here: https://docs.hdfgroup.org/hdf5/develop/_intro_h_d_f5.html
 
 ## License
 
@@ -20,8 +20,9 @@ The source code of GenH5 is licensed under the Mozilla Public License Version 2.
 
 The wrapper covers the following aspects:
  - Creating, accessing and deleting files, groups, datsets and attributes
- - Chunking datasets and compression
- - Flexible template-based datatype conversion system for simple and compound types (using `GenH5::Data` or `GenH5::CompData`)
+ - Chunking and compressing datasets
+ - Template-based system to convert C++ types to corresponding HDF5 datatypes
+ - Template-based data conversion system for most datatypes (using `GenH5::Data` or `GenH5::CompData`)
  - Simple interface for dataspaces and dataset selections
  - Simple interface for (de-) referencing nodes and attributes
  - Iterating over child nodes and attributes
@@ -30,7 +31,7 @@ Currently not covered:
  - External HDF5 files and datasets
  - Creating soft/hard links to nodes
  - Commiting datatypes
- - Certain datatypes are not properly supported (eg. opaque, time, reference etc.)
+ - Certain datatypes are not yet supported (eg. opaque, time, reference etc.)
  - Access and Create Property Lists are not properly integrated
  - No direct interface for Filters, Maps, Plugins
 
@@ -40,10 +41,10 @@ Currently not covered:
 
 Additional examples...
 - [File handling and internal path traversal](examples/file_handling_and_traversal.md)
-- [Creating simple and complex datatypes](examples/creating_datatypes.md)
+- [Creating datatypes](examples/creating_datatypes.md)
 - [Creating dataspaces and selections](examples/creating_dataspaces_and_selections.md)
-- [Introduction to data helper objects](examples/creating_data.md)
-- [Reading and writing data from and to a dataset or attribute](examples/reading_and_writing_data.md)
+- [Introduction to the Data API](examples/creating_data.md)
+- [Reading/writing data from/to a dataset/attribute](examples/reading_and_writing_data.md)
 - [Finding child nodes and attributes](examples/find_child_nodes.md)
 - [The conversion system](examples/conversion_system.md)
 
@@ -51,13 +52,14 @@ Additional examples...
 
 Writing a list of Integers to a dataset:
 ```c++
-// create simple int data
-GenH5::Data<int> data{ 1, 2, 3, 4 };
-// create the file or overwrite if it already exists
+// create file (truncating mode)
 GenH5::File file{ "my_file.h5", GenH5::Overwrite };
-// access the root group of the file and create a subgroup
+// acess root group and create subgroup
 GenH5::Group group = file.root().createGroup("my_group");
-// create simple dataset at '/my_group/my_data'
+
+// data to write
+GenH5::Data<int> data{ 1, 2, 3, 4 };
+// create dataset
 GenH5::DataSet dataset = group.createDataSet("my_data", data.dataType(), data.dataSpace());
 // write the data
 dataset.write(data);
@@ -65,20 +67,22 @@ dataset.write(data);
 
 Reading a list of compound datatypes from a dataset (int, QString):
 ```c++
-// open the file
+// open file (read & write)
 GenH5::File file{ "my_file.h5", GenH5::ReadOnly };
-// create data container
+
+// create compound data container
 GenH5::CompData<int, QString> data;
-// set compound type names
 data.setTypeNames({"my_ints", "my_strings"});
-// access the root group of the file and the desired dataset at '/my_group/my_data'
+
+// access the desired dataset
 GenH5::DataSet dataset = file.root().openDataSet("my_group/my_data");
 // check for correct dataset properties
 if (dataset.dataType() != data.dataType() || dataset.dataSpace().size() != 42) {
 	return; // error handling
 }
-// read the data from the dataset
+// read the data
 dataset.read(data);
+
 // deserialize the data into separate lists
 std::vector<int> ints;
 QStringList strings;
@@ -87,12 +91,11 @@ data.unpack(ints, strings);
 
 Referencing an attribute:
 ```c++
-// create or open the file if it exists
+// open file (read & write)
 GenH5::File file{ "my_file.h5", GenH5::ReadWrite };
-// create data container
-GenH5::Data<float> data{0.f};
-// access the root group of the file and create an attribute
+// create an attribute
 GenH5::Attribute attr = file.root().createAttribute("my_attribute", GenH5::dataType<float>(), GenH5::DataSpace::Scalar);
+
 // create reference
 GenH5::Reference ref = attr.toReference();
 ...
