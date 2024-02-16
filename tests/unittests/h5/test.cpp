@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QPoint>
 #include <QPointF>
+#include <QFileInfo>
 
 #include "genh5.h"
 
@@ -23,6 +24,55 @@ struct Tests : public testing::Test
         return GenH5::File{filePath, GenH5::Overwrite};
     }
 };
+
+TEST_F(Tests, test_0)
+{
+    h5TestHelper->newFilePath();
+    QByteArray filePath = h5TestHelper->tempPath().toUtf8() + "/my_file.h5";
+
+    for (int i = 0; i < 100; i++)
+    {
+        {
+            GenH5::File file(filePath, {GenH5::Create | GenH5::Open});
+
+            for (int j = 0; j < 10; j++)
+            {
+                auto data = h5TestHelper->linearDataVector(100, 0.0, 0.1);
+                auto dset = file.root().createDataSet(QString("dset_%1").arg(j).toUtf8(),
+                                          GenH5::dataType<double>(),
+                                          GenH5::DataSpace::linear(data.size()),
+                                          GenH5::DataSetCProperties{GenH5::Dimensions{static_cast<unsigned long long>(data.size())}, 9});
+                dset.write(data);
+            }
+        }
+
+        {
+            QFileInfo info(filePath);
+            qDebug() << i << "before" << info.size();
+        }
+
+        if (i == 0)
+        {
+            QFile(filePath).copy(filePath + ".copy.h5");
+        }
+
+        {
+            GenH5::File file(filePath, {GenH5::Open});
+
+            for (int j = 0; j < 10; j++)
+            {
+                auto dset = file.root().openDataSet(QString("dset_%1").arg(j).toUtf8());
+                dset.deleteRecursively();
+            }
+        }
+
+        {
+            QFileInfo info(filePath);
+            qDebug() << i << "after " << info.size();
+            qDebug() << "--------------------------";
+        }
+    }
+}
 
 TEST_F(Tests, test_1)
 {

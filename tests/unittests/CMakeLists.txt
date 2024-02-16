@@ -23,7 +23,7 @@ if (NOT TARGET gtest)
 endif()
 
 add_executable(H5UnitTest
-    h5/test_01_static.cpp
+    h5/test_01_typedefs.cpp
     h5/test_h5.cpp
     h5/test_h5_abstractdataset.cpp
     h5/test_h5_attribute.cpp
