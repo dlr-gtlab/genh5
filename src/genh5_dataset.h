@@ -186,7 +186,7 @@ protected:
 private:
 
     /// dataset id
-    IdComponent<H5I_DATASET> m_id;
+    IdComponent<IdType::DataSet> m_id;
 
     friend class Reference;
 };

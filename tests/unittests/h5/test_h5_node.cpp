@@ -42,7 +42,7 @@ TEST_F(TestH5Node, versionAttributeInvalid)
 
     auto vattr = file.root().createAttribute(GenH5::Node::versionAttributeName(),
                                              GenH5::dataType<int>(),
-                                             GenH5::DataSpace::Scalar);
+                                             GenH5::DataSpace::Scalar());
 
     int versionInt = GenH5::Version::current().toInt();
     EXPECT_TRUE(vattr.write(&versionInt));

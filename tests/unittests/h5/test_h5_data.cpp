@@ -364,6 +364,7 @@ TEST_F(TestH5Data, array_differentConversionType)
 
 TEST_F(TestH5Data, varlen_differentConversionType)
 {
+    using GenH5::varlen_t;
     using GenH5::VarLen;
     using VarLenT = VarLen<double>;
 
@@ -372,9 +373,9 @@ TEST_F(TestH5Data, varlen_differentConversionType)
     VarLenT val3{303213, 1218.12, 3.1415, 42};
     VarLenT val4{};
 
-    hvl_t hvl1{};
-    hvl_t hvl2{};
-    hvl_t hvl3{};
+    varlen_t hvl1{};
+    varlen_t hvl2{};
+    varlen_t hvl3{};
 
     // conversion container
     GenH5::conversion_container_t<VarLenT> nativeContainer{
@@ -384,7 +385,7 @@ TEST_F(TestH5Data, varlen_differentConversionType)
     // conversion value
     GenH5::Data<VarLenT> d2{hvl1};
     // conversion init list
-    GenH5::Data<VarLenT> d3{std::initializer_list<hvl_t>{hvl1, hvl2, hvl3, {}}};
+    GenH5::Data<VarLenT> d3{std::initializer_list<varlen_t>{hvl1, hvl2, hvl3, {}}};
 
     // other container
     QList<VarLenT> list{val1, val2, val3, val4};
@@ -654,7 +655,7 @@ TEST_F(TestH5Data, resize_setDimensions)
     ASSERT_EQ(data.size(), 0);
 
     // resize with null space
-    data.resize(GenH5::DataSpace::Null, dtype);
+    data.resize(GenH5::DataSpace::Null(), dtype);
     EXPECT_EQ(data.size(), 0);
     EXPECT_EQ(data.dimensions(), GenH5::Dimensions{});
 
@@ -662,7 +663,7 @@ TEST_F(TestH5Data, resize_setDimensions)
     ASSERT_EQ(data.size(), 0);
 
     // resize with scalar space
-    data.resize(GenH5::DataSpace::Scalar, dtype);
+    data.resize(GenH5::DataSpace::Scalar(), dtype);
     EXPECT_EQ(data.size(), 1);
     EXPECT_EQ(data.dimensions(), GenH5::Dimensions{});
 

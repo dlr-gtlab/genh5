@@ -41,7 +41,7 @@ struct Version
     // cppcheck-suppress noExplicitConstructor
     constexpr Version(int version) :
         major{(version & 0xff0000) >> 16},
-        minor{(version & 0x00ff00) >> 8},
+        minor{(version & 0x00ff00) >>  8},
         patch{(version & 0x0000ff)}
     {}
     constexpr Version(int vMajor, int vMinor, int vPatch) :

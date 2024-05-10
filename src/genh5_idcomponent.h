@@ -14,12 +14,17 @@
 #include "genh5_exports.h"
 #include "genh5_exception.h"
 
-#include "H5Ipublic.h"
-
 #include <string>
 
 namespace GenH5
 {
+
+/**
+ * @brief Returns the refcount of an id
+ * @param id Id to querry
+ * @return Reference count
+ */
+GENH5_EXPORT int refCount(hid_t id);
 
 /**
  * @brief Increments the id. Same as H5Iinc_ref.
@@ -47,9 +52,9 @@ GENH5_EXPORT bool isValidId(hid_t id);
  * @param id Id
  * @return Id class type
  */
-GENH5_EXPORT H5I_type_t classType(hid_t id);
+GENH5_EXPORT IdType classType(hid_t id);
 
-template <H5I_type_t Type>
+template <IdType Type>
 class IdComponent
 {
 public:
@@ -60,8 +65,8 @@ public:
         {
             throw IdComponentException{
                 GENH5_MAKE_EXECEPTION_STR() "Invalid id type (" +
-                std::to_string(classType(id)) + " vs. " +
-                std::to_string(Type) + ')'
+                std::to_string(static_cast<int>(classType(id))) + " vs. " +
+                std::to_string(static_cast<int>(Type)) + ')'
             };
         }
     }
@@ -74,9 +79,9 @@ public:
             if (status < 0)
             {
                 log::ErrStream()
-                        << GENH5_MAKE_EXECEPTION_STR()
-                           "Failed to decrement object id on destructor for '"
-                        << m_id << "'. Class type: " << Type;
+                    << GENH5_MAKE_EXECEPTION_STR()
+                       "Failed to decrement object id on destructor for '"
+                    << m_id << "'. Class type: " << static_cast<int>(Type);
             }
         }
     }
@@ -160,7 +165,8 @@ private:
 
 } // namespace GenH5
 
-template <H5I_type_t Type>
+
+template <GenH5::IdType Type>
 inline void
 swap(GenH5::IdComponent<Type>& a, GenH5::IdComponent<Type>& b) noexcept
 {

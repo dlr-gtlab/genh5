@@ -25,7 +25,7 @@ template<typename T, size_t N>
 auto convert(T const (&)[N], buffer_t<Array<T, N>>&);
 
 template<typename T>
-hvl_t convert(VarLen<T> const&, buffer_t<VarLen<T>>&);
+varlen_t convert(VarLen<T> const&, buffer_t<VarLen<T>>&);
 
 template<typename... Ts>
 auto convert(Comp<Ts...> const&, buffer_t<Comp<Ts...>>&);
@@ -37,7 +37,7 @@ template<typename Ttarget,
 auto convertTo(Array<conversion_t<T>, N> const&);
 
 template<typename Ttarget, typename T = traits::base_t<Ttarget>>
-auto convertTo(hvl_t);
+auto convertTo(varlen_t);
 
 template <typename Ttarget, typename... Ts>
 auto convertTo(Comp<Ts...> const&);
@@ -80,7 +80,7 @@ convert(T const (&values)[N], buffer_t<Array<T, N>>& buffer)
 
 /** VARLEN CONVERSIONS **/
 template<typename T>
-inline hvl_t
+inline varlen_t
 convert(VarLen<T> const& values, buffer_t<VarLen<T>>& buffer)
 {
     using GenH5::convert; // ADL
@@ -93,7 +93,7 @@ convert(VarLen<T> const& values, buffer_t<VarLen<T>>& buffer)
         hvlB.data.push_back(convert(val, hvlB.buffer));
     }
 
-    hvl_t hvl;
+    varlen_t hvl;
     hvl.len = static_cast<hsize_t>(hvlB.data.size());
     hvl.p   = static_cast<void*>(hvlB.data.data());
     return hvl;
@@ -132,7 +132,7 @@ convertTo(Array<conversion_t<T>, N> const& values)
 /** VARLEN REVERSE CONVERSIONS **/
 template<typename Ttarget, typename T> // == VarLen<T>
 inline auto
-convertTo(hvl_t hvl)
+convertTo(varlen_t hvl)
 {
     using GenH5::convertTo; // ADL
     traits::convert_to_t<VarLen<T>> conv;

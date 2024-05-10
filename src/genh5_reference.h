@@ -12,8 +12,6 @@
 
 #include "genh5_location.h"
 
-#include "H5Rpublic.h"
-
 namespace GenH5
 {
 // forward decl
@@ -29,13 +27,13 @@ class GENH5_EXPORT Reference
 {
 public:
 
-    static constexpr auto bufferSize = H5R_REF_BUF_SIZE;
+    static constexpr auto BUFFER_SIZE = sizeof(reference_t::u.__data);
 
-    using Alignment  = decltype (H5R_ref_t::u.align);
-    using BufferType = decltype (*H5R_ref_t::u.__data);
+    using Alignment  = decltype (reference_t::u.align);
+    using BufferType = decltype (*reference_t::u.__data);
 
     Reference();
-    explicit Reference(H5R_ref_t ref)  noexcept;
+    explicit Reference(reference_t ref)  noexcept;
     explicit Reference(Alignment data)  noexcept;
     explicit Reference(QByteArray buffer) noexcept(false);
     explicit Reference(Location const& location) noexcept(false);
@@ -44,7 +42,7 @@ public:
      * @brief allows access of the base hdf5 object
      * @return base hdf5 object
      */
-    H5R_ref_t const& toH5() const noexcept;
+    reference_t const& toH5() const noexcept;
 
     /**
      * @brief returns whether the reference is valid and can be used for further
@@ -94,7 +92,7 @@ public:
 private:
 
     /// hdf5 base instance
-    H5R_ref_t m_ref{};
+    reference_t m_ref{};
 };
 
 } // namespace GenH5

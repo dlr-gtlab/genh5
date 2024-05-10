@@ -17,7 +17,10 @@
 
 #include "testhelper.h"
 
+#include <H5Ipublic.h>
+
 #include <QDebug>
+
 
 
 /// This is a test fixture that does a init for each test
@@ -36,12 +39,12 @@ protected:
 
         dataset = group.createDataSet(QByteArrayLiteral("dataset"),
                                       GenH5::dataType<int>(),
-                                      GenH5::DataSpace::Scalar);
+                                      GenH5::DataSpace::Scalar());
         ASSERT_TRUE(dataset.isValid());
 
         attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
                                             GenH5::dataType<int>(),
-                                            GenH5::DataSpace::Scalar);
+                                            GenH5::DataSpace::Scalar());
         ASSERT_TRUE(attribute.isValid());
     }
 

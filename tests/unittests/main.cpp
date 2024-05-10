@@ -13,10 +13,11 @@
 #include <QDebug>
 
 #include "testhelper.h"
+#include "genh5_idcomponent.h"
 
 int main(int argc, char **argv)
 {
-    /*
+#if 0
     auto printIds = [](){
         auto const ids = GenH5::details::registeredIds();
         qDebug() << "Registered IDs:" << ids.size();
@@ -43,7 +44,7 @@ int main(int argc, char **argv)
             }
         }
     };
-    */
+#endif
 
     QCoreApplication app(argc, argv);
 

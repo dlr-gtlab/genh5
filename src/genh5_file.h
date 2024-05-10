@@ -24,11 +24,11 @@ namespace GenH5
  */
 enum FileAccessFlag
 {
-    Create = 1,
-    Open = 2,
-    Overwrite = 4,
-    ReadOnly = 8,
-    ReadWrite = 16
+    Create    =  1,
+    Open      =  2,
+    Overwrite =  4,
+    ReadOnly  =  8,
+    ReadWrite = 16,
 };
 Q_DECLARE_FLAGS(FileAccessFlags, FileAccessFlag)
 
@@ -100,7 +100,7 @@ public:
 private:
 
     /// file id
-    IdComponent<H5I_FILE> m_id;
+    IdComponent<IdType::File> m_id;
     /// caches the associated root group
     mutable Group m_root{};
 };

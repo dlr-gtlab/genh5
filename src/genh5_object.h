@@ -11,13 +11,10 @@
 #define GENH5_OBJECT_H
 
 #include "genh5_exports.h"
-
-#include "H5Ipublic.h"
+#include "genh5_typedefs.h"
 
 namespace GenH5
 {
-
-using ObjectType = H5I_type_t;
 
 /**
  * @brief The Object class
