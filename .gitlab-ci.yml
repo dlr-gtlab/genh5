@@ -38,6 +38,7 @@ windowsBuildDebug:
     - .build-win_17
     - .run-always
   script:
+    - $env:PATH+=(";.\build;"+$env:GTLAB_DEV_TOOLS+"\binDebug;")
     - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTLAB_DEVTOOLS_DIR="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2017-dbg -DBUILD_UNITTESTS=ON
     - cmake --build build --target install
     
@@ -47,6 +48,7 @@ windowsBuildDebugUnstable:
     - .build-win_20
     - .run-always
   script:
+    - $env:PATH+=(";.\build;"+$env:GTLAB_DEV_TOOLS+"\binDebug;")
     - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTLAB_DEVTOOLS_DIR="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2019-dbg -DBUILD_UNITTESTS=ON
     - cmake --build build --target install
 
