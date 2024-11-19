@@ -36,6 +36,10 @@ public:
     static DataType const& Bool;
     static DataType const& Char;
 
+    static DataType const& Int8;
+    static DataType const& UInt8;
+    static DataType const& Int16;
+    static DataType const& UInt16;
     static DataType const& Int;
     static DataType const& Long;
     static DataType const& LLong;
@@ -378,9 +382,13 @@ GENH5_DECLARE_DATATYPE(char, DataType::Char);
 GENH5_DECLARE_DATATYPE(char*, DataType::VarString);
 GENH5_DECLARE_DATATYPE(char const*, DataType::VarString);
 
+GENH5_DECLARE_DATATYPE(int8_t, DataType::Int8);
+GENH5_DECLARE_DATATYPE(int16_t, DataType::Int16);
 GENH5_DECLARE_DATATYPE(int, DataType::Int);
 GENH5_DECLARE_DATATYPE(long int, DataType::Long);
 GENH5_DECLARE_DATATYPE(long long int, DataType::LLong);
+GENH5_DECLARE_DATATYPE(uint8_t, DataType::UInt8);
+GENH5_DECLARE_DATATYPE(uint16_t, DataType::Int16);
 GENH5_DECLARE_DATATYPE(unsigned int, DataType::UInt);
 GENH5_DECLARE_DATATYPE(unsigned long int, DataType::ULong);
 GENH5_DECLARE_DATATYPE(unsigned long long int, DataType::ULLong);
