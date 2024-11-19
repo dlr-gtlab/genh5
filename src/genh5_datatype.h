@@ -34,6 +34,15 @@ public:
     static DataType const& Bool();
     static DataType const& Char();
 
+    static DataType const& Int8();
+    static DataType const& Int16();
+    static DataType const& Int32();
+    static DataType const& Int64();
+    static DataType const& UInt8();
+    static DataType const& UInt16();
+    static DataType const& UInt32();
+    static DataType const& UInt64();
+
     static DataType const& Int();
     static DataType const& Long();
     static DataType const& LLong();
@@ -205,11 +214,43 @@ getTypeNames(DataType const& dtype) noexcept(false)
 namespace details
 {
 
-// invalid, cannot convert to datatype
-template <typename ...Ts>
+template <typename T, typename ...Ts>
 struct datatype_impl
 {
-    // T must have an datatype associated!
+    // If T is not an integer type (std::is_integral) it has no valid
+    // hdf5-datatype (i.e. it was not registered yet)
+    //
+    // The default implementation provides a FALLBACK hdf5-datatype for integer
+    // types that have not been assigned a dedicated hdf5-datatype. This might
+    // happen for example in MSVC where `long` is not covered by the dedicated
+    // overloads for `int8_t`, `int16_t`, and `int32_t`, `int64_t`, and alike.
+    datatype_impl(CompoundNames<0> = {}) {
+
+        // if T is not an integer type it is has no datatype associated!
+        static_assert(std::is_integral<T>::value,
+                      "Type `T` has no HDF5-datatype registered! Use "
+                      "`GENH5_DECLARE_DATATYPE` or `GENH5_DECLARE_DATATYPE_IMPL` "
+                      "to register an HDF5-datatype for `T`.");
+    }
+
+    operator DataType const&() const
+    {
+        switch (sizeof (T))
+        {
+        case sizeof(int8_t):
+            return (std::is_signed<T>()) ? DataType::Int8()  : DataType::UInt8();
+        case sizeof(int16_t):
+            return (std::is_signed<T>()) ? DataType::Int16() : DataType::UInt16();
+        case sizeof(int32_t):
+            return (std::is_signed<T>()) ? DataType::Int32() : DataType::UInt32();
+        case sizeof(int64_t):
+            return (std::is_signed<T>()) ? DataType::Int64() : DataType::UInt64();
+        default:
+            break;
+        }
+        static DataType invalid{};
+        return invalid;
+    }
 };
 
 // specialization for array types
@@ -310,7 +351,7 @@ conversion_t<Comp<Ts...>> datatype_impl<Comp<Ts...>>::m_t{};
 
 } // namespace details
 
-// compound types
+// compound types (if we pass at least two types)
 template<typename T1, typename T2, typename... Tother>
 inline DataType
 dataType(CompoundNames<sizeof...(Tother) + 2> memberNames = {}) noexcept(false)
@@ -393,12 +434,15 @@ GENH5_DECLARE_DATATYPE(char, DataType::Char());
 GENH5_DECLARE_DATATYPE(char*, DataType::VarString());
 GENH5_DECLARE_DATATYPE(char const*, DataType::VarString());
 
-GENH5_DECLARE_DATATYPE(int, DataType::Int());
-GENH5_DECLARE_DATATYPE(long int, DataType::Long());
-GENH5_DECLARE_DATATYPE(long long int, DataType::LLong());
-GENH5_DECLARE_DATATYPE(unsigned int, DataType::UInt());
-GENH5_DECLARE_DATATYPE(unsigned long int, DataType::ULong());
-GENH5_DECLARE_DATATYPE(unsigned long long int, DataType::ULLong());
+GENH5_DECLARE_DATATYPE(int8_t,  DataType::Int8());
+GENH5_DECLARE_DATATYPE(int16_t, DataType::Int16());
+GENH5_DECLARE_DATATYPE(int32_t, DataType::Int32());
+GENH5_DECLARE_DATATYPE(int64_t, DataType::Int64());
+
+GENH5_DECLARE_DATATYPE(uint8_t,  DataType::UInt8());
+GENH5_DECLARE_DATATYPE(uint16_t, DataType::UInt16());
+GENH5_DECLARE_DATATYPE(uint32_t, DataType::UInt32());
+GENH5_DECLARE_DATATYPE(uint64_t, DataType::UInt64());
 
 GENH5_DECLARE_DATATYPE(float, DataType::Float());
 GENH5_DECLARE_DATATYPE(double, DataType::Double());
