@@ -63,6 +63,7 @@ set(headers
     genh5_typetraits.h
     genh5_utils.h
     genh5_version.h
+    genh5_hooks.h
 )
 
 set(sources
