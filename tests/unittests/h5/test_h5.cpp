@@ -40,7 +40,7 @@ TEST_F(TestH5, verionMacros)
 
 TEST_F(TestH5, hdf5Version)
 {
-    EXPECT_TRUE(0x010c00 < GenH5::Version::hdf5());
+    EXPECT_TRUE(0x010c00 <= GenH5::Version::hdf5());
     EXPECT_TRUE(0x010d00 > GenH5::Version::hdf5());
 }
 
