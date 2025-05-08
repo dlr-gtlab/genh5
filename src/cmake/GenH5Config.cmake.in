@@ -10,7 +10,7 @@
 include(CMakeFindDependencyMacro)
 
 find_dependency(hdf5 CONFIG REQUIRED)
-find_dependency(Qt5 COMPONENTS Core REQUIRED)
+find_dependency(Qt@QT_MAJOR_VERSION@ COMPONENTS Core REQUIRED)
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 if(NOT TARGET GenH5)

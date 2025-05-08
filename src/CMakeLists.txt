@@ -14,7 +14,7 @@ if (NOT DEFINED CMAKE_POSITION_INDEPENDENT_CODE)
 endif(NOT DEFINED CMAKE_POSITION_INDEPENDENT_CODE)
 
 # Get Qt5
-find_package(Qt5 COMPONENTS Core REQUIRED)
+require_qt(COMPONENTS Core REQUIRED)
 find_package(HDF5 1.12.0 CONFIG REQUIRED)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -96,7 +96,7 @@ if (TARGET hdf5::hdf5 AND NOT TARGET hdf5-shared)
   add_library(hdf5-shared ALIAS hdf5::hdf5)
 endif()
 
-target_link_libraries(GenH5 PUBLIC Qt5::Core hdf5-shared)
+target_link_libraries(GenH5 PUBLIC Qt::Core hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
@@ -124,9 +124,10 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
-file(GENERATE
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/GenH5Config.cmake"
-  INPUT  "${PROJECT_SOURCE_DIR}/cmake/GenH5Config.cmake.in"
+configure_file(
+  "${PROJECT_SOURCE_DIR}/cmake/GenH5Config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/GenH5Config.cmake"
+  @ONLY
 )
 
 
