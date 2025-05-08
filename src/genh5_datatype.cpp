@@ -34,6 +34,10 @@ inline DataType makePredType(hid_t id)
 static const GenH5::DataType s_bool{GenH5::makePredType(H5T_NATIVE_HBOOL)};
 static const GenH5::DataType s_char{GenH5::makePredType(H5T_NATIVE_CHAR)};
 
+static const GenH5::DataType s_int8{GenH5::makePredType(H5T_NATIVE_SCHAR)};
+static const GenH5::DataType s_uint8{GenH5::makePredType(H5T_NATIVE_UCHAR)};
+static const GenH5::DataType s_int16{GenH5::makePredType(H5T_NATIVE_SHORT)};
+static const GenH5::DataType s_uint16{GenH5::makePredType(H5T_NATIVE_USHORT)};
 static const GenH5::DataType s_int{GenH5::makePredType(H5T_NATIVE_INT)};
 static const GenH5::DataType s_long{GenH5::makePredType(H5T_NATIVE_LONG)};
 static const GenH5::DataType s_llong{GenH5::makePredType(H5T_NATIVE_LLONG)};
@@ -57,6 +61,10 @@ static const GenH5::DataType s_version{
 GenH5::DataType const& GenH5::DataType::Bool = s_bool;
 GenH5::DataType const& GenH5::DataType::Char = s_char;
 
+GenH5::DataType const& GenH5::DataType::Int8 = s_int8;
+GenH5::DataType const& GenH5::DataType::UInt8 = s_uint8;
+GenH5::DataType const& GenH5::DataType::Int16 = s_int16;
+GenH5::DataType const& GenH5::DataType::UInt16 = s_uint16;
 GenH5::DataType const& GenH5::DataType::Int = s_int;
 GenH5::DataType const& GenH5::DataType::Long = s_long;
 GenH5::DataType const& GenH5::DataType::LLong = s_llong;
