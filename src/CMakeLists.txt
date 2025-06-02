@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0+
 
 cmake_minimum_required(VERSION 3.8)
-project(GenH5 VERSION 3.0.3)
+project(GenH5 VERSION 3.0.4)
 
 if (NOT DEFINED BUILD_SHARED_LIBS)
   set(BUILD_SHARED_LIBS ON)
