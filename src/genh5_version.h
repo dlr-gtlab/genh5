@@ -14,10 +14,10 @@
 
 #include <utility>
 
-#define GENH5_VERSION_MAJOR 3
+#define GENH5_VERSION_MAJOR 4
 #define GENH5_VERSION_MINOR 0
-#define GENH5_VERSION_PATCH 4
-#define GENH5_VERSION_ADDITIONAL ""
+#define GENH5_VERSION_PATCH 0
+#define GENH5_VERSION_ADDITIONAL "-dev"
 #define GENH5_VERSION ((GENH5_VERSION_MAJOR<<16)|\
                       (GENH5_VERSION_MINOR<<8)|\
                       (GENH5_VERSION_PATCH))

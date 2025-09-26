@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Predefined static instances of `DataSpace` and `DataType` were changed to be static member functions instead of static members. For example: `DataSpace::Null` is now `DataSpace::Null()`. - #126
 - Wrapped native HDF5 symbols (structs, enums, typedefs etc.) in header file `genh5_static.h`. These are binary compatible to the corresponding HDF5 symbols. Some enum values and structs are not made available in GenH5 yet, since only the required enum values and symbols were wrapped. - #51
+- GenH5 can now statically link HDF5. - #51
+
+### Added
+- Added methods for accessing sign and CSET of datatypes. - #51
 
 ### Fixed
 - Fixed potential faults due to the Static Initialization Order Fiasco. Predefined static instances of `DataSpace` and `DataType` must now be called. - #126
