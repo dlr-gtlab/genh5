@@ -19,11 +19,11 @@
 #include <stdint.h>
 
 /// include `hsize_t`
-typedef unsigned long long hsize_t;
+using hsize_t  = unsigned long long;
 /// include `hssize_t`
-typedef signed long long   hssize_t;
+using hssize_t =  signed long long;
 /// include `hid_t`
-using hid_t = int64_t;
+using hid_t  = int64_t;
 /// include `herr_t`
 using herr_t = int;
 

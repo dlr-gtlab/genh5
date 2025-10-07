@@ -19,6 +19,7 @@
 
 GenH5::Reference::Reference() = default;
 
+// ccp-check supress passedByValue
 GenH5::Reference::Reference(reference_t ref) noexcept :
     m_ref{ref}
 { }
@@ -93,7 +94,7 @@ GenH5::Reference::isValid() const noexcept
 QByteArray
 GenH5::Reference::buffer() const noexcept
 {
-    return {reinterpret_cast<char const*>(m_ref.u.__data), BUFFER_SIZE};
+    return {reinterpret_cast<char const*>(m_ref.u.__data), (int)BUFFER_SIZE};
 }
 
 GenH5::reference_t const&
