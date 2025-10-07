@@ -50,7 +50,11 @@ add_executable(H5UnitTest
 
 target_include_directories(H5UnitTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(H5UnitTest PRIVATE GenH5 gtest hdf5-shared)
+get_target_property(HDF5_INCLUDE_DIRS hdf5-shared INTERFACE_INCLUDE_DIRECTORIES)
+
+target_include_directories(H5UnitTest PRIVATE ${HDF5_INCLUDE_DIRS})
+
+target_link_libraries(H5UnitTest PRIVATE GenH5 gtest)
 
 include(GoogleTest)
 gtest_discover_tests(H5UnitTest TEST_PREFIX "GenH5." DISCOVERY_MODE PRE_TEST)

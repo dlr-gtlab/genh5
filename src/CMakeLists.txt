@@ -100,6 +100,8 @@ if (TARGET hdf5::hdf5 AND NOT TARGET hdf5-shared)
   add_library(hdf5-shared ALIAS hdf5::hdf5)
 endif()
 
+set_target_properties(GenH5 PROPERTIES VERSION 4.0.0 SOVERSION 4)
+
 target_link_libraries(GenH5 PUBLIC Qt5::Core PRIVATE hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
