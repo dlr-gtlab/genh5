@@ -53,12 +53,13 @@ getName(hid_t id, Functor const& getNameFunctor)
     String buffer{32, ' '};
     size_t bufferLen = static_cast<size_t>(buffer.size());
 
-    auto acutalLen =
+    // length required to store the string (with null termination, hence +1)
+    auto acutalLen = 1 +
             static_cast<size_t>(getNameFunctor(id, bufferLen, buffer.data()));
 
     if (acutalLen > bufferLen)
     {
-        bufferLen = acutalLen + 1;
+        bufferLen = acutalLen;
         buffer.resize(static_cast<int>(bufferLen));
         getNameFunctor(id, bufferLen, buffer.data());
     }
