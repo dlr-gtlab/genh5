@@ -77,34 +77,12 @@ TEST_F(TestH5Location, linkPath)
     EXPECT_EQ(attribute.path(), dataset.path());
 }
 
-TEST_F(TestH5Location, file)
-{
-//    EXPECT_THROW(GenH5::File().root().file(), GenH5::FileException);
-
-//    EXPECT_THROW(GenH5::Group().file(), GenH5::GroupException);
-//    EXPECT_THROW(GenH5::DataSet().file(), GenH5::GroupException);
-//    EXPECT_THROW(GenH5::Attribute().file(), GenH5::GroupException);
-
-//    // root group creates a file on the heap
-//    void* filePtr = file.root().file().get();
-//    // so these pointer should not match
-//    EXPECT_NE(&file, filePtr);
-
-//    // however alls other objects should point to the same object on heap
-//    EXPECT_EQ(group.file().get(), filePtr);
-//    EXPECT_EQ(dataset.file().get(), filePtr);
-//    EXPECT_EQ(attribute.file().get(), filePtr);
-}
-
 TEST_F(TestH5Location, fileRefCount)
 {
     hid_t id = 0;
 
     {
         GenH5::Group _root;
-
-        // file should be null
-//        ASSERT_THROW(_root.file().isValid(), GenH5::IdComponentException);
 
         {
             auto _file = GenH5::File(h5TestHelper->newFilePath(),
@@ -159,4 +137,17 @@ TEST_F(TestH5Location, exists)
     EXPECT_FALSE(group.exists(QByteArrayLiteral("/dataset/")));
     // however this should exist
     EXPECT_TRUE(group.exists(QByteArrayLiteral("dataset/")));
+}
+
+TEST_F(TestH5Location, issue_137_group_name_exceeds_preallocated_buffer)
+{
+    // if location name does not
+    auto file = GenH5::File("truncation.h5", GenH5::Overwrite);
+
+    // all together 32 byte including 2 "/"
+    auto group = file.root().createGroup("Root5678901234567890123456");
+    auto testgroup = group.createGroup("test");
+
+    EXPECT_EQ(QByteArrayLiteral("test"), testgroup.name());
+    EXPECT_EQ(QByteArrayLiteral("/Root5678901234567890123456/test"), testgroup.path());
 }

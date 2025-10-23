@@ -26,7 +26,6 @@ add_executable(H5UnitTest
     h5/test_h5.cpp
     h5/test_h5_abstractdataset.cpp
     h5/test_h5_attribute.cpp
-    h5/test_h5_bugs.cpp
     h5/test_h5_conversion.cpp
     h5/test_h5_data.cpp
     h5/test_h5_data0d.cpp
