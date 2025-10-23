@@ -10,11 +10,20 @@
 #include "genh5_dataspace.h"
 #include "genh5_private.h"
 
-static const GenH5::DataSpace s_null = GenH5::DataSpace::fromId(H5Screate(H5S_NULL));
-static const GenH5::DataSpace s_scalar = GenH5::DataSpace::fromId(H5Screate(H5S_SCALAR));
+#include <H5Spublic.h>
 
-GenH5::DataSpace const& GenH5::DataSpace::Null = s_null;
-GenH5::DataSpace const& GenH5::DataSpace::Scalar = s_scalar;
+GenH5::DataSpace const&
+GenH5::DataSpace::Null()
+{
+    static DataSpace space = DataSpace{DataSpaceClass::Null};
+    return space;
+};
+GenH5::DataSpace const&
+GenH5::DataSpace::Scalar()
+{
+    static DataSpace space = DataSpace{DataSpaceClass::Scalar};
+    return space;
+};
 
 GenH5::DataSpace
 GenH5::DataSpace::fromId(hid_t id)
@@ -25,11 +34,11 @@ GenH5::DataSpace::fromId(hid_t id)
 }
 
 GenH5::DataSpace::DataSpace() :
-    DataSpace(H5Screate(H5S_NULL))
+    DataSpace(DataSpaceClass::Null)
 { }
 
-GenH5::DataSpace::DataSpace(H5S_class_t type) :
-    m_id(H5Screate(type))
+GenH5::DataSpace::DataSpace(DataSpaceClass type) :
+    m_id(H5Screate(static_cast<H5S_class_t>(type)))
 {
     if (m_id < 0)
     {
@@ -175,7 +184,7 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
     testSelection(m_stride, dims, 1);
     testSelection(m_block, dims, 1);
 
-    herr_t err = H5Sselect_hyperslab(m_space.id(), m_op,
+    herr_t err = H5Sselect_hyperslab(m_space.id(), static_cast<H5S_seloper_t>(m_op),
                                      m_offset.constData(), m_stride.constData(),
                                      m_count.constData(), m_block.constData());
 

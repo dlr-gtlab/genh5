@@ -11,13 +11,13 @@
 #define GENH5_PRIVATE_H
 
 #include "genh5_group.h"
-#include "genh5_typetraits.h"
 
-#include "H5Ipublic.h"
-#include "H5Ppublic.h"
-#include "H5Apublic.h"
+#include <H5Ipublic.h>
+#include <H5Apublic.h>
 
 #include <utility>
+
+#include <QDebug>
 
 namespace GenH5
 {
@@ -85,9 +85,9 @@ inline NodeInfo getNodeInfo(hid_t groupId, char const* nodeName,
 
     NodeInfo info;
     info.path = QByteArray{nodeName};
-    info.type = type;
+    info.type = static_cast<IdType>(type);
     info.corder = nodeInfo->corder_valid ? nodeInfo->corder : -1;
-    info.token = nodeInfo->u.token;
+    memcpy(info.token.__data, nodeInfo->u.token.__data, sizeof(nodeInfo->u.token.__data));
     return info;
 }
 
@@ -107,11 +107,11 @@ accumulateNodes(hid_t groupId, char const* nodeName,
     assert(data->nodes);
 
     NodeInfo info = getNodeInfo(groupId, nodeName, nodeInfo);
-    if (data->filter == FilterGroups && info.type != H5I_GROUP)
+    if (data->filter == FilterGroups && info.type != IdType::Group)
     {
         return 0;
     }
-    if (data->filter == FilterDataSets && info.type != H5I_DATASET)
+    if (data->filter == FilterDataSets && info.type != IdType::DataSet)
     {
         return 0;
     }
@@ -137,11 +137,11 @@ foreachNode(hid_t groupId, char const* nodeName,
     assert(data->f);
 
     NodeInfo info = getNodeInfo(groupId, nodeName, nodeInfo);
-    if (data->filter == FilterGroups && info.type != H5I_GROUP)
+    if (data->filter == FilterGroups && info.type != IdType::Group)
     {
         return 0;
     }
-    if (data->filter == FilterDataSets && info.type != H5I_DATASET)
+    if (data->filter == FilterDataSets && info.type != IdType::DataSet)
     {
         return 0;
     }

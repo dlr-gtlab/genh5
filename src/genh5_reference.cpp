@@ -15,10 +15,12 @@
 
 #include "H5Apublic.h"
 #include "H5Ppublic.h"
+#include "H5Rpublic.h"
 
 GenH5::Reference::Reference() = default;
 
-GenH5::Reference::Reference(H5R_ref_t ref) noexcept :
+// ccp-check supress passedByValue
+GenH5::Reference::Reference(reference_t ref) noexcept :
     m_ref{ref}
 { }
 
@@ -29,12 +31,12 @@ GenH5::Reference::Reference(Alignment data) noexcept
 
 GenH5::Reference::Reference(QByteArray buffer)  noexcept(false)
 {
-    if (buffer.size() != bufferSize)
+    if (buffer.size() != BUFFER_SIZE)
     {
         throw ReferenceException{
             GENH5_MAKE_EXECEPTION_STR() "invalid reference format (" +
             std::to_string(buffer.size()) + " vs. " +
-            std::to_string(bufferSize) + " expected elements)"
+            std::to_string(BUFFER_SIZE) + " expected elements)"
         };
     }
 
@@ -54,15 +56,17 @@ GenH5::Reference::Reference(Location const& location) noexcept(false)
     }
 
     herr_t error;
-    if (classType(location.id()) == H5I_ATTR)
+    if (classType(location.id()) == IdType::Attribute)
     {
         error = H5Rcreate_attr(location.file().id(), location.path(),
-                               location.name(), H5P_DEFAULT, &m_ref);
+                               location.name(), H5P_DEFAULT,
+                               reinterpret_cast<H5R_ref_t*>(&m_ref));
     }
     else
     {
         error = H5Rcreate_object(location.file().id(), location.path(),
-                                 H5P_DEFAULT, &m_ref);
+                                 H5P_DEFAULT,
+                                 reinterpret_cast<H5R_ref_t*>(&m_ref));
     }
 
     if (error < 0)
@@ -90,10 +94,10 @@ GenH5::Reference::isValid() const noexcept
 QByteArray
 GenH5::Reference::buffer() const noexcept
 {
-    return {reinterpret_cast<char const*>(m_ref.u.__data), bufferSize};
+    return {reinterpret_cast<char const*>(m_ref.u.__data), (int)BUFFER_SIZE};
 }
 
-H5R_ref_t const&
+GenH5::reference_t const&
 GenH5::Reference::toH5() const noexcept
 {
     return m_ref;
@@ -104,8 +108,8 @@ GenH5::Reference::toGroup(File const& file) const noexcept(false)
 {
 //    auto ref = m_ref;
 //    hid_t group = H5Ropen_object(&ref, H5P_DEFAULT, H5P_DEFAULT);
-    hid_t group = H5Rdereference(file.root().id(), H5P_DEFAULT,
-                                 H5R_OBJECT, &m_ref);
+    hid_t group = H5Rdereference(file.root().id(), H5P_DEFAULT, H5R_OBJECT,
+                                 reinterpret_cast<H5R_ref_t const*>(&m_ref));
     if (group < 0)
     {
         throw ReferenceException{
@@ -125,8 +129,8 @@ GenH5::Reference::toDataSet(File const& file) const noexcept(false)
 {
 //    auto ref = m_ref;
 //    hid_t dset = H5Ropen_object(&ref, H5P_DEFAULT, H5P_DEFAULT);
-    hid_t dset = H5Rdereference(file.root().id(), H5P_DEFAULT,
-                                H5R_OBJECT, &m_ref);
+    hid_t dset = H5Rdereference(file.root().id(), H5P_DEFAULT, H5R_OBJECT,
+                                reinterpret_cast<H5R_ref_t const*>(&m_ref));
     if (dset < 0)
     {
         throw ReferenceException{
@@ -146,7 +150,9 @@ GenH5::Reference::toAttribute(File const& file) const noexcept(false)
 {
     Q_UNUSED(file)
 
-    auto ref = m_ref;
+    H5R_ref_t ref;
+    memcpy(ref.u.__data, m_ref.u.__data, BUFFER_SIZE);
+
     hid_t attr = H5Ropen_attr(&ref, H5P_DEFAULT, H5P_DEFAULT);
 //    hid_t attr = H5Rdereference(file.root().id(), H5P_DEFAULT, H5R_OBJECT, &m_ref);
     if (attr < 0)

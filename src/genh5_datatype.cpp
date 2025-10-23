@@ -11,6 +11,8 @@
 #include "genh5_utils.h"
 #include "genh5_private.h"
 
+#include <H5Tpublic.h>
+
 namespace GenH5
 {
 
@@ -31,44 +33,74 @@ inline DataType makePredType(hid_t id)
 
 } // namespace GenH5
 
-static const GenH5::DataType s_bool{GenH5::makePredType(H5T_NATIVE_HBOOL)};
-static const GenH5::DataType s_char{GenH5::makePredType(H5T_NATIVE_CHAR)};
+GenH5::DataType const&
+GenH5::DataType::Bool()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_HBOOL);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Char()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_CHAR);
+    return type;
+}
 
-static const GenH5::DataType s_int{GenH5::makePredType(H5T_NATIVE_INT)};
-static const GenH5::DataType s_long{GenH5::makePredType(H5T_NATIVE_LONG)};
-static const GenH5::DataType s_llong{GenH5::makePredType(H5T_NATIVE_LLONG)};
-static const GenH5::DataType s_uint{GenH5::makePredType(H5T_NATIVE_UINT)};
-static const GenH5::DataType s_ulong{GenH5::makePredType(H5T_NATIVE_ULONG)};
-static const GenH5::DataType s_ullong{GenH5::makePredType(H5T_NATIVE_ULLONG)};
+GenH5::DataType const& GenH5::DataType::Int()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_INT);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Long()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_LONG);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::LLong()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_LLONG);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::UInt()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_UINT);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::ULong()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_ULONG);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::ULLong()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_ULLONG);
+    return type;
+}
 
-static const GenH5::DataType s_float{GenH5::makePredType(H5T_NATIVE_FLOAT)};
-static const GenH5::DataType s_double{GenH5::makePredType(H5T_NATIVE_DOUBLE)};
+GenH5::DataType const& GenH5::DataType::Float()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_FLOAT);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Double()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_DOUBLE);
+    return type;
+}
 
-static const GenH5::DataType s_varString{GenH5::DataType::string(H5T_VARIABLE)};
-
-static const GenH5::DataType s_version{
-    GenH5::DataType::compound(sizeof(GenH5::Version), {
+GenH5::DataType const& GenH5::DataType::VarString()
+{
+    static DataType type = GenH5::DataType::varString();
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Version()
+{
+    static DataType type = GenH5::DataType::compound(sizeof(GenH5::Version), {
         {"major", offsetof(GenH5::Version, major), GenH5::dataType<int>()},
         {"minor", offsetof(GenH5::Version, minor), GenH5::dataType<int>()},
         {"patch", offsetof(GenH5::Version, patch), GenH5::dataType<int>()}
-    })
-};
-
-GenH5::DataType const& GenH5::DataType::Bool = s_bool;
-GenH5::DataType const& GenH5::DataType::Char = s_char;
-
-GenH5::DataType const& GenH5::DataType::Int = s_int;
-GenH5::DataType const& GenH5::DataType::Long = s_long;
-GenH5::DataType const& GenH5::DataType::LLong = s_llong;
-GenH5::DataType const& GenH5::DataType::UInt = s_uint;
-GenH5::DataType const& GenH5::DataType::ULong = s_ulong;
-GenH5::DataType const& GenH5::DataType::ULLong = s_ullong;
-
-GenH5::DataType const& GenH5::DataType::Float = s_float;
-GenH5::DataType const& GenH5::DataType::Double = s_double;
-
-GenH5::DataType const& GenH5::DataType::VarString = s_varString;
-GenH5::DataType const& GenH5::DataType::Version = s_version;
+    });
+    return type;
+}
 
 GenH5::DataType
 GenH5::DataType::string(size_t size, bool useUtf8) noexcept(false)
@@ -88,6 +120,12 @@ GenH5::DataType::string(size_t size, bool useUtf8) noexcept(false)
     }
 
     return dtype;
+}
+
+GenH5::DataType
+GenH5::DataType::varString(bool useUtf8) noexcept(false)
+{
+    return string(H5T_VARIABLE, useUtf8);
 }
 
 GenH5::DataType
@@ -183,7 +221,8 @@ GenH5::DataType::compound(size_t dataSize,
     return dtype;
 }
 
-GenH5::DataType GenH5::DataType::fromId(hid_t id) noexcept
+GenH5::DataType
+GenH5::DataType::fromId(hid_t id) noexcept
 {
     DataType d;
     d.m_id = id;
@@ -207,37 +246,49 @@ GenH5::DataType::id() const noexcept
 bool
 GenH5::DataType::isInt() const noexcept
 {
-    return type() == Type::H5T_INTEGER;
+    return type() == DataTypeClass::Int;
+}
+
+bool
+GenH5::DataType::isSigned() const noexcept
+{
+    return H5Tget_sign(id()) == H5T_SGN_2;
 }
 
 bool
 GenH5::DataType::isFloat() const noexcept
 {
-    return type() == Type::H5T_FLOAT;
+    return type() == DataTypeClass::Float;
 }
 
 bool
 GenH5::DataType::isString() const noexcept
 {
-    return type() == Type::H5T_STRING;
+    return type() == DataTypeClass::String;
+}
+
+bool
+GenH5::DataType::isUtf8() const noexcept
+{
+    return H5Tget_cset(id()) == H5T_CSET_UTF8;
 }
 
 bool
 GenH5::DataType::isArray() const noexcept
 {
-    return type() == Type::H5T_ARRAY;
+    return type() == DataTypeClass::Array;
 }
 
 bool
 GenH5::DataType::isCompound() const noexcept
 {
-    return type() == Type::H5T_COMPOUND;
+    return type() == DataTypeClass::Compound;
 }
 
 bool
 GenH5::DataType::isVarLen() const noexcept
 {
-    return type() == Type::H5T_VLEN;
+    return type() == DataTypeClass::VarLen;
 }
 
 bool
@@ -252,10 +303,10 @@ GenH5::DataType::size() const noexcept
     return H5Tget_size(m_id);
 }
 
-GenH5::DataType::Type
+GenH5::DataTypeClass
 GenH5::DataType::type() const noexcept
 {
-    return isValid() ? H5Tget_class(m_id) : H5T_NO_CLASS;
+    return isValid() ? static_cast<DataTypeClass>(H5Tget_class(m_id)) : DataTypeClass::Error;
 }
 
 GenH5::Dimensions
@@ -436,7 +487,7 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
         return true;
     }
 
-    H5T_class_t const classType = first.type();
+    GenH5::DataTypeClass const classType = first.type();
 
     // class types differ -> exit
     if (classType != other.type())
@@ -449,17 +500,17 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
     // some indepth checking
     switch (classType)
     {
-    case H5T_ENUM:
+    case GenH5::DataTypeClass::Enum:
         // TODO: Check enum values and names
         return isSameSize &&
                H5Tget_nmembers(first.id()) == H5Tget_nmembers(other.id());
-    case H5T_INTEGER: // not checking endianess etc.
-    case H5T_FLOAT: // not checking precision etc.
+    case GenH5::DataTypeClass::Int: // not checking endianess etc.
+    case GenH5::DataTypeClass::Float: // not checking precision etc.
         return isSameSize;
-    case H5T_STRING:
+    case GenH5::DataTypeClass::String:
         return isSameSize &&
                first.isVarString() == other.isVarString();
-    case H5T_VLEN:
+    case GenH5::DataTypeClass::VarLen:
         if (isSameSize)
         {
             auto const fSuper = first.superType();
@@ -467,7 +518,7 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
             return fSuper == oSuper;
         }
         break;
-    case H5T_ARRAY:
+    case GenH5::DataTypeClass::Array:
         if (isSameSize)
         {
             auto const fDims = first.arrayDimensions();
@@ -477,7 +528,7 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
             return fDims == oDims && fSuper == oSuper;
         }
         break;
-    case H5T_COMPOUND:
+    case GenH5::DataTypeClass::Compound:
         if (isSameSize)
         {
             auto const fMembers = first.compoundMembers();
@@ -496,7 +547,7 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
             }
         }
         break;
-    case H5T_OPAQUE:
+    case GenH5::DataTypeClass::Opaque:
         if (isSameSize)
         {
             char* fTag = H5Tget_tag(first.id());
@@ -507,9 +558,9 @@ operator==(GenH5::DataType const& first, GenH5::DataType const& other)
             return isSameSize && isSameTag;
         }
         break;
-    case H5T_BITFIELD:
-    case H5T_TIME:
-    case H5T_REFERENCE:
+    case GenH5::DataTypeClass::BitField:
+    case GenH5::DataTypeClass::Time:
+    case GenH5::DataTypeClass::Reference:
     default:
         return isSameSize;
     }

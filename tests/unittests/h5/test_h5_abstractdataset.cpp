@@ -179,7 +179,7 @@ TEST_F(TestH5AbstractDataSet, writeScalar)
 
     auto dset = root.createDataSet("string_scalar",
                                    data.dataType(),
-                                   GenH5::DataSpace::Scalar);
+                                   GenH5::DataSpace::Scalar());
 
     EXPECT_TRUE(dset.write(data));
 
@@ -193,7 +193,7 @@ TEST_F(TestH5AbstractDataSet, writeNull)
     GenH5::Data0D<double> data{42.123};
     auto dset = root.createDataSet("double_null",
                                    data.dataType(),
-                                   GenH5::DataSpace::Null);
+                                   GenH5::DataSpace::Null());
 
     EXPECT_FALSE(dset.write(data));
 

@@ -107,7 +107,7 @@ TEST_F(TestH5Attribute, nodeInfo)
     auto file = GenH5::File(h5TestHelper->newFilePath(), GenH5::Create);
     auto rootAttr = file.root().createAttribute("root_attr",
                                                 GenH5::dataType<int>(),
-                                                GenH5::DataSpace::Scalar);
+                                                GenH5::DataSpace::Scalar());
 
     EXPECT_EQ(rootAttr.path(), file.root().name());
     ASSERT_NO_THROW(rootAttr.nodeInfo());
@@ -118,7 +118,7 @@ TEST_F(TestH5Attribute, nodeInfo)
     auto dset= file.root().writeDataSet0D("dset", 42);
     auto dsetAttr = dset.createAttribute("dset_attr",
                                          GenH5::dataType<int>(),
-                                         GenH5::DataSpace::Scalar);
+                                         GenH5::DataSpace::Scalar());
 
     EXPECT_EQ(dsetAttr.path(), dset.path());
     ASSERT_NO_THROW(dsetAttr.nodeInfo());

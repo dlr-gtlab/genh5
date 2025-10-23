@@ -85,7 +85,7 @@ protected:
 private:
 
     /// attribute id
-    IdComponent<H5I_ATTR> m_id;
+    IdComponent<IdType::Attribute> m_id;
 
     friend class Reference;
 };

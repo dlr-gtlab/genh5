@@ -6,7 +6,7 @@ build*/
 debug/
 release/
 lib/
-install/
+install*/
 include/
 .qtc_clangd/
 

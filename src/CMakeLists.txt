@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0+
 
 cmake_minimum_required(VERSION 3.8)
-project(GenH5 VERSION 3.0.4)
+project(GenH5 VERSION 4.0.0)
 
 if (NOT DEFINED BUILD_SHARED_LIBS)
   set(BUILD_SHARED_LIBS ON)
@@ -97,10 +97,12 @@ else()
 endif()
 
 if (TARGET hdf5::hdf5 AND NOT TARGET hdf5-shared)
-  add_library(hdf5-shared ALIAS hdf5::hdf5)
+    add_library(hdf5-shared ALIAS hdf5::hdf5)
 endif()
 
-target_link_libraries(GenH5 PUBLIC Qt::Core hdf5-shared)
+set_target_properties(GenH5 PROPERTIES OUTPUT_NAME "genhfive${PROJECT_VERSION_MAJOR}")
+
+target_link_libraries(GenH5 PUBLIC Qt5::Core PRIVATE hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>

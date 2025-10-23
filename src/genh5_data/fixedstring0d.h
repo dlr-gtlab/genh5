@@ -33,7 +33,7 @@ public:
     // compound type not supported
     static DataType dataType(compound_names names) = delete;
 
-    DataSpace dataSpace() const override { return DataSpace::Scalar; }
+    DataSpace dataSpace() const override { return DataSpace::Scalar(); }
 
     DataType dataType() const override { return dataType(true); }
 
@@ -77,7 +77,7 @@ public:
     bool resize(DataSpace const& dspace, DataType const& dtype) override
     {
         if (dspace.selectionSize() > size() &&
-            dtype.type() != H5T_STRING &&
+            dtype.type() != DataTypeClass::String &&
             dtype.isVarString())
         {
             return false;

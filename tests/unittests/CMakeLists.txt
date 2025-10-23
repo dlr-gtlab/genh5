@@ -7,13 +7,13 @@ if (NOT TARGET GenH5)
     find_package(GenH5 CONFIG REQUIRED)
 endif()
 
-if (NOT TARGET hdf5::hdf5_cpp)
+if (NOT TARGET hdf5::hdf5)
     find_package(HDF5 CONFIG REQUIRED)
 endif()
 
 # make conan and normal config files work
-if (TARGET hdf5::hdf5_cpp AND NOT TARGET hdf5_cpp-shared)
-  add_library(hdf5_cpp-shared ALIAS hdf5::hdf5_cpp)
+if (TARGET hdf5::hdf5 AND NOT TARGET hdf5-shared)
+  add_library(hdf5-shared ALIAS hdf5::hdf5)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -23,7 +23,8 @@ if (NOT TARGET gtest)
 endif()
 
 add_executable(H5UnitTest
-    h5/test_h5.cpp
+    h5/test_01_typedefs.cpp
+    h5/test_01_version.cpp
     h5/test_h5_abstractdataset.cpp
     h5/test_h5_attribute.cpp
     h5/test_h5_conversion.cpp
@@ -42,7 +43,6 @@ add_executable(H5UnitTest
     h5/test_h5_node.cpp
     h5/test_h5_reference.cpp
     h5/test_h5_utils.cpp
-    h5/test.cpp
     main.cpp
     testhelper.cpp
     testhelper.h
@@ -50,7 +50,11 @@ add_executable(H5UnitTest
 
 target_include_directories(H5UnitTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(H5UnitTest PRIVATE GenH5 gtest hdf5_cpp-shared)
+get_target_property(HDF5_INCLUDE_DIRS hdf5-shared INTERFACE_INCLUDE_DIRECTORIES)
+
+target_include_directories(H5UnitTest PRIVATE ${HDF5_INCLUDE_DIRS})
+
+target_link_libraries(H5UnitTest PRIVATE GenH5 gtest)
 
 include(GoogleTest)
 gtest_discover_tests(H5UnitTest TEST_PREFIX "GenH5." DISCOVERY_MODE PRE_TEST)

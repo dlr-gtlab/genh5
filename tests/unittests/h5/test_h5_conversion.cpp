@@ -163,15 +163,16 @@ TEST_F(TestConversion, array_bufferTypes)
 
 TEST_F(TestConversion, varlen_conversionTypes)
 {
+    using GenH5::varlen_t;
     using GenH5::VarLen;
 
-    assertConversionType<VarLen<int>, hvl_t>();
-    assertConversionType<VarLen<double>, hvl_t>();
-    assertConversionType<VarLen<QString>, hvl_t>();
-    assertConversionType<VarLen<char*>, hvl_t>();
+    assertConversionType<VarLen<int>, varlen_t>();
+    assertConversionType<VarLen<double>, varlen_t>();
+    assertConversionType<VarLen<QString>, varlen_t>();
+    assertConversionType<VarLen<char*>, varlen_t>();
 
     // custom
-    assertConversionType<VarLen<QPoint>, hvl_t>();
+    assertConversionType<VarLen<QPoint>, varlen_t>();
 }
 
 TEST_F(TestConversion, varlen_bufferTypes)
@@ -216,6 +217,7 @@ TEST_F(TestConversion, compound_bufferTypes)
 
 TEST_F(TestConversion, complex_conversionTypes)
 {
+    using GenH5::varlen_t;
     using GenH5::Comp;
     using GenH5::RComp;
     using GenH5::Vector;
@@ -223,18 +225,18 @@ TEST_F(TestConversion, complex_conversionTypes)
     using GenH5::Array;
 
     assertCompConversionType<Comp<int, VarLen<QString>, Array<double, 42>>,
-                             Comp<int, hvl_t, Array<double, 42>>>();
+                             Comp<int, varlen_t, Array<double, 42>>>();
     assertCompConversionType<Comp<Array<size_t, 1>, Comp<VarLen<int>, QString>>,
-                             Comp<Array<size_t, 1>, RComp<hvl_t, char*>>>();
+                             Comp<Array<size_t, 1>, RComp<varlen_t, char*>>>();
 
     assertConversionType<VarLen<Array<double, 42>>,
-                         hvl_t>();
+                         varlen_t>();
     assertConversionType<VarLen<Comp<double, QPoint>>,
-                         hvl_t>();
+                         varlen_t>();
 
     assertConversionType<Array<Comp<QString, GenH5::Version>, 42>,
                          Array<RComp<char*, GenH5::Version>, 42>>();
-    assertConversionType<VarLen<int>[5], Array<hvl_t, 5>>();
+    assertConversionType<VarLen<int>[5], Array<varlen_t, 5>>();
     assertConversionType<Array<QPoint, 15>[5],
                          Array<Array<PointData, 15>, 5>>();
 }
@@ -435,6 +437,7 @@ TEST_F(TestConversion, convertArrayComp)
 
 TEST_F(TestConversion, convertVarLen)
 {
+    using GenH5::varlen_t;
     using GenH5::convert;
     using GenH5::convertTo;
     using GenH5::VarLen;
@@ -443,7 +446,7 @@ TEST_F(TestConversion, convertVarLen)
     VarLenT varlenOrig{"Hello World", "ABC", "Fancy String", "DEF"};
 
     GenH5::buffer_t<VarLen<QString>> buffer;
-    hvl_t res = convert(varlenOrig, buffer);
+    varlen_t res = convert(varlenOrig, buffer);
 
     ASSERT_EQ(buffer.size(), 1);
     auto& first = buffer.first();
@@ -458,6 +461,7 @@ TEST_F(TestConversion, convertVarLen)
 
 TEST_F(TestConversion, convertVarLenCustom)
 {
+    using GenH5::varlen_t;
     using GenH5::convert;
     using GenH5::convertTo;
     using GenH5::VarLen;
@@ -466,9 +470,9 @@ TEST_F(TestConversion, convertVarLenCustom)
     VarLenT varlenOrig{{0, 1}, {1, 1}, {1, 2}};
 
     GenH5::buffer_t<VarLenT> buffer;
-    hvl_t res = convert(varlenOrig, buffer);
+    varlen_t res = convert(varlenOrig, buffer);
 
-    static_assert (std::is_same<hvl_t, decltype (res)>::value,
+    static_assert (std::is_same<varlen_t, decltype (res)>::value,
                    "Conversion type mismatch");
 
     ASSERT_EQ(buffer.size(), 1);

@@ -9,6 +9,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Changed library name from `GenH5` to `genhfive`. Library name now indicates major version. - #51
+- Predefined static instances of `DataSpace` and `DataType` were changed to be static member functions instead of static members. For example: `DataSpace::Null` is now `DataSpace::Null()`. - #126
+- Wrapped native HDF5 symbols (structs, enums, typedefs etc.) in header file `genh5_static.h`. These are binary compatible to the corresponding HDF5 symbols. Some enum values and structs are not made available in GenH5 yet, since only the required enum values and symbols were wrapped. - #51
+- GenH5 can now statically link HDF5. - #51
+
+### Added
+- Added methods for accessing sign and CSET of datatypes. - #51
+
+### Fixed
+- Fixed potential faults due to the Static Initialization Order Fiasco. Predefined static instances of `DataSpace` and `DataType` must now be called. - #126
+
 ## [3.0.4] - 2025-06-02
 ### Added
  - Added support for building with Qt6
@@ -16,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.3] - 2023-11-28
 ### Changed
 - First release as Open Source Software
-
 
 ## [3.0.2] - 2023-05-08
 ### Fixed

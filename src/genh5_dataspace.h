@@ -14,8 +14,6 @@
 #include "genh5_object.h"
 #include "genh5_utils.h"
 
-#include "H5Spublic.h"
-
 namespace GenH5
 {
 
@@ -33,8 +31,8 @@ public:
     template<typename Tout = hsize_t>
     Tout size() const;
 
-    static DataSpace const& Null;
-    static DataSpace const& Scalar;
+    static DataSpace const& Null();
+    static DataSpace const& Scalar();
 
     static DataSpace linear(hsize_t length) noexcept(false)
     {
@@ -54,7 +52,7 @@ public:
      * @brief DataSpace
      */
     DataSpace();
-    explicit DataSpace(H5S_class_t type);
+    explicit DataSpace(DataSpaceClass type);
     explicit DataSpace(hid_t id);
     explicit DataSpace(std::initializer_list<hsize_t> initlist) noexcept(false);
     explicit DataSpace(Dimensions const& dimensions) noexcept(false);
@@ -104,11 +102,10 @@ public:
 private:
 
     /// dataspace id
-    IdComponent<H5I_DATASPACE> m_id;
+    IdComponent<IdType::DataSpace> m_id;
 };
 
 /// selection operator
-using SelectionOp = H5S_seloper_t;
 
 class DataSpaceSelection
 {
@@ -128,7 +125,7 @@ public:
     explicit DataSpaceSelection(DataSpace dspace,
                                 Dimensions count = {}, Dimensions offset = {},
                                 Dimensions stride = {}, Dimensions block = {},
-                                SelectionOp op = H5S_SELECT_SET) :
+                                SelectionOp op = SelectionOp::SelectSet) :
         m_space{std::move(dspace)},
         m_count{std::move(count)},
         m_offset{std::move(offset)},
@@ -188,7 +185,7 @@ private:
     Dimensions m_offset{};
     Dimensions m_stride{};
     Dimensions m_block{};
-    SelectionOp m_op = H5S_SELECT_SET;
+    SelectionOp m_op{SelectionOp::SelectSet};
 
     /**
      * @brief Applies the selection to the dataspace. Must be called before
@@ -234,7 +231,7 @@ inline DataSpaceSelection makeSelection(DataSpace const& dspace,
                                         Dimensions offset = {},
                                         Dimensions stride = {},
                                         Dimensions block  = {},
-                                        SelectionOp op = H5S_SELECT_SET)
+                                        SelectionOp op = SelectionOp::SelectSet)
 {
     return DataSpaceSelection{dspace, count, offset, stride, block, op};
 }

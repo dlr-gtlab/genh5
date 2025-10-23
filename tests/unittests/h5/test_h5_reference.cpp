@@ -19,7 +19,6 @@
 
 #include <QDebug>
 
-
 /// This is a test fixture that does a init for each test
 class TestH5Reference : public testing::Test
 {
@@ -36,12 +35,12 @@ protected:
 
         dataset = group.createDataSet(QByteArrayLiteral("dataset"),
                                       GenH5::dataType<int>(),
-                                      GenH5::DataSpace::Scalar);
+                                      GenH5::DataSpace::Scalar());
         ASSERT_TRUE(dataset.isValid());
 
         attribute = dataset.createAttribute(QByteArrayLiteral("attribute"),
                                             GenH5::dataType<int>(),
-                                            GenH5::DataSpace::Scalar);
+                                            GenH5::DataSpace::Scalar());
         ASSERT_TRUE(attribute.isValid());
     }
 
@@ -92,7 +91,7 @@ TEST_F(TestH5Reference, referenceGroup)
     EXPECT_EQ(grp.name(), group.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceDataset)
@@ -108,7 +107,7 @@ TEST_F(TestH5Reference, referenceDataset)
     EXPECT_EQ(dset.name(), dataset.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceAttribute)
@@ -124,7 +123,7 @@ TEST_F(TestH5Reference, referenceAttribute)
     EXPECT_EQ(attr.name(), attribute.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceGroupAlign)
@@ -140,7 +139,7 @@ TEST_F(TestH5Reference, referenceGroupAlign)
     EXPECT_EQ(grp.name(), group.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceDatasetAlign)
@@ -156,7 +155,7 @@ TEST_F(TestH5Reference, referenceDatasetAlign)
     EXPECT_EQ(dset.name(), dataset.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceAttributeAlign)
@@ -171,7 +170,7 @@ TEST_F(TestH5Reference, referenceAttributeAlign)
     qDebug() << "### END";
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceGroupBuffer)
@@ -187,7 +186,7 @@ TEST_F(TestH5Reference, referenceGroupBuffer)
     EXPECT_EQ(grp.name(), group.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceDatasetBuffer)
@@ -203,7 +202,7 @@ TEST_F(TestH5Reference, referenceDatasetBuffer)
     EXPECT_EQ(dset.name(), dataset.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
 
 TEST_F(TestH5Reference, referenceAttributeBuffer)
@@ -219,5 +218,5 @@ TEST_F(TestH5Reference, referenceAttributeBuffer)
     EXPECT_EQ(attr.name(), attribute.name());
 
     // local file has access
-    EXPECT_EQ(H5Iget_ref(file.id()), 1);
+    EXPECT_EQ(GenH5::refCount(file.id()), 1);
 }
