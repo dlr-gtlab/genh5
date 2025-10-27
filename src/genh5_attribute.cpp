@@ -42,7 +42,17 @@ GenH5::Attribute::id() const noexcept
 bool
 GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 {
+    if (auto hook = findHook(fileId(), GenH5::PreAttributeWrite)) {
+        GenH5::AttributeWriteHookContext context{data, &dtype};
+        hook(id(), &context);
+    }
+
     herr_t err = H5Awrite(m_id, dtype.id(), data);
+
+    if (auto hook = findHook(fileId(), GenH5::PostAttributeWrite)) {
+        GenH5::AttributeWriteHookContext context{data, &dtype};
+        hook(id(), &context);
+    }
 
     return err >= 0;
 }
@@ -50,7 +60,17 @@ GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 bool
 GenH5::Attribute::doRead(void* data, DataType const& dtype) const
 {
+    if (auto hook = findHook(fileId(), GenH5::PreAttributeRead)) {
+        GenH5::AttributeReadHookContext context{data, &dtype};
+        hook(id(), &context);
+    }
+
     herr_t err = H5Aread(m_id, dtype.id(), data);
+
+    if (auto hook = findHook(fileId(), GenH5::PostAttributeRead)) {
+        GenH5::AttributeReadHookContext context{data, &dtype};
+        hook(id(), &context);
+    }
 
     return err >= 0;
 }

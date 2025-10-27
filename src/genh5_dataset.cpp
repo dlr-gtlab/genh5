@@ -9,7 +9,6 @@
 
 #include "genh5_dataset.h"
 #include "genh5_private.h"
-#include "genh5_reference.h"
 #include "genh5_node.h"
 #include "genh5_file.h"
 
@@ -18,85 +17,72 @@
 
 #include <QDebug>
 
-struct GenH5::DataSet::Impl
+namespace
 {
-    explicit Impl(hid_t id)
-        : id(id)
-    {}
 
-    /// dataset id
-    IdComponent<IdType::DataSet> id;
+inline bool writeImpl(GenH5::DataSet const& dset,
+                      void const* data,
+                      GenH5::DataSpace const& fileSpace,
+                      GenH5::DataSpace const& memSpace,
+                      GenH5::DataType const& dtype)
+{
+    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetWrite)) {
+        GenH5::DataSetWriteHookContext context{data, &fileSpace, &memSpace, &dtype};
+        hook(dset.id(), &context);
+    }
 
-    // The hooks to execute before and after read / write
-    std::map<GenH5::HookType, GenH5::Hook> hooks;
-};
+    herr_t err = H5Dwrite(dset.id(), dtype.id(), memSpace.id(), fileSpace.id(), H5P_DEFAULT, data);
 
-GenH5::DataSet::DataSet()
-    : GenH5::DataSet(hid_t())
-{}
+    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetWrite)) {
+        GenH5::DataSetWriteHookContext context{data, &fileSpace, &memSpace, &dtype};
+        hook(dset.id(), &context);
+    }
+
+    return err >= 0;
+}
+
+inline bool readImpl(GenH5::DataSet const& dset,
+                     void* data,
+                     GenH5::DataSpace const& fileSpace,
+                     GenH5::DataSpace const& memSpace,
+                     GenH5::DataType const& dtype)
+{
+    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetRead)) {
+        GenH5::DataSetReadHookContext context{data, &fileSpace, &memSpace, &dtype};
+        hook(dset.id(), &context);
+    }
+
+    herr_t err = H5Dread(dset.id(), dtype.id(), memSpace.id(), fileSpace.id(), H5P_DEFAULT, data);
+
+    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetRead)) {
+        GenH5::DataSetReadHookContext context{data, &fileSpace, &memSpace, &dtype};
+        hook(dset.id(), &context);
+    }
+
+    return err >= 0;
+}
+
+} // namespace
+
+GenH5::DataSet::DataSet() = default;
 
 GenH5::DataSet::DataSet(hid_t id) :
-    pimpl(std::make_unique<Impl>(id))
+    m_id(id)
 {
-    pimpl->id.inc();
+    m_id.inc();
 }
-
-GenH5::DataSet::DataSet(const DataSet & other)
-    : pimpl(std::make_unique<Impl>(*other.pimpl))
-{
-}
-
-GenH5::DataSet::DataSet(DataSet && other)
-    : pimpl(std::move(other.pimpl))
-{
-}
-
-GenH5::DataSet&
-GenH5::DataSet::operator=(const DataSet& other)
-{
-    GenH5::DataSet tmp(other);
-    swap(tmp);
-    return *this;
-}
-
-GenH5::DataSet&
-GenH5::DataSet::operator=(DataSet&& other)
-{
-    swap(other);
-    return *this;
-}
-
-
-GenH5::DataSet::~DataSet() = default;
 
 void
 GenH5::DataSet::swap(DataSet& other) noexcept
 {
     using std::swap;
-    swap(pimpl, other.pimpl);
-}
-
-void
-GenH5::DataSet::setHook(const GenH5::Hook &hook, GenH5::HookType type)
-{
-    pimpl->hooks[type] = hook;
-}
-
-void
-GenH5::DataSet::execHook(GenH5::HookType type) const
-{
-    auto iter = pimpl->hooks.find(type);
-    if (iter != pimpl->hooks.end() && iter->second)
-    {
-        // execute
-        iter->second();
-    }
+    swap(m_id, other.m_id);
 }
 
 hid_t
 GenH5::DataSet::id() const noexcept
 {
-    return pimpl->id;
+    return m_id;
 }
 
 GenH5::DataSetCProperties
@@ -114,7 +100,7 @@ GenH5::DataSet::cProperties() const noexcept(false)
         };
     }
 
-    return details::make<DataSetCProperties, DataSetException>([id = pimpl->id](){
+    return details::make<DataSetCProperties, DataSetException>([id = m_id](){
         return H5Dget_create_plist(id);
     }, errMsg);
 }
@@ -122,16 +108,9 @@ GenH5::DataSet::cProperties() const noexcept(false)
 bool
 GenH5::DataSet::doWrite(void const* data, DataType const& dtype) const
 {
-    execHook(GenH5::PreWrite);
-
     auto dspace = dataSpace();
 
-    herr_t err = H5Dwrite(pimpl->id, dtype.id(), dspace.id(), dspace.id(),
-                          H5P_DEFAULT, data);
-
-    execHook(GenH5::PostWrite);
-
-    return err >= 0;
+    return writeImpl(*this, data, dspace, dspace, dtype);
 }
 
 bool
@@ -139,14 +118,7 @@ GenH5::DataSet::doRead(void* data, DataType const& dtype) const
 {
     auto dspace = dataSpace();
 
-    execHook(GenH5::PreRead);
-
-    herr_t err = H5Dread(pimpl->id, dtype.id(), dspace.id(), dspace.id(),
-                         H5P_DEFAULT, data);
-
-    execHook(GenH5::PostRead);
-
-    return err >= 0;
+    return readImpl(*this, data, dspace, dspace, dtype);
 }
 
 bool
@@ -155,8 +127,6 @@ GenH5::DataSet::write(void const* data,
                       DataSpace const& memSpace,
                       Optional<DataType> dtype) const
 {
-    execHook(GenH5::PreWrite);
-
     auto space = dataSpace();
     if (space.isNull())
     {
@@ -179,12 +149,7 @@ GenH5::DataSet::write(void const* data,
         dtype = type;
     }
 
-    herr_t err = H5Dwrite(pimpl->id, dtype->id(), memSpace.id(), fileSpace.id(),
-                          H5P_DEFAULT, data);
-
-    execHook(GenH5::PostWrite);
-
-    return err >= 0;
+    return writeImpl(*this, data, fileSpace, memSpace, dtype);
 }
 
 bool
@@ -193,8 +158,6 @@ GenH5::DataSet::read(void* data,
                      DataSpace const& memSpace,
                      Optional<DataType> dtype)
 {
-    execHook(GenH5::PreRead);
-
     auto space = dataSpace();
     if (space.isNull())
     {
@@ -217,12 +180,7 @@ GenH5::DataSet::read(void* data,
         dtype = type;
     }
 
-    herr_t err = H5Dread(pimpl->id, dtype->id(), memSpace.id(), fileSpace.id(),
-                         H5P_DEFAULT, data);
-
-    execHook(GenH5::PostRead);
-
-    return err >= 0;
+    return readImpl(*this, data, fileSpace, memSpace, dtype);
 }
 
 void
@@ -282,7 +240,7 @@ GenH5::DataSet::dataType() const noexcept(false)
         };
     }
 
-    return details::make<DataType, DataTypeException>([id = pimpl->id](){
+    return details::make<DataType, DataTypeException>([id = m_id](){
         return H5Dget_type(id);
     }, errMsg);
 }
@@ -300,7 +258,7 @@ GenH5::DataSet::dataSpace() const noexcept(false)
         };
     }
 
-    return details::make<DataSpace, DataSpaceException>([id = pimpl->id](){
+    return details::make<DataSpace, DataSpaceException>([id = m_id](){
         return H5Dget_space(id);
     }, errMsg);
 }
@@ -331,7 +289,7 @@ GenH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
     herr_t err = 0;
     if (dimensions != dspace.dimensions())
     {
-        err = H5Dset_extent(pimpl->id, dimensions.constData());
+        err = H5Dset_extent(m_id, dimensions.constData());
     }
     return err >= 0;
 }
@@ -339,5 +297,5 @@ GenH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
 void
 GenH5::DataSet::close()
 {
-    pimpl->id.dec();
+    m_id.dec();
 }

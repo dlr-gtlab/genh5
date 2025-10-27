@@ -50,6 +50,7 @@ set(headers
     genh5_file.h
     genh5_group.h
     genh5_globals.h
+    genh5_hooks.h
     genh5_idcomponent.h
     genh5_location.h
     genh5_logging.h
@@ -63,7 +64,6 @@ set(headers
     genh5_typetraits.h
     genh5_utils.h
     genh5_version.h
-    genh5_hooks.h
 )
 
 set(sources
@@ -75,6 +75,7 @@ set(sources
     genh5_datatype.cpp
     genh5_file.cpp
     genh5_group.cpp
+    genh5_hooks.cpp
     genh5_idcomponent.cpp
     genh5_location.cpp
     genh5_logging.cpp

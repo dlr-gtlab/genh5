@@ -32,13 +32,6 @@ public:
      * @brief DataSet
      */
     DataSet();
-    DataSet(const DataSet& );
-    DataSet(DataSet&& );
-
-    DataSet& operator=(const DataSet& other);
-    DataSet& operator=(DataSet&& other);
-
-    ~DataSet() override;
     explicit DataSet(hid_t id);
 
     /**
@@ -186,20 +179,6 @@ public:
     /// swaps all members
     void swap(DataSet& other) noexcept;
 
-
-    /**
-     * @brief Sets a hook (callback) function, that is executed at the different
-     * write / read locations
-     * @param hook The hook to execute
-     * @param type The type of the hook (i.e. when the hook should be executed)
-     */
-    void setHook(const GenH5::Hook& hook, GenH5::HookType type);
-
-    /**
-     * @brief Executes a hook
-     */
-    void execHook(GenH5::HookType) const;
-
 protected:
 
     /// write implementation
@@ -209,8 +188,8 @@ protected:
 
 private:
 
-    struct Impl;
-    std::unique_ptr<Impl> pimpl;
+    /// dataset id
+    IdComponent<IdType::DataSet> m_id;
 
     friend class Reference;
 };
