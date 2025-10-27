@@ -11,6 +11,7 @@
 #include "genh5_private.h"
 #include "genh5_node.h"
 #include "genh5_file.h"
+#include "genh5_hooks.h"
 
 #include "H5Dpublic.h"
 #include "H5Ppublic.h"
@@ -26,16 +27,24 @@ inline bool writeImpl(GenH5::DataSet const& dset,
                       GenH5::DataSpace const& memSpace,
                       GenH5::DataType const& dtype)
 {
-    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetWrite)) {
+    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetWriteHook)) {
         GenH5::DataSetWriteHookContext context{data, &fileSpace, &memSpace, &dtype};
-        hook(dset.id(), &context);
+        GenH5::HookReturnValue rvalue = hook(dset.id(), &context);
+        if (rvalue != GenH5::HookContinue)
+        {
+            return rvalue == GenH5::HookExitSuccess;
+        }
     }
 
     herr_t err = H5Dwrite(dset.id(), dtype.id(), memSpace.id(), fileSpace.id(), H5P_DEFAULT, data);
 
-    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetWrite)) {
+    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetWriteHook)) {
         GenH5::DataSetWriteHookContext context{data, &fileSpace, &memSpace, &dtype};
-        hook(dset.id(), &context);
+        GenH5::HookReturnValue rvalue = hook(dset.id(), &context);
+        if (rvalue != GenH5::HookContinue)
+        {
+            return rvalue == GenH5::HookExitSuccess;
+        }
     }
 
     return err >= 0;
@@ -47,14 +56,14 @@ inline bool readImpl(GenH5::DataSet const& dset,
                      GenH5::DataSpace const& memSpace,
                      GenH5::DataType const& dtype)
 {
-    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetRead)) {
+    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetReadHook)) {
         GenH5::DataSetReadHookContext context{data, &fileSpace, &memSpace, &dtype};
         hook(dset.id(), &context);
     }
 
     herr_t err = H5Dread(dset.id(), dtype.id(), memSpace.id(), fileSpace.id(), H5P_DEFAULT, data);
 
-    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetRead)) {
+    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetReadHook)) {
         GenH5::DataSetReadHookContext context{data, &fileSpace, &memSpace, &dtype};
         hook(dset.id(), &context);
     }
@@ -298,4 +307,5 @@ void
 GenH5::DataSet::close()
 {
     m_id.dec();
+    m_id = -2;
 }

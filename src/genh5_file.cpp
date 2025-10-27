@@ -122,6 +122,37 @@ GenH5::File::File(String path, FileAccessFlags flags)
     }
 }
 
+//GenH5::File::File(File const& other) :
+//    m_id(other.m_id),
+//    m_root(Group{})
+//{ }
+//GenH5::File::File(File&& other) :
+//    m_id(std::move(other.m_id)),
+//    m_root(std::move(other.m_root))
+//{ }
+//GenH5::File& GenH5::File::operator=(File const& other)
+//{
+//    File tmp(other);
+//    swap(tmp);
+//    return *this;
+//}
+//GenH5::File& GenH5::File::operator=(File&& other)
+//{
+//    swap(other);
+//    return *this;
+//}
+
+//GenH5::File::~File()
+//{
+//    if (!isValid()) return;
+
+//    int ref = refCount(m_id);
+//    if (ref == 1)
+//    {
+//        qDebug() << "HERE" << ref;
+//    }
+//}
+
 hid_t
 GenH5::File::id() const noexcept
 {
@@ -182,6 +213,7 @@ GenH5::File::close()
         m_root.close();
     }
     m_id.dec();
+    m_id = -2;
 }
 
 void

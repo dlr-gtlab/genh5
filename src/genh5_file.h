@@ -57,6 +57,12 @@ public:
     explicit File(hid_t id);
     explicit File(String path, FileAccessFlags flags = ReadWrite);
 
+//    File(File const& other);
+//    File(File&& other);
+//    File& operator=(File const& other);
+//    File& operator=(File&& other);
+//    ~File();
+
     /**
      * @brief id or handle of the hdf5 resource.
      * @return id

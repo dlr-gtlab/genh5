@@ -25,6 +25,7 @@ endif()
 add_executable(H5UnitTest
     h5/test_01_typedefs.cpp
     h5/test_01_version.cpp
+    h5/test_51_hooks.cpp
     h5/test_h5_abstractdataset.cpp
     h5/test_h5_attribute.cpp
     h5/test_h5_conversion.cpp

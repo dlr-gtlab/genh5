@@ -12,6 +12,7 @@
 #include "genh5_file.h"
 #include "genh5_exception.h"
 #include "genh5_private.h"
+#include "genh5_hooks.h"
 
 #include "H5Ppublic.h"
 #include "H5Apublic.h"
@@ -42,16 +43,24 @@ GenH5::Attribute::id() const noexcept
 bool
 GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 {
-    if (auto hook = findHook(fileId(), GenH5::PreAttributeWrite)) {
+    if (auto hook = findHook(fileId(), GenH5::PreAttributeWriteHook)) {
         GenH5::AttributeWriteHookContext context{data, &dtype};
-        hook(id(), &context);
+        GenH5::HookReturnValue rvalue = hook(id(), &context);
+        if (rvalue != GenH5::HookContinue)
+        {
+            return rvalue == GenH5::HookExitSuccess;
+        }
     }
 
     herr_t err = H5Awrite(m_id, dtype.id(), data);
 
-    if (auto hook = findHook(fileId(), GenH5::PostAttributeWrite)) {
+    if (auto hook = findHook(fileId(), GenH5::PostAttributeWriteHook)) {
         GenH5::AttributeWriteHookContext context{data, &dtype};
-        hook(id(), &context);
+        GenH5::HookReturnValue rvalue = hook(id(), &context);
+        if (rvalue != GenH5::HookContinue)
+        {
+            return rvalue == GenH5::HookExitSuccess;
+        }
     }
 
     return err >= 0;
@@ -60,14 +69,14 @@ GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 bool
 GenH5::Attribute::doRead(void* data, DataType const& dtype) const
 {
-    if (auto hook = findHook(fileId(), GenH5::PreAttributeRead)) {
+    if (auto hook = findHook(fileId(), GenH5::PreAttributeReadHook)) {
         GenH5::AttributeReadHookContext context{data, &dtype};
         hook(id(), &context);
     }
 
     herr_t err = H5Aread(m_id, dtype.id(), data);
 
-    if (auto hook = findHook(fileId(), GenH5::PostAttributeRead)) {
+    if (auto hook = findHook(fileId(), GenH5::PostAttributeReadHook)) {
         GenH5::AttributeReadHookContext context{data, &dtype};
         hook(id(), &context);
     }
@@ -128,6 +137,7 @@ void
 GenH5::Attribute::close()
 {
     m_id.dec();
+    m_id = -2;
 }
 
 GenH5::DataType

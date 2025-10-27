@@ -8,7 +8,9 @@
 #ifndef GENH5_HOOKS_H
 #define GENH5_HOOKS_H
 
+#include <genh5_globals.h>
 #include <genh5_typedefs.h>
+#include <genh5_typetraits.h>
 #include <genh5_exports.h>
 
 #include <functional>
@@ -24,17 +26,24 @@ enum HookType : size_t
 {
     UnkownHook = 0,
 
-    PreDataSetRead,
-    PostDataSetRead,
-    PreDataSetWrite,
-    PostDataSetWrite,
+    PreDataSetReadHook,
+    PostDataSetReadHook,
+    PreDataSetWriteHook,
+    PostDataSetWriteHook,
 
-    PreAttributeRead,
-    PostAttributeRead,
-    PreAttributeWrite,
-    PostAttributeWrite,
+    PreAttributeReadHook,
+    PostAttributeReadHook,
+    PreAttributeWriteHook,
+    PostAttributeWriteHook,
 
-    NumberOfHooks = PostAttributeWrite
+    NumberOfHooks = PostAttributeWriteHook
+};
+
+enum HookReturnValue
+{
+    HookContinue = 0,
+    HookExitFailure,
+    HookExitSuccess
 };
 
 struct DataSetWriteHookContext
@@ -65,12 +74,27 @@ struct AttributeReadHookContext
     DataType const* dataType{};
 };
 
-using Hook = std::function<void(hid_t id, void* context)>;
+using Hook = std::function<HookReturnValue(hid_t id, void* context)>;
 
-GENH5_EXPORT Hook findHook(hid_t fileId, HookType type);
-GENH5_EXPORT Hook findHook(File const& file, HookType type);
+GENH5_NODISCARD
+GENH5_EXPORT
+Hook findHook(hid_t fileId, HookType type) noexcept(false);
 
-GENH5_EXPORT void registerHook(File const& file, HookType type, Hook hook) noexcept(false);
+GENH5_EXPORT
+bool clearHook(hid_t fileId, HookType type);
+GENH5_EXPORT
+bool clearHooks(hid_t fileId);
+
+GENH5_EXPORT
+void registerHook(hid_t fileId, HookType type, Hook hook) noexcept(false);
+
+template <typename File_t,
+          traits::if_types_equal<File_t, File> = true>
+inline void
+registerHook(File_t const& file, HookType type, Hook hook) noexcept(false)
+{
+    return registerHook(file.id(), type, std::move(hook));
+}
 
 } // namespace GenH5
 
