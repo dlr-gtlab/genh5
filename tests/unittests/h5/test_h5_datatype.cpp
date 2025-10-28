@@ -119,6 +119,11 @@ TEST_F(TestH5DataType, template_defaultDataTypes) // somewhat redundant
     EXPECT_FALSE(GenH5::dataType<uint64_t>().isSigned());
     EXPECT_EQ(GenH5::dataType<uint64_t>().size(), sizeof(uint64_t));
 
+    EXPECT_TRUE(GenH5::dataType<size_t>().isValid());
+    EXPECT_TRUE(GenH5::dataType<size_t>().isInt());
+    EXPECT_FALSE(GenH5::dataType<size_t>().isSigned());
+    EXPECT_EQ(GenH5::dataType<size_t>().size(), sizeof(size_t));
+
     EXPECT_TRUE(GenH5::dataType<signed char>().isValid());
     EXPECT_TRUE(GenH5::dataType<signed char>().isInt());
     EXPECT_TRUE(GenH5::dataType<signed char>().isSigned());

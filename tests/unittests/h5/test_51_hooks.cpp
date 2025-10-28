@@ -21,8 +21,8 @@ TEST(Test_51_Hooks, register_and_unregister_hook)
     GenH5::String filePath = h5TestHelper->newFilePath(test_info_);
     GenH5::File file{filePath, GenH5::Create};
 
-    GenH5::registerHook(file, GenH5::PreDataSetWriteHook, [](auto...){ return GenH5::HookContinue; });
-    GenH5::registerHook(file, GenH5::PostDataSetWriteHook, [](auto...){ return GenH5::HookContinue; });
+    GenH5::registerHook(file, GenH5::PreDataSetWriteHook, GenH5::makeHook([](auto...){ }));
+    GenH5::registerHook(file, GenH5::PostDataSetWriteHook, GenH5::makeHook([](auto...){ }));
 
     // only registered hooks are available
     EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PreDataSetWriteHook));
