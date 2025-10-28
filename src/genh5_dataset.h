@@ -14,8 +14,6 @@
 #include "genh5_abstractdataset.h"
 #include "genh5_datasetcproperties.h"
 
-#include <memory>
-
 namespace GenH5
 {
 
