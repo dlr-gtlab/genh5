@@ -93,6 +93,7 @@ void
 GenH5::Group::close()
 {
     m_id.dec();
+    m_id = -2;
 }
 
 GenH5::Group
