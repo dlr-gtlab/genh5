@@ -10,7 +10,7 @@ import os
 required_conan_version = ">=1.45.0"
 
 class GenH5Conan(ConanFile):
-    name = "genhfive4"
+    name = "genh5"
     version = "4.0.0-dev"
     license = "GTlab license"
     url = "https://gitlab.dlr.de/at-twk/gtlab-hdf5-wrapper"
@@ -67,9 +67,9 @@ class GenH5Conan(ConanFile):
         self.cpp_info.libdirs = ['lib', 'lib/h5']
         
         if self.settings.build_type != "Debug":
-            self.cpp_info.libs = ['GenH5']
+            self.cpp_info.libs = ['genhfive']
         else:
-            self.cpp_info.libs = ['GenH5-d']
+            self.cpp_info.libs = ['genhfive-d']
 
         if not self.options.shared:
             self.cpp_info.defines.append("GENH5_STATIC")
