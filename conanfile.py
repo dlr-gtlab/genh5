@@ -10,7 +10,7 @@ import os
 required_conan_version = ">=1.45.0"
 
 class GenH5Conan(ConanFile):
-    name = "genh5"
+    name = "genhfive4"
     version = "4.0.0-dev"
     license = "GTlab license"
     url = "https://gitlab.dlr.de/at-twk/gtlab-hdf5-wrapper"
