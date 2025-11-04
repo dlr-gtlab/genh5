@@ -15,7 +15,7 @@ variables:
   
 
 include:
-  - project: 'at-twk/gitlab-templates'
+  - project: 'gtlab/public/development-tools/gitlab-templates'
     file: '/ci-templates/.ci-templates-cmake-1.0.yml'
 
 stages:
@@ -169,7 +169,7 @@ testLinuxUnstable:
   stage: unstableTest
   extends: 
     - .testLinuxTemplate
-  image: at-twk-hal9000.intra.dlr.de:5000/dlr-at/gtlabdev-2_0-buster
+    - .linuxdocker
   needs: ["linuxBuildDebugUnstable"]
 
 code-coverage:

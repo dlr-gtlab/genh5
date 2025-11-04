@@ -67,9 +67,9 @@ class GenH5Conan(ConanFile):
         self.cpp_info.libdirs = ['lib', 'lib/h5']
         
         if self.settings.build_type != "Debug":
-            self.cpp_info.libs = ['GenH5']
+            self.cpp_info.libs = ['genhfive4']
         else:
-            self.cpp_info.libs = ['GenH5-d']
+            self.cpp_info.libs = ['genhfive4-d']
 
         if not self.options.shared:
             self.cpp_info.defines.append("GENH5_STATIC")
