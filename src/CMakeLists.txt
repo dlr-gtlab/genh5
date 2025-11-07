@@ -102,7 +102,7 @@ endif()
 
 set_target_properties(GenH5 PROPERTIES OUTPUT_NAME "genhfive${PROJECT_VERSION_MAJOR}")
 
-target_link_libraries(GenH5 PUBLIC Qt5::Core PRIVATE hdf5-shared)
+target_link_libraries(GenH5 PUBLIC Qt::Core PRIVATE hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
