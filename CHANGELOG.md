@@ -18,9 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added methods for accessing sign and CSET of datatypes. - #51
+- Added ability to register so-called hooks that are executed before and after reading/writing a dataset or attribute. - #131
 
 ### Fixed
 - Fixed potential faults due to the Static Initialization Order Fiasco. Predefined static instances of `DataSpace` and `DataType` must now be called. - #126
+- Handles (File, Group, DataSet and Attribute) can now longer be closed multiple times leading to issues in the reference counting mechanism. Closed handles now invalidate their ids.  - #131
 
 ## [3.0.4] - 2025-06-02
 ### Added

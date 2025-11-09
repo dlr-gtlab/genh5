@@ -29,21 +29,21 @@ GENH5_EXPORT int refCount(hid_t id);
 /**
  * @brief Increments the id. Same as H5Iinc_ref.
  * @param id Id to increment
- * @return Id ref count if successful else negativ number
+ * @return Id ref count if successful else negative number
  */
 GENH5_EXPORT int incId(hid_t id);
 
 /**
  * @brief Decrements the id. Same as H5Idec_ref.
  * @param id Id to decrement
- * @return Id ref count if successful else negativ number
+ * @return Id ref count if successful else negative number
  */
 GENH5_EXPORT int decId(hid_t id);
 
 /**
- * @brief Decrements the id. Same as H5Idec_ref.
- * @param id Id to decrement
- * @return Id ref count if successful else negativ number
+ * @brief Returns whether the id
+ * @param id Id to check
+ * @return Whether the id is valid
  */
 GENH5_EXPORT bool isValidId(hid_t id);
 
@@ -111,8 +111,7 @@ public:
 
     IdComponent& operator=(IdComponent&& other)
     {
-        IdComponent tmp(std::move(other));
-        swap(tmp);
+        swap(other);
         return *this;
     }
 
@@ -160,7 +159,7 @@ public:
 
 private:
 
-    hid_t m_id;
+    hid_t m_id{-1};
 };
 
 } // namespace GenH5

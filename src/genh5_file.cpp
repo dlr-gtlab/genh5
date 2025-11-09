@@ -182,6 +182,7 @@ GenH5::File::close()
         m_root.close();
     }
     m_id.dec();
+    m_id = -2;
 }
 
 void
