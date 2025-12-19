@@ -63,8 +63,6 @@ function(require_qt)
 
     message(STATUS "Find Qt Components" ${RQT_COMPONENTS})
 
-		message("XXX")
-
     # --------------------------------------------------------
     # 1. Decide QT_VERSION_MAJOR once
     # --------------------------------------------------------
@@ -86,7 +84,6 @@ function(require_qt)
                 "(both Qt5_DIR and Qt6_DIR set; Qt6 preferred)")
 
         else()
-		message("AA")
             # 1b) No specific *_DIR hints: use the standard Qt dual-version pattern
             #     This will honor QT_DIR, CMAKE_PREFIX_PATH, etc.
             find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS ${RQT_COMPONENTS})

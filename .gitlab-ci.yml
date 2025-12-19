@@ -39,7 +39,7 @@ windowsBuildDebug:
     - .run-always
   script:
     - $env:PATH+=(";.\build;"+$env:GTLAB_DEV_TOOLS+"\binDebug;")
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTLAB_DEVTOOLS_DIR="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2017-dbg -DBUILD_UNITTESTS=ON
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2017-dbg -DBUILD_UNITTESTS=ON
     - cmake --build build --target install
     
 windowsBuildDebugUnstable:
@@ -49,7 +49,7 @@ windowsBuildDebugUnstable:
     - .run-always
   script:
     - $env:PATH+=(";.\build;"+$env:GTLAB_DEV_TOOLS+"\binDebug;")
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTLAB_DEVTOOLS_DIR="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2019-dbg -DBUILD_UNITTESTS=ON
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2019-dbg -DBUILD_UNITTESTS=ON
     - cmake --build build --target install
 
 windowsBuildRelease:
@@ -58,7 +58,7 @@ windowsBuildRelease:
     - .build-win_17
     - .run-master-and-tags
   script:
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTLAB_DEVTOOLS_DIR="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2017
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2017
     - cmake --build build --target install
 
 windowsBuildReleaseUnstable:
@@ -67,7 +67,7 @@ windowsBuildReleaseUnstable:
     - .build-win_20
     - .run-master-and-tags
   script:
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTLAB_DEVTOOLS_DIR="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2019
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2019
     - cmake --build build --target install
 
 # build on Linux system
@@ -77,7 +77,7 @@ linuxBuildDebug:
     - .build-linux_17
     - .run-always
   script:
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTLAB_DEVTOOLS_DIR=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux-dbg -DBUILD_UNITTESTS=ON -DBUILD_WITH_COVERAGE=ON
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux-dbg -DBUILD_UNITTESTS=ON -DBUILD_WITH_COVERAGE=ON
     - cmake --build build --target install
     
 linuxBuildDebugUnstable:
@@ -86,7 +86,7 @@ linuxBuildDebugUnstable:
     - .build-linux_20
     - .run-always
   script:
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTLAB_DEVTOOLS_DIR=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux-dbg -DBUILD_UNITTESTS=ON -DBUILD_WITH_COVERAGE=ON
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux-dbg -DBUILD_UNITTESTS=ON -DBUILD_WITH_COVERAGE=ON
     - cmake --build build --target install
 
 linuxBuildRelease:
@@ -95,7 +95,7 @@ linuxBuildRelease:
     - .build-linux_17
     - .run-master-and-tags
   script:
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTLAB_DEVTOOLS_DIR=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux
     - cmake --build build --target install
  
 linuxBuildReleaseUnstable:
@@ -104,7 +104,7 @@ linuxBuildReleaseUnstable:
     - .build-linux_20
     - .run-master-and-tags
   script:
-    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTLAB_DEVTOOLS_DIR=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux
+    - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux
     - cmake --build build --target install
 
 # run tests using the binary built before
