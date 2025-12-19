@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 # SPDX-License-Identifier: MPL-2.0+
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
     cmake_policy(SET CMP0091 NEW)
@@ -10,11 +10,13 @@ endif()
 
 project(GenH5-root)
 
+# Try to find DevTools (optionally)
+# set via GTlabDevtools_ROOT=<path/to/devtools>
+find_package(GTlabDevtools QUIET) # optional
+
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(GTlab)
-
 gtlab_standard_setup()
-enable_gtlab_devtools()
 
 # also enable to search for hdf5 in devtools
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{GTLAB_DEVTOOLS_DIR}/ThirdPartyLibraries/hdf5)
