@@ -8,7 +8,7 @@ if (NOT TARGET GenH5)
 endif()
 
 if (NOT TARGET hdf5::hdf5)
-    find_package(HDF5 CONFIG REQUIRED)
+    find_package(hdf5 CONFIG REQUIRED)
 endif()
 
 # make conan and normal config files work

@@ -19,7 +19,7 @@ include(RequireQt)
 
 # Get Qt5
 require_qt(COMPONENTS Core REQUIRED)
-find_package(HDF5 1.12.0 CONFIG REQUIRED)
+find_package(hdf5 1.12.0 CONFIG REQUIRED)
 
 set(CMAKE_CXX_STANDARD 14)
 
