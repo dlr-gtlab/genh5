@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 # SPDX-License-Identifier: MPL-2.0+
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
 project(GenH5 VERSION 4.0.0)
 
 if (NOT DEFINED BUILD_SHARED_LIBS)
@@ -18,8 +18,8 @@ set (CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 include(RequireQt)
 
 # Get Qt5
-require_qt(COMPONENTS Core REQUIRED)
-find_package(HDF5 1.12.0 CONFIG REQUIRED)
+require_qt(COMPONENTS Core)
+find_package(hdf5 1.12.0 CONFIG REQUIRED)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -102,7 +102,7 @@ endif()
 
 set_target_properties(GenH5 PROPERTIES OUTPUT_NAME "genhfive${PROJECT_VERSION_MAJOR}")
 
-target_link_libraries(GenH5 PUBLIC Qt::Core PRIVATE hdf5-shared)
+target_link_libraries(GenH5 PUBLIC Qt${QT_VERSION_MAJOR}::Core PRIVATE hdf5-shared)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
