@@ -45,6 +45,58 @@ GenH5::DataType const& GenH5::DataType::Char()
     return type;
 }
 
+GenH5::DataType const& GenH5::DataType::Int8()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_INT8);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Int16()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_INT16);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Int32()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_INT32);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Int64()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_INT64);
+    return type;
+}
+
+GenH5::DataType const& GenH5::DataType::UInt8()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_UINT8);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::UInt16()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_UINT16);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::UInt32()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_UINT32);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::UInt64()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_UINT64);
+    return type;
+}
+
+GenH5::DataType const& GenH5::DataType::SChar()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_SCHAR);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::Short()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_SHORT);
+    return type;
+}
 GenH5::DataType const& GenH5::DataType::Int()
 {
     static DataType type = GenH5::makePredType(H5T_NATIVE_INT);
@@ -58,6 +110,17 @@ GenH5::DataType const& GenH5::DataType::Long()
 GenH5::DataType const& GenH5::DataType::LLong()
 {
     static DataType type = GenH5::makePredType(H5T_NATIVE_LLONG);
+    return type;
+}
+
+GenH5::DataType const& GenH5::DataType::UChar()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_UCHAR);
+    return type;
+}
+GenH5::DataType const& GenH5::DataType::UShort()
+{
+    static DataType type = GenH5::makePredType(H5T_NATIVE_USHORT);
     return type;
 }
 GenH5::DataType const& GenH5::DataType::UInt()
@@ -92,6 +155,7 @@ GenH5::DataType const& GenH5::DataType::VarString()
     static DataType type = GenH5::DataType::varString();
     return type;
 }
+
 GenH5::DataType const& GenH5::DataType::Version()
 {
     static DataType type = GenH5::DataType::compound(sizeof(GenH5::Version), {

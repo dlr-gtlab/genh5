@@ -34,9 +34,22 @@ public:
     static DataType const& Bool();
     static DataType const& Char();
 
+    static DataType const& Int8();
+    static DataType const& Int16();
+    static DataType const& Int32();
+    static DataType const& Int64();
+    static DataType const& UInt8();
+    static DataType const& UInt16();
+    static DataType const& UInt32();
+    static DataType const& UInt64();
+
+    static DataType const& SChar();
+    static DataType const& Short();
     static DataType const& Int();
     static DataType const& Long();
     static DataType const& LLong();
+    static DataType const& UChar();
+    static DataType const& UShort();
     static DataType const& UInt();
     static DataType const& ULong();
     static DataType const& ULLong();
@@ -205,11 +218,24 @@ getTypeNames(DataType const& dtype) noexcept(false)
 namespace details
 {
 
-// invalid, cannot convert to datatype
-template <typename ...Ts>
+// default specialization -> invalid datatype (compile timer error)
+template <typename T, typename ...Ts>
 struct datatype_impl
 {
-    // T must have an datatype associated!
+    datatype_impl(CompoundNames<0> = {}) {
+
+        // T is not registered (i.e. is not associated with an HDF5 datatype)
+        static_assert(std::is_same<T, void>::value,
+                      "Type 'T' is not registered with any HDF5-datatype! Use "
+                      "'GENH5_DECLARE_DATATYPE' or 'GENH5_DECLARE_DATATYPE_IMPL' "
+                      "to register an HDF5-datatype for 'T'.");
+    }
+
+    operator DataType const&() const
+    {
+        static DataType invalid{};
+        return invalid;
+    }
 };
 
 // specialization for array types
@@ -310,7 +336,7 @@ conversion_t<Comp<Ts...>> datatype_impl<Comp<Ts...>>::m_t{};
 
 } // namespace details
 
-// compound types
+// compound types (if we pass at least two types)
 template<typename T1, typename T2, typename... Tother>
 inline DataType
 dataType(CompoundNames<sizeof...(Tother) + 2> memberNames = {}) noexcept(false)
@@ -393,12 +419,17 @@ GENH5_DECLARE_DATATYPE(char, DataType::Char());
 GENH5_DECLARE_DATATYPE(char*, DataType::VarString());
 GENH5_DECLARE_DATATYPE(char const*, DataType::VarString());
 
-GENH5_DECLARE_DATATYPE(int, DataType::Int());
-GENH5_DECLARE_DATATYPE(long int, DataType::Long());
-GENH5_DECLARE_DATATYPE(long long int, DataType::LLong());
-GENH5_DECLARE_DATATYPE(unsigned int, DataType::UInt());
-GENH5_DECLARE_DATATYPE(unsigned long int, DataType::ULong());
-GENH5_DECLARE_DATATYPE(unsigned long long int, DataType::ULLong());
+GENH5_DECLARE_DATATYPE(signed char,      DataType::SChar());
+GENH5_DECLARE_DATATYPE(signed short,     DataType::Short());
+GENH5_DECLARE_DATATYPE(signed int,       DataType::Int());
+GENH5_DECLARE_DATATYPE(signed long,      DataType::Long());
+GENH5_DECLARE_DATATYPE(signed long long, DataType::LLong());
+
+GENH5_DECLARE_DATATYPE(unsigned char,      DataType::UChar());
+GENH5_DECLARE_DATATYPE(unsigned short,     DataType::UShort());
+GENH5_DECLARE_DATATYPE(unsigned int,       DataType::UInt());
+GENH5_DECLARE_DATATYPE(unsigned long,      DataType::ULong());
+GENH5_DECLARE_DATATYPE(unsigned long long, DataType::ULLong());
 
 GENH5_DECLARE_DATATYPE(float, DataType::Float());
 GENH5_DECLARE_DATATYPE(double, DataType::Double());

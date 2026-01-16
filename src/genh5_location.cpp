@@ -104,8 +104,14 @@ GenH5::Location::path() const noexcept
 
 GenH5::File GenH5::Location::file() const noexcept
 {
-    hid_t f = H5Iget_file_id(id());
+    hid_t f = fileId();
     auto cleanup = finally(H5Fclose, f);
     Q_UNUSED(cleanup)
     return File(f);
+}
+
+hid_t
+GenH5::Location::fileId() const noexcept
+{
+    return H5Iget_file_id(this->id());
 }

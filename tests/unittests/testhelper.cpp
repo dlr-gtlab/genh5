@@ -11,6 +11,8 @@
 
 #include "genh5_file.h"
 
+#include <gtest/gtest.h>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QUuid>
@@ -25,6 +27,13 @@ TestHelper::instance()
 QByteArray
 TestHelper::newFilePath() const
 {
+    return newFilePath(QUuid::createUuid().toString() +
+                       GenH5::File::dotFileSuffix());
+}
+
+QByteArray
+TestHelper::newFilePath(QString fileName) const
+{
     QDir dir(tempPath());
 
     if (!dir.mkpath(dir.absolutePath()))
@@ -33,8 +42,16 @@ TestHelper::newFilePath() const
         return {};
     }
 
-    return dir.absoluteFilePath(QUuid::createUuid().toString() +
-                                GenH5::File::dotFileSuffix()).toUtf8();
+    return dir.absoluteFilePath(fileName).toUtf8();
+}
+
+QByteArray
+TestHelper::newFilePath(testing::TestInfo* testInfo) const
+{
+    assert(testInfo);
+    return newFilePath(QString{testInfo->test_case_name()} + "_" +
+                       QString{testInfo->name()} +
+                       GenH5::File::dotFileSuffix());
 }
 
 QString

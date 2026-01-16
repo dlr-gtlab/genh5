@@ -15,6 +15,7 @@
 #include <QDebug>
 #include <QVector>
 #include <QRandomGenerator>
+
 #include "genh5_utils.h"
 
 template<typename... Ts>
@@ -32,6 +33,7 @@ QDebug operator<<(QDebug s, std::tuple<Ts...> const& tuple)
 
 class QDir;
 class QString;
+namespace testing { class TestInfo; }
 
 class TestHelper
 {
@@ -43,6 +45,9 @@ public:
     static TestHelper* instance();
 
     QByteArray newFilePath() const;
+
+    QByteArray newFilePath(QString fileName) const;
+    QByteArray newFilePath(testing::TestInfo* testInfo) const;
 
     QString tempPath() const;
 
