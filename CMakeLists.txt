@@ -10,6 +10,11 @@ endif()
 
 project(GenH5-root)
 
+if (GTLAB_DEVTOOLS_DIR AND NOT GTlabDevtools_ROOT)
+    message(WARNING "GTLAB_DEVTOOLS_DIR is deprecated. Use GTlabDevtools_ROOT instead.")
+    set(GTlabDevtools_ROOT ${GTLAB_DEVTOOLS_DIR})
+endif()
+
 # Try to find DevTools (optionally)
 # set via GTlabDevtools_ROOT=<path/to/devtools>
 find_package(GTlabDevtools QUIET) # optional
