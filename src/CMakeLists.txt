@@ -19,7 +19,7 @@ include(RequireQt)
 
 # Get Qt5
 require_qt(COMPONENTS Core)
-find_package(hdf5 CONFIG REQUIRED)
+include(UseHDF5)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -96,13 +96,9 @@ else()
     target_compile_definitions(GenH5 PUBLIC GENH5_STATIC)
 endif()
 
-if (TARGET hdf5::hdf5 AND NOT TARGET hdf5-shared)
-    add_library(hdf5-shared ALIAS hdf5::hdf5)
-endif()
-
 set_target_properties(GenH5 PROPERTIES OUTPUT_NAME "genhfive${PROJECT_VERSION_MAJOR}")
 
-target_link_libraries(GenH5 PUBLIC Qt${QT_VERSION_MAJOR}::Core PRIVATE hdf5-shared)
+target_link_libraries(GenH5 PUBLIC Qt${QT_VERSION_MAJOR}::Core PRIVATE hdf5::hdf5)
 
 target_include_directories(GenH5 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
