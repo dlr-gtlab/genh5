@@ -13,6 +13,7 @@
 #include "genh5_group.h"
 
 #include <H5Ipublic.h>
+#include <H5Lpublic.h>
 #include <H5Apublic.h>
 
 #include <utility>
