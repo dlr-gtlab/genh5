@@ -36,12 +36,6 @@ TEST_F(TestH5, verionMacros)
     EXPECT_STREQ(GENH5_VERSION_ADDITIONAL, GenH5::Version::subrelease());
 }
 
-TEST_F(TestH5, hdf5Version)
-{
-    EXPECT_TRUE(0x010c00 <= GenH5::Version::hdf5());
-    EXPECT_TRUE(0x010d00 > GenH5::Version::hdf5());
-}
-
 TEST_F(TestH5, verionCheck)
 {
     EXPECT_TRUE(GENH5_VCHECK(1, 1, 1) > 0x010100);

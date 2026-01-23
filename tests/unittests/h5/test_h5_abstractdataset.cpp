@@ -216,7 +216,7 @@ TEST_F(TestH5AbstractDataSet, writeTooManyElements)
 {
     // when data.length != dataspace.sum
     // to many elements
-    GenH5::Vector<int> dataLong = intData.mid(0, 3) + intData;
+    GenH5::Vector<int> dataLong = intData.mid(0, 3) + intData.values();
 
     // writing more than needed is technically allowed
     EXPECT_TRUE(dataset.write(dataLong));
