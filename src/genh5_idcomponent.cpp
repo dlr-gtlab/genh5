@@ -8,6 +8,8 @@
  */
 
 #include "genh5_idcomponent.h"
+#include "genh5_hooks.h"
+
 #include "H5Ipublic.h"
 
 int
@@ -19,6 +21,12 @@ GenH5::incId(hid_t id)
 int
 GenH5::decId(hid_t id)
 {
+    // remove all file-sepcific hooks if file handle is closed
+    if (classType(id) == IdType::File && refCount(id) == 1)
+    {
+        clearHooks(id);
+    }
+
     return H5Idec_ref(id);
 }
 

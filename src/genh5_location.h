@@ -80,6 +80,12 @@ public:
      */
     File file() const noexcept;
 
+    /**
+     * @brief Returns the file id associated with this object.
+     * @return File id
+     */
+    hid_t fileId() const noexcept;
+
 protected:
 
     /**
