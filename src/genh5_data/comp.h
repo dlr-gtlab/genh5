@@ -217,26 +217,15 @@ public:
               traits::if_equal<sizeof...(Ts), sizeof...(Containers)> = true>
     void unpack(Containers&... containersIn) const
     {
-        // for iterating more easily over variadic arguments
         auto containers = std::make_tuple(&containersIn...);
-
-        mpl::static_for<sizeof...(Ts)>([&](auto const idx){
-            get<idx>(containers)->reserve(base_class::size());
-        });
-
-        auto size = base_class::m_data.size();
-        auto& ref = *this; // for lambda capture
-
-        // cppcheck-suppress shadowFunction
-        for (int idx = 0; idx < size; ++idx)
+    
+        reserveAll<0>(containers);
+    
+        const auto size = base_class::m_data.size();
+    
+        for (std::size_t row = 0; row < size; ++row)
         {
-            mpl::static_for<sizeof...(Ts)>([&](auto const tidx){
-                using Tcomp = Comp<traits::decay_crv_t<Containers>...>;
-                using Tcontainer = traits::comp_element_t<tidx, Tcomp>;
-                using T = traits::value_t<Tcontainer>;
-                get<tidx>(containers)->push_back(
-                            ref.template getValue<tidx, T>(idx));
-            });
+            unpackAll<0>(containers, row);
         }
     }
 
@@ -257,6 +246,41 @@ public:
             return convertTo<T>(rget<tidx>(value));
         });
         return c;
+    }
+
+private:
+    template <std::size_t I, typename Tuple>
+    typename std::enable_if<I == sizeof...(Ts), void>::type
+    reserveAll(Tuple&) const
+    {
+    }
+
+    template <std::size_t I, typename Tuple>
+    typename std::enable_if<I < sizeof...(Ts), void>::type
+    reserveAll(Tuple& containers) const
+    {
+        std::get<I>(containers)->reserve(base_class::size());
+        reserveAll<I + 1>(containers);
+    }
+
+    template <std::size_t I, typename Tuple>
+    typename std::enable_if<I == sizeof...(Ts), void>::type
+    unpackAll(Tuple&, std::size_t) const
+    {
+    }
+
+    template <std::size_t I, typename Tuple>
+    typename std::enable_if<I < sizeof...(Ts), void>::type
+    unpackAll(Tuple& containers, std::size_t row) const
+    {
+        using Tcontainer = typename std::tuple_element<I, Tuple>::type;
+        using Container = typename std::remove_pointer<Tcontainer>::type;
+        using T = traits::value_t<Container>;
+
+        std::get<I>(containers)->push_back(
+            this->template getValue<I, T>(row));
+
+        unpackAll<I + 1>(containers, row);
     }
 };
 
