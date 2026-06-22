@@ -19,7 +19,7 @@
 
 GenH5::Reference::Reference() = default;
 
-// ccp-check supress passedByValue
+// cppcheck-suppress passedByValue
 GenH5::Reference::Reference(reference_t ref) noexcept :
     m_ref{ref}
 { }
