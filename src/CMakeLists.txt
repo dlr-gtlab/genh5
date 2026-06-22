@@ -91,6 +91,7 @@ set(sources
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_library(GenH5 ${sources} ${headers})
+target_compile_features(GenH5 PRIVATE cxx_std_17)
 
 if (${BUILD_SHARED_LIBS})
     target_compile_definitions(GenH5 PRIVATE GENH5_DLL)
