@@ -55,7 +55,11 @@ GenH5::DataSpace::DataSpace(hid_t id) :
 }
 
 GenH5::DataSpace::DataSpace(Dimensions const& dimensions) noexcept(false) :
-    m_id(H5Screate_simple(dimensions.size(), dimensions.constData(), nullptr))
+    m_id([&dimensions] {
+        auto hdf5Dimensions = details::toHdf5Dimensions(dimensions);
+        return H5Screate_simple(hdf5Dimensions.size(),
+                                hdf5Dimensions.constData(), nullptr);
+    }())
 {
     if (m_id < 0)
     {
@@ -70,7 +74,7 @@ GenH5::DataSpace::DataSpace(std::initializer_list<hsize_t> initlist
     DataSpace{Dimensions{initlist}}
 { }
 
-hid_t
+GenH5::hid_t
 GenH5::DataSpace::id() const noexcept
 {
     return m_id;
@@ -103,13 +107,12 @@ GenH5::DataSpace::dimensions() const noexcept
         return {};
     }
 
-    Dimensions dims;
-    dims.resize(size);
-    H5Sget_simple_extent_dims(m_id, dims.data(), nullptr);
-    return dims;
+    details::Hdf5Dimensions dimensions(size);
+    H5Sget_simple_extent_dims(m_id, dimensions.data(), nullptr);
+    return details::fromHdf5Dimensions(dimensions);
 }
 
-hssize_t
+GenH5::hssize_t
 GenH5::DataSpace::selectionSize() const noexcept
 {
     return H5Sget_select_npoints(m_id);
@@ -184,9 +187,15 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
     testSelection(m_stride, dims, 1);
     testSelection(m_block, dims, 1);
 
-    herr_t err = H5Sselect_hyperslab(m_space.id(), static_cast<H5S_seloper_t>(m_op),
-                                     m_offset.constData(), m_stride.constData(),
-                                     m_count.constData(), m_block.constData());
+    auto offset = details::toHdf5Dimensions(m_offset);
+    auto stride = details::toHdf5Dimensions(m_stride);
+    auto count = details::toHdf5Dimensions(m_count);
+    auto block = details::toHdf5Dimensions(m_block);
+
+    herr_t err = H5Sselect_hyperslab(
+        m_space.id(), static_cast<H5S_seloper_t>(m_op),
+        offset.constData(), stride.constData(), count.constData(),
+        block.constData());
 
     if (err < 0)
     {

@@ -26,6 +26,36 @@ namespace GenH5
 namespace details
 {
 
+using Hdf5Dimensions = Vector<::hsize_t>;
+
+inline Hdf5Dimensions
+toHdf5Dimensions(Dimensions const& dimensions)
+{
+    Hdf5Dimensions result;
+    result.reserve(dimensions.size());
+
+    for (hsize_t dimension : dimensions)
+    {
+        result.push_back(static_cast<::hsize_t>(dimension));
+    }
+
+    return result;
+}
+
+inline Dimensions
+fromHdf5Dimensions(Hdf5Dimensions const& dimensions)
+{
+    Dimensions result;
+    result.reserve(dimensions.size());
+
+    for (::hsize_t dimension : dimensions)
+    {
+        result.push_back(static_cast<hsize_t>(dimension));
+    }
+
+    return result;
+}
+
 /// Helper function for creating T
 template <typename T,
           typename Ex,

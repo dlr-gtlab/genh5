@@ -686,8 +686,8 @@ TEST_F(TestH5Data, resize_setDimensions)
 
 TEST_F(TestH5Data, resize_array)
 {
-    constexpr hsize_t spaceLength = 10;
-    constexpr hsize_t arrLength = 5;
+    constexpr GenH5::hsize_t spaceLength = 10;
+    constexpr GenH5::hsize_t arrLength = 5;
 
     // for simple types
     auto space = GenH5::DataSpace::linear(spaceLength);
@@ -719,8 +719,8 @@ TEST_F(TestH5Data, resize_array)
 
 TEST_F(TestH5Data, resize_arrayCompound)
 {
-    constexpr hsize_t spaceLength = 10;
-    constexpr hsize_t arrLength = 5;
+    constexpr GenH5::hsize_t spaceLength = 10;
+    constexpr GenH5::hsize_t arrLength = 5;
 
     // for compound types
     auto space = GenH5::DataSpace::linear(spaceLength);

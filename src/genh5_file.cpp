@@ -122,7 +122,7 @@ GenH5::File::File(String path, FileAccessFlags flags)
     }
 }
 
-hid_t
+GenH5::hid_t
 GenH5::File::id() const noexcept
 {
     return m_id;

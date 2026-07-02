@@ -225,7 +225,7 @@ TEST_F(TestH5Iteration, sample)
     EXPECT_EQ(bAttrs.size(), 2);
 
     b.iterateChildNodes([](GenH5::Group const& parent,
-                           GenH5::NodeInfo const& info) -> herr_t {
+                           GenH5::NodeInfo const& info) -> GenH5::herr_t {
         qDebug() << parent.path() + "/" + info.path;
         return 0;
     }, GenH5::FindRecursive);

@@ -18,17 +18,17 @@
 
 #include <stdint.h>
 
-/// include `hsize_t`
-using hsize_t  = unsigned long long;
-/// include `hssize_t`
-using hssize_t =  signed long long;
-/// include `hid_t`
-using hid_t  = int64_t;
-/// include `herr_t`
-using herr_t = int;
-
 namespace GenH5
 {
+
+/// wrapper for `hsize_t`
+using hsize_t  = unsigned long long;
+/// wrapper for `hssize_t`
+using hssize_t = signed long long;
+/// wrapper for `hid_t`
+using hid_t  = int64_t;
+/// wrapper for `herr_t`
+using herr_t = int;
 
 namespace details
 {
