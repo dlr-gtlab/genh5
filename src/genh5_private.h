@@ -16,6 +16,7 @@
 #include <H5Lpublic.h>
 #include <H5Apublic.h>
 
+#include <type_traits>
 #include <utility>
 
 #include <QDebug>
@@ -25,6 +26,17 @@ namespace GenH5
 
 namespace details
 {
+
+static_assert(sizeof(hsize_t) == sizeof(::hsize_t),
+              "GenH5 and HDF5 dimension types must have the same size");
+static_assert(std::is_signed<hsize_t>::value ==
+                  std::is_signed<::hsize_t>::value,
+              "GenH5 and HDF5 dimension types must have the same signedness");
+static_assert(sizeof(hssize_t) == sizeof(::hssize_t),
+              "GenH5 and HDF5 signed dimension types must have the same size");
+static_assert(std::is_signed<hssize_t>::value ==
+                  std::is_signed<::hssize_t>::value,
+              "GenH5 and HDF5 signed dimension types must have the same signedness");
 
 using Hdf5Dimensions = Vector<::hsize_t>;
 

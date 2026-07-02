@@ -199,11 +199,11 @@ GenH5::DataType::array(DataType const& type,
     static const std::string errMsg =
             GENH5_MAKE_EXECEPTION_STR() "Failed to create array type";
 
-    auto hdf5Dimensions = details::toHdf5Dimensions(dims);
     return makeType(
-                [id = type.m_id, len = hdf5Dimensions.length(),
-                 ptr = hdf5Dimensions.constData()](){
-        return H5Tarray_create(id, len, ptr);
+                [id = type.m_id,
+                 dimensions = details::toHdf5Dimensions(dims)](){
+        return H5Tarray_create(id, dimensions.length(),
+                               dimensions.constData());
     }, errMsg);
 }
 
