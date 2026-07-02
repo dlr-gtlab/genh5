@@ -16,6 +16,7 @@
 #include <H5Lpublic.h>
 #include <H5Apublic.h>
 
+#include <algorithm>
 #include <type_traits>
 #include <utility>
 
@@ -43,13 +44,11 @@ using Hdf5Dimensions = Vector<::hsize_t>;
 inline Hdf5Dimensions
 toHdf5Dimensions(Dimensions const& dimensions)
 {
-    Hdf5Dimensions result;
-    result.reserve(dimensions.size());
-
-    for (hsize_t dimension : dimensions)
-    {
-        result.push_back(static_cast<::hsize_t>(dimension));
-    }
+    Hdf5Dimensions result(dimensions.size());
+    std::transform(dimensions.cbegin(), dimensions.cend(), result.begin(),
+                   [](hsize_t dimension) {
+        return static_cast<::hsize_t>(dimension);
+    });
 
     return result;
 }
@@ -57,13 +56,11 @@ toHdf5Dimensions(Dimensions const& dimensions)
 inline Dimensions
 fromHdf5Dimensions(Hdf5Dimensions const& dimensions)
 {
-    Dimensions result;
-    result.reserve(dimensions.size());
-
-    for (::hsize_t dimension : dimensions)
-    {
-        result.push_back(static_cast<hsize_t>(dimension));
-    }
+    Dimensions result(dimensions.size());
+    std::transform(dimensions.cbegin(), dimensions.cend(), result.begin(),
+                   [](::hsize_t dimension) {
+        return static_cast<hsize_t>(dimension);
+    });
 
     return result;
 }
