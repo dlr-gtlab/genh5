@@ -105,29 +105,19 @@ struct AttributeReadHookContext
 using Hook = std::function<HookReturnValue(hid_t id, void* context)>;
 
 /**
- * @brief Attempts to find the hook for the given `fileId`.
- * @throws InvalidArgumentError if `fileId` is not a valid file identifier or
+ * @brief Attempts to find the hook for the given `file`.
+ * @throws InvalidArgumentError if `file` is not a valid file identifier or
  * if `type` is invalid.
- * @param fileId File identifier
+ * @param file File object
  * @param type Hook type
  * @return Hook (may be null)
  */
 GENH5_NODISCARD
 GENH5_EXPORT
-Hook findHook(hid_t fileId, HookType type) noexcept(false);
+Hook findHook(File file, HookType type) noexcept(false);
 
 /**
- * @brief Unregisters the hook of type `type` from `fileId`.
- * @throws InvalidArgumentError if `fileId` is not a valid file identifier.
- * @param fileId File identifier
- * @param type Hook type
- * @return Success (if a hook was removed)
- */
-GENH5_EXPORT
-bool clearHook(hid_t fileId, HookType type);
-
-/**
- * @brief Unregisters all hooks from `fileId`.
+ * @brief Unregisters all hooks from the file denoted by `fileId`.
  * @throws InvalidArgumentError if `fileId` is not a valid file identifier.
  * @param fileId File identifier
  * @return Success (if hooks were registered)
@@ -136,20 +126,33 @@ GENH5_EXPORT
 bool clearHooks(hid_t fileId);
 
 /**
- * @brief registerHook
- * @param fileId
- * @param type
- * @param hook
+ * @brief Unregisters all hooks from `file`.
+ * @throws InvalidArgumentError if `file` is not a valid file.
+ * @param fileId File object
+ * @return Success (if any hooks were registered)
  */
 GENH5_EXPORT
-void registerHook(hid_t fileId, HookType type, Hook hook) noexcept(false);
+bool clearHooks(File file);
 
-template <typename File_t,
-          traits::if_types_equal<File_t, File> = true> inline
-void registerHook(File_t const& file, HookType type, Hook hook) noexcept(false)
-{
-    return registerHook(file.id(), type, std::move(hook));
-}
+/**
+ * @brief Unregisters the hook of type `type` from `file`.
+ * @throws InvalidArgumentError if `file` is not a valid file.
+ * @param file File object
+ * @param type Hook type
+ * @return Success (if a hook was removed)
+ */
+GENH5_EXPORT
+bool clearHook(File fileId, HookType type);
+
+/**
+ * @brief Registers the hook for the file object `file`.
+ * @throws InvalidArgumentError if `file` is not a valid file.
+ * @param file File object
+ * @param type Hook type
+ * @param hook Hook function
+ */
+GENH5_EXPORT
+void registerHook(File file, HookType type, Hook hook) noexcept(false);
 
 /**
  * @brief Converts `hook` into a compatible functor. Useful if `hook` does not

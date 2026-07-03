@@ -36,9 +36,10 @@ static std::shared_mutex& mutex()
 } // namespace
 
 GenH5::Hook
-GenH5::findHook(hid_t fileId, HookType type) noexcept(false)
+GenH5::findHook(File file, HookType type) noexcept(false)
 {
-    if (!isValidId(fileId) && classType(fileId) == IdType::File)
+    auto fileId = file.id();
+    if (!isValidId(fileId) || classType(fileId) != IdType::File)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"
@@ -61,10 +62,12 @@ GenH5::findHook(hid_t fileId, HookType type) noexcept(false)
     return (iter->second)[type - 1];
 }
 
-bool
-GenH5::clearHook(hid_t fileId, HookType type)
+namespace GenH5
 {
-    if (!isValidId(fileId) && classType(fileId) == IdType::File)
+
+bool clearHook(hid_t fileId, HookType type)
+{
+    if (!isValidId(fileId) || classType(fileId) != IdType::File)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"
@@ -92,16 +95,33 @@ GenH5::clearHook(hid_t fileId, HookType type)
     return true;
 }
 
+} // namespace GenH5
+
+bool
+GenH5::clearHook(File file, HookType type)
+{
+    auto fileId = file.id();
+    return clearHook(fileId, type);
+}
+
 bool
 GenH5::clearHooks(hid_t fileId)
 {
     return clearHook(fileId, UnknownHook);
 }
 
-void
-GenH5::registerHook(hid_t fileId, HookType type, Hook hook) noexcept(false)
+bool
+GenH5::clearHooks(File file)
 {
-    if (!isValidId(fileId) && classType(fileId) == IdType::File)
+    auto fileId = file.id();
+    return clearHook(fileId, UnknownHook);
+}
+
+void
+GenH5::registerHook(File file, HookType type, Hook hook) noexcept(false)
+{
+    auto fileId = file.id();
+    if (!isValidId(fileId) || classType(fileId) != IdType::File)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"

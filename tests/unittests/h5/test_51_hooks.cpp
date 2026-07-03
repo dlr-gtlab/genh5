@@ -25,24 +25,24 @@ TEST(Test_51_Hooks, register_and_unregister_hook)
     GenH5::registerHook(file, GenH5::PostDataSetWriteHook, GenH5::makeHook([](auto...){ }));
 
     // only registered hooks are available
-    EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PreDataSetWriteHook));
-    EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PostDataSetWriteHook));
-    EXPECT_FALSE(GenH5::findHook(file.id(), GenH5::PreDataSetReadHook));
-    EXPECT_FALSE(GenH5::findHook(file.id(), GenH5::PostDataSetReadHook));
+    EXPECT_TRUE(GenH5::findHook(file, GenH5::PreDataSetWriteHook));
+    EXPECT_TRUE(GenH5::findHook(file, GenH5::PostDataSetWriteHook));
+    EXPECT_FALSE(GenH5::findHook(file, GenH5::PreDataSetReadHook));
+    EXPECT_FALSE(GenH5::findHook(file, GenH5::PostDataSetReadHook));
 
-    GenH5::clearHook(file.id(), GenH5::PreDataSetWriteHook);
+    GenH5::clearHook(file, GenH5::PreDataSetWriteHook);
 
     // only desired hook deleted
-    EXPECT_FALSE(GenH5::findHook(file.id(), GenH5::PreDataSetWriteHook));
-    EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PostDataSetWriteHook));
+    EXPECT_FALSE(GenH5::findHook(file, GenH5::PreDataSetWriteHook));
+    EXPECT_TRUE(GenH5::findHook(file, GenH5::PostDataSetWriteHook));
 
     ASSERT_EQ(GenH5::refCount(file.id()), 1);
 
     file.close();
 
     // all hooks deleted
-    EXPECT_FALSE(GenH5::findHook(file.id(), GenH5::PreDataSetWriteHook));
-    EXPECT_FALSE(GenH5::findHook(file.id(), GenH5::PostDataSetWriteHook));
+    EXPECT_THROW((void)GenH5::findHook(file, GenH5::PreDataSetWriteHook), GenH5::IdComponentException);
+    EXPECT_THROW((void)GenH5::findHook(file, GenH5::PostDataSetWriteHook), GenH5::IdComponentException);
 }
 TEST(Test_51_Hooks, execute_hook)
 {
@@ -151,8 +151,8 @@ TEST(Test_51_Hooks, execute_hook_closed_file)
         GenH5::registerHook(file, GenH5::PostDataSetWriteHook, postWrite);
 
         // only registered hooks are available
-        EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PreDataSetWriteHook));
-        EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PostDataSetWriteHook));
+        EXPECT_TRUE(GenH5::findHook(file, GenH5::PreDataSetWriteHook));
+        EXPECT_TRUE(GenH5::findHook(file, GenH5::PostDataSetWriteHook));
 
         dset = file.root().writeDataSet("test_dset", data);
         EXPECT_TRUE(dset.isValid());
@@ -172,8 +172,8 @@ TEST(Test_51_Hooks, execute_hook_closed_file)
     // hooks are now deleted, since main handle is closed
     EXPECT_NE(dset.fileId(), fileId);
     EXPECT_FALSE(GenH5::isValidId(fileId));
-    EXPECT_FALSE(GenH5::findHook(dset.fileId(), GenH5::PreDataSetWriteHook));
-    EXPECT_FALSE(GenH5::findHook(dset.fileId(), GenH5::PostDataSetWriteHook));
+    EXPECT_FALSE(GenH5::findHook(dset.file(), GenH5::PreDataSetWriteHook));
+    EXPECT_FALSE(GenH5::findHook(dset.file(), GenH5::PostDataSetWriteHook));
 
     // write new data to check if hooks are executed
     for (auto& element : data) element *= 2;
