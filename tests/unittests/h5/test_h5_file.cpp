@@ -136,3 +136,53 @@ TEST_F(TestH5File, fileSuffix)
     EXPECT_FALSE(GenH5::File::fileSuffix().isEmpty());
     EXPECT_FALSE(GenH5::File::dotFileSuffix().isEmpty());
 }
+
+// Issue 147: Accessing the file id of objects may cause the underlying file handles to leak
+TEST(Test_51_Hooks, issue_147)
+{
+    GenH5::String filePath = h5TestHelper->newFilePath(test_info_);
+    hid_t fileId{};
+
+    // create file
+    {
+        GenH5::File file{filePath, GenH5::Create};
+        fileId = file.id();
+        EXPECT_TRUE(GenH5::isValidId(fileId));
+    }
+    EXPECT_FALSE(GenH5::isValidId(fileId));
+
+    // open file
+    {
+        GenH5::File file{filePath, { GenH5::Open | GenH5::ReadOnly }};
+        fileId = file.id();
+        EXPECT_TRUE(GenH5::isValidId(fileId));
+    }
+    EXPECT_FALSE(GenH5::isValidId(fileId));
+
+    // open file, access fileId of root group
+    {
+        GenH5::File file{filePath, { GenH5::Open | GenH5::ReadOnly }};
+        fileId = file.id();
+
+        // NOTE: this causes the fileId to increment and by extension causes
+        //       the file to NOT close at the end of this block
+        auto internalFileId = file.root().fileId();
+
+        EXPECT_TRUE(GenH5::isValidId(fileId));
+        EXPECT_EQ(internalFileId, fileId);
+    }
+    EXPECT_FALSE(GenH5::isValidId(fileId));
+
+    // open file, access fileId of root group
+    {
+        // NOTE: could not open file, since the fileId was still hold on
+        GenH5::File file{filePath, { GenH5::Open | GenH5::ReadWrite }};
+        fileId = file.id();
+
+        auto internalFileId = file.root().fileId();
+
+        EXPECT_TRUE(GenH5::isValidId(fileId));
+        EXPECT_EQ(internalFileId, fileId);
+    }
+    EXPECT_FALSE(GenH5::isValidId(fileId));
+}
