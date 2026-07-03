@@ -10,13 +10,11 @@
 #include "genh5_location.h"
 #include "genh5_private.h"
 #include "genh5_reference.h"
-#include "genh5_group.h"
 #include "genh5_file.h"
-#include "genh5_attribute.h"
+#include "genh5_idcomponent.h"
 
 #include <QList>
 
-#include "H5Fpublic.h"
 #include "H5Ppublic.h"
 
 GenH5::String
@@ -47,7 +45,7 @@ GenH5::getObjectPath(GenH5::Location const& location) noexcept
 {
     return GenH5::details::getName(location.id(),
                                    [](hid_t id, size_t len, char* data) {
-         return H5Iget_name(id, data, len);
+        return H5Iget_name(id, data, len);
     });
 }
 
@@ -102,16 +100,15 @@ GenH5::Location::path() const noexcept
     return getObjectPath(*this);
 }
 
-GenH5::File GenH5::Location::file() const noexcept
+GenH5::File
+GenH5::Location::file() const noexcept
 {
-    hid_t f = fileId();
-    auto cleanup = finally(H5Fclose, f);
-    Q_UNUSED(cleanup)
-    return File(f);
+    auto f = fileId();
+    return File{f.get()};
 }
 
-hid_t
+GenH5::IdComponent<GenH5::IdType::File>
 GenH5::Location::fileId() const noexcept
 {
-    return H5Iget_file_id(this->id());
+    return IdComponent<IdType::File>{H5Iget_file_id(this->id())};
 }

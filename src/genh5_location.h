@@ -22,6 +22,9 @@ class File;
 class Attribute;
 class Reference;
 
+template <IdType>
+class IdComponent;
+
 /**
  * @brief The Location class
  */
@@ -84,7 +87,7 @@ public:
      * @brief Returns the file id associated with this object.
      * @return File id
      */
-    hid_t fileId() const noexcept;
+    IdComponent<IdType::File> fileId() const noexcept;
 
 protected:
 

@@ -138,9 +138,8 @@ TEST_F(TestH5File, fileSuffix)
 }
 
 // Issue 147: Accessing the file id of objects may cause the underlying file handles to leak
-TEST(Test_51_Hooks, issue_147)
+TEST_F(TestH5File, issue_147)
 {
-    GenH5::String filePath = h5TestHelper->newFilePath(test_info_);
     hid_t fileId{};
 
     // create file
@@ -175,7 +174,7 @@ TEST(Test_51_Hooks, issue_147)
 
     // open file, access fileId of root group
     {
-        // NOTE: could not open file, since the fileId was still hold on
+        // NOTE: could not open file since the file was not closed previously
         GenH5::File file{filePath, { GenH5::Open | GenH5::ReadWrite }};
         fileId = file.id();
 
