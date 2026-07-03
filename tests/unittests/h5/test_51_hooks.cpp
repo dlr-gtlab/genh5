@@ -44,7 +44,6 @@ TEST(Test_51_Hooks, register_and_unregister_hook)
     EXPECT_FALSE(GenH5::findHook(file.id(), GenH5::PreDataSetWriteHook));
     EXPECT_FALSE(GenH5::findHook(file.id(), GenH5::PostDataSetWriteHook));
 }
-
 TEST(Test_51_Hooks, execute_hook)
 {
     GenH5::String filePath = h5TestHelper->newFilePath(test_info_);
@@ -115,6 +114,74 @@ TEST(Test_51_Hooks, execute_hook)
     EXPECT_FALSE(postHookExecuted);
     EXPECT_NE(dsetPath, dset.path());
     EXPECT_NE(dataPtr, data.data());
+}
+
+TEST(Test_51_Hooks, execute_hook_closed_file)
+{
+    GenH5::String filePath = h5TestHelper->newFilePath(test_info_);
+
+    bool preHookExecuted = false;
+    bool postHookExecuted = false;
+
+    GenH5::DataSet dset;
+
+    GenH5::Data<uint64_t> data;
+    data.resize(100);
+    std::iota(data.begin(), data.end(), 0);
+
+    hid_t fileId{};
+
+    // hooks are only active as long as the main file handle is alive
+    {
+        GenH5::File file{filePath, GenH5::Create};
+        fileId = file.id();
+        qDebug() << "registering hooks for file" << file.id();
+
+        auto preWrite = [&](hid_t id, void* contextObject){
+            preHookExecuted = true;
+            return GenH5::HookContinue;
+        };
+
+        auto postWrite = [&](hid_t id, void* contextObject){
+            postHookExecuted = true;
+            return GenH5::HookContinue;
+        };
+
+        GenH5::registerHook(file, GenH5::PreDataSetWriteHook, preWrite);
+        GenH5::registerHook(file, GenH5::PostDataSetWriteHook, postWrite);
+
+        // only registered hooks are available
+        EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PreDataSetWriteHook));
+        EXPECT_TRUE(GenH5::findHook(file.id(), GenH5::PostDataSetWriteHook));
+
+        dset = file.root().writeDataSet("test_dset", data);
+        EXPECT_TRUE(dset.isValid());
+        EXPECT_TRUE(dset.dataSpace() == data.dataSpace());
+
+        EXPECT_TRUE(preHookExecuted);
+        EXPECT_TRUE(postHookExecuted);
+
+        preHookExecuted  = false;
+        postHookExecuted = false;
+    }
+
+    // dset is still open
+    EXPECT_TRUE(dset.isValid());
+    EXPECT_TRUE(GenH5::isValidId(dset.fileId()));
+
+    // hooks are now deleted, since main handle is closed
+    EXPECT_NE(dset.fileId(), fileId);
+    EXPECT_FALSE(GenH5::isValidId(fileId));
+    EXPECT_FALSE(GenH5::findHook(dset.fileId(), GenH5::PreDataSetWriteHook));
+    EXPECT_FALSE(GenH5::findHook(dset.fileId(), GenH5::PostDataSetWriteHook));
+
+    // write new data to check if hooks are executed
+    for (auto& element : data) element *= 2;
+    ASSERT_TRUE(dset.write(data));
+    EXPECT_TRUE(dset.dataSpace() == data.dataSpace());
+
+    EXPECT_FALSE(preHookExecuted);
+    EXPECT_FALSE(postHookExecuted);
 }
 
 TEST(Test_51_Hooks, hook_return_value)
