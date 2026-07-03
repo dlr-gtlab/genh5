@@ -24,7 +24,7 @@ class File;
 
 enum HookType : size_t
 {
-    UnkownHook = 0, /// Invalid hook type
+    UnknownHook = 0, /// Invalid hook type
 
     PreDataSetReadHook,   /// Before reading from a dataset
     PostDataSetReadHook,  /// After reading from a dataset

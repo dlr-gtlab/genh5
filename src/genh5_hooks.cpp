@@ -44,7 +44,7 @@ GenH5::findHook(hid_t fileId, HookType type) noexcept(false)
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"
         };
     }
-    if (type == UnkownHook || type > NumberOfHooks)
+    if (type == UnknownHook || type > NumberOfHooks)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid hook type"
@@ -85,7 +85,7 @@ GenH5::clearHook(hid_t fileId, HookType type)
     if (iter == dataBase.end()) return false;
 
     // remove all hooks
-    if (type == UnkownHook) dataBase.erase(iter);
+    if (type == UnknownHook) dataBase.erase(iter);
     // remove only the selected hook
     else iter->second[type - 1] = {};
 
@@ -95,7 +95,7 @@ GenH5::clearHook(hid_t fileId, HookType type)
 bool
 GenH5::clearHooks(hid_t fileId)
 {
-    return clearHook(fileId, UnkownHook);
+    return clearHook(fileId, UnknownHook);
 }
 
 void
@@ -107,7 +107,7 @@ GenH5::registerHook(hid_t fileId, HookType type, Hook hook) noexcept(false)
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"
         };
     }
-    if (type == UnkownHook || type > NumberOfHooks)
+    if (type == UnknownHook || type > NumberOfHooks)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid hook type"
