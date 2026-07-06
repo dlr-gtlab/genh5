@@ -140,7 +140,7 @@ TEST_F(TestH5File, fileSuffix)
 // Issue 147: Accessing the file id of objects may cause the underlying file handles to leak
 TEST_F(TestH5File, issue_147)
 {
-    hid_t fileId{};
+    GenH5::hid_t fileId{};
 
     // create file
     {

@@ -172,7 +172,7 @@ TEST(Test_51_Hooks, execute_hook_closed_file)
     data.resize(100);
     std::iota(data.begin(), data.end(), 0);
 
-    hid_t fileId{};
+    GenH5::hid_t fileId{};
 
     // hooks are only active as long as the main file handle is alive
     {
@@ -180,12 +180,12 @@ TEST(Test_51_Hooks, execute_hook_closed_file)
         fileId = file.id();
         qDebug() << "registering hooks for file" << file.id();
 
-        auto preWrite = [&](hid_t id, void* contextObject){
+        auto preWrite = [&](GenH5::hid_t id, void* contextObject){
             preHookExecuted = true;
             return GenH5::HookContinue;
         };
 
-        auto postWrite = [&](hid_t id, void* contextObject){
+        auto postWrite = [&](GenH5::hid_t id, void* contextObject){
             postHookExecuted = true;
             return GenH5::HookContinue;
         };
@@ -213,7 +213,7 @@ TEST(Test_51_Hooks, execute_hook_closed_file)
     EXPECT_TRUE(GenH5::isValidId(dset.fileId().raw()));
 
     // hooks are now deleted, since main handle is closed
-    EXPECT_NE(dset.fileId(), fileId);
+    EXPECT_NE(dset.fileId().raw(), fileId);
     EXPECT_FALSE(GenH5::isValidId(fileId));
     EXPECT_FALSE(GenH5::findHook(dset.file(), GenH5::PreDataSetWriteHook));
     EXPECT_FALSE(GenH5::findHook(dset.file(), GenH5::PostDataSetWriteHook));
