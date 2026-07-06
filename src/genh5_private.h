@@ -11,6 +11,7 @@
 #define GENH5_PRIVATE_H
 
 #include "genh5_group.h"
+#include "genh5_typetraits.h"
 
 #include <H5Ipublic.h>
 #include <H5Lpublic.h>
@@ -20,50 +21,84 @@
 #include <type_traits>
 #include <utility>
 
+#include <QVarLengthArray>
 #include <QDebug>
 
 namespace GenH5
 {
 
-namespace details
+// HDF5 library compatibility
+namespace compat
 {
 
 static_assert(sizeof(hsize_t) == sizeof(::hsize_t),
-              "GenH5 and HDF5 dimension types must have the same size");
-static_assert(std::is_signed<hsize_t>::value ==
-                  std::is_signed<::hsize_t>::value,
-              "GenH5 and HDF5 dimension types must have the same signedness");
+              "GenH5 and HDF5 hsize_t type must have the same size");
+static_assert(std::is_signed<hsize_t>::value == std::is_signed<::hsize_t>::value,
+              "GenH5 and HDF5 hsize_t type must have the same signedness");
+
 static_assert(sizeof(hssize_t) == sizeof(::hssize_t),
-              "GenH5 and HDF5 signed dimension types must have the same size");
-static_assert(std::is_signed<hssize_t>::value ==
-                  std::is_signed<::hssize_t>::value,
-              "GenH5 and HDF5 signed dimension types must have the same signedness");
+              "GenH5 and HDF5 hssize_t type must have the same size");
+static_assert(std::is_signed<hssize_t>::value == std::is_signed<::hssize_t>::value,
+              "GenH5 and HDF5 hssize_t type must have the same signedness");
 
-using Hdf5Dimensions = Vector<::hsize_t>;
-
-inline Hdf5Dimensions
-toHdf5Dimensions(Dimensions const& dimensions)
+// helper structs to resolve whether we need a conversion or not
+template<typename T>
+struct resolve_dimensions
 {
-    Hdf5Dimensions result(dimensions.size());
+    using type = QVarLengthArray<::hsize_t, 16>;
+};
+
+template<>
+struct resolve_dimensions<hsize_t>
+{
+    using type = Dimensions;
+};
+
+using H5Dimensions = typename resolve_dimensions<::hsize_t>::type;
+
+template<typename Dim, typename RetVal = Dimensions>
+auto toH5Dimensions(Dim const& dimensions)
+    -> std::enable_if_t<std::is_same<H5Dimensions, Dimensions>::value, RetVal const&>
+{
+    return dimensions;
+}
+
+template<typename Dim, typename RetVal = H5Dimensions>
+auto toH5Dimensions(Dim const& dimensions)
+    -> std::enable_if_t<!std::is_same<H5Dimensions, Dimensions>::value, RetVal>
+{
+    H5Dimensions result(dimensions.size());
     std::transform(dimensions.cbegin(), dimensions.cend(), result.begin(),
                    [](hsize_t dimension) {
         return static_cast<::hsize_t>(dimension);
     });
-
     return result;
 }
 
-inline Dimensions
-fromHdf5Dimensions(Hdf5Dimensions const& dimensions)
+
+template<typename Dim, typename RetVal = Dimensions>
+auto fromH5Dimensions(Dim const& dimensions)
+     -> std::enable_if_t<std::is_same<H5Dimensions, Dimensions>::value, RetVal const&>
+{
+    return dimensions;
+}
+
+template<typename Dim, typename RetVal = Dimensions>
+auto fromH5Dimensions(Dim const& dimensions)
+    -> std::enable_if_t<!std::is_same<H5Dimensions, Dimensions>::value, RetVal>
 {
     Dimensions result(dimensions.size());
     std::transform(dimensions.cbegin(), dimensions.cend(), result.begin(),
-                   [](::hsize_t dimension) {
+                   [](hsize_t dimension) {
         return static_cast<hsize_t>(dimension);
     });
-
     return result;
 }
+
+} // namespace compat
+
+namespace details
+{
 
 /// Helper function for creating T
 template <typename T,

@@ -199,11 +199,9 @@ GenH5::DataType::array(DataType const& type,
     static const std::string errMsg =
             GENH5_MAKE_EXECEPTION_STR() "Failed to create array type";
 
-    return makeType(
-                [id = type.m_id,
-                 dimensions = details::toHdf5Dimensions(dims)](){
-        return H5Tarray_create(id, dimensions.length(),
-                               dimensions.constData());
+    return makeType([id = type.m_id, &dims](){
+        auto const& dimensions = compat::toH5Dimensions(dims);
+        return H5Tarray_create(id, dimensions.length(), dimensions.constData());
     }, errMsg);
 }
 
@@ -382,11 +380,11 @@ GenH5::DataType::arrayDimensions() const noexcept
     {
         return {};
     }
-
-    details::Hdf5Dimensions dimensions;
+    
+    compat::H5Dimensions dimensions;
     dimensions.resize(H5Tget_array_ndims(m_id));
     H5Tget_array_dims(m_id, dimensions.data());
-    return details::fromHdf5Dimensions(dimensions);
+    return compat::fromH5Dimensions(dimensions);
 }
 
 GenH5::CompoundMembers

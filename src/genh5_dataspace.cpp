@@ -56,9 +56,10 @@ GenH5::DataSpace::DataSpace(hid_t id) :
 
 GenH5::DataSpace::DataSpace(Dimensions const& dimensions) noexcept(false) :
     m_id([&dimensions] {
-        auto hdf5Dimensions = details::toHdf5Dimensions(dimensions);
-        return H5Screate_simple(hdf5Dimensions.size(),
-                                hdf5Dimensions.constData(), nullptr);
+        auto const& h5Dimensions = compat::toH5Dimensions(dimensions);
+        return H5Screate_simple(h5Dimensions.size(),
+                                h5Dimensions.constData(),
+                                nullptr);
     }())
 {
     if (m_id < 0)
@@ -106,10 +107,10 @@ GenH5::DataSpace::dimensions() const noexcept
     {
         return {};
     }
-
-    details::Hdf5Dimensions dimensions(size);
+    
+    compat::H5Dimensions dimensions(size);
     H5Sget_simple_extent_dims(m_id, dimensions.data(), nullptr);
-    return details::fromHdf5Dimensions(dimensions);
+    return compat::fromH5Dimensions(dimensions);
 }
 
 GenH5::hssize_t
@@ -187,10 +188,10 @@ GenH5::DataSpaceSelection::commit() noexcept(false)
     testSelection(m_stride, dims, 1);
     testSelection(m_block, dims, 1);
 
-    auto offset = details::toHdf5Dimensions(m_offset);
-    auto stride = details::toHdf5Dimensions(m_stride);
-    auto count = details::toHdf5Dimensions(m_count);
-    auto block = details::toHdf5Dimensions(m_block);
+    auto const& offset = compat::toH5Dimensions(m_offset);
+    auto const& stride = compat::toH5Dimensions(m_stride);
+    auto const& count  = compat::toH5Dimensions(m_count);
+    auto const& block  = compat::toH5Dimensions(m_block);
 
     herr_t err = H5Sselect_hyperslab(
         m_space.id(), static_cast<H5S_seloper_t>(m_op),

@@ -300,8 +300,8 @@ GenH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
     herr_t err = 0;
     if (dimensions != dspace.dimensions())
     {
-        auto hdf5Dimensions = details::toHdf5Dimensions(dimensions);
-        err = H5Dset_extent(m_id, hdf5Dimensions.constData());
+        auto const& h5Dimensions = compat::toH5Dimensions(dimensions);
+        err = H5Dset_extent(m_id, h5Dimensions.constData());
     }
     return err >= 0;
 }

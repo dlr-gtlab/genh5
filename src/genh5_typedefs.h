@@ -22,9 +22,9 @@ namespace GenH5
 {
 
 /// wrapper for `hsize_t`
-using hsize_t  = unsigned long long;
+using hsize_t  = uint64_t;
 /// wrapper for `hssize_t`
-using hssize_t = signed long long;
+using hssize_t = int64_t;
 /// wrapper for `hid_t`
 using hid_t  = int64_t;
 /// wrapper for `herr_t`

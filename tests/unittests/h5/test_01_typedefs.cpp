@@ -10,6 +10,7 @@
 #include "gtest/gtest.h"
 
 #include <genh5_typedefs.h>
+#include <genh5_utils.h>
 
 #include <H5public.h>
 #include <H5Tpublic.h>
@@ -17,6 +18,21 @@
 #include <H5Opublic.h>
 #include <H5Spublic.h>
 
+TEST(Test_01, tuple_layout)
+{
+    GenH5::Comp<int, double> tuple;
+
+    size_t offset_int    =
+        reinterpret_cast<size_t>(&GenH5::get<0>(tuple)) -
+        reinterpret_cast<size_t>(&tuple);
+    size_t offset_double =
+        reinterpret_cast<size_t>(&GenH5::get<1>(tuple)) -
+        reinterpret_cast<size_t>(&tuple);
+
+    // NOTE: GenH5 (currently) only supports tuples where the layout is
+    // effectively reversed, meaning that here `double` comes before `int`!
+    ASSERT_GT(offset_int, offset_double);
+}
 
 TEST(Test_01, constant_reference_buffer_size)
 {
