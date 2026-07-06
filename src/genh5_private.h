@@ -56,15 +56,19 @@ struct resolve_dimensions<hsize_t>
 
 using H5Dimensions = typename resolve_dimensions<::hsize_t>::type;
 
-template<typename Dim, typename RetVal = Dimensions>
-auto toH5Dimensions(Dim const& dimensions)
+template<typename Dim,
+         typename RetVal = Dimensions,
+         typename = std::enable_if_t<std::is_lvalue_reference<Dim>::value>>
+auto toH5Dimensions(Dim&& dimensions)
     -> std::enable_if_t<std::is_same<H5Dimensions, Dimensions>::value, RetVal const&>
 {
     return dimensions;
 }
 
-template<typename Dim, typename RetVal = H5Dimensions>
-auto toH5Dimensions(Dim const& dimensions)
+template<typename Dim,
+         typename RetVal = H5Dimensions,
+         typename = std::enable_if_t<std::is_lvalue_reference<Dim>::value>>
+auto toH5Dimensions(Dim&& dimensions)
     -> std::enable_if_t<!std::is_same<H5Dimensions, Dimensions>::value, RetVal>
 {
     H5Dimensions result(dimensions.size());
@@ -77,14 +81,14 @@ auto toH5Dimensions(Dim const& dimensions)
 
 
 template<typename Dim, typename RetVal = Dimensions>
-auto fromH5Dimensions(Dim const& dimensions)
-     -> std::enable_if_t<std::is_same<H5Dimensions, Dimensions>::value, RetVal const&>
+auto fromH5Dimensions(Dim&& dimensions)
+     -> std::enable_if_t<std::is_same<H5Dimensions, Dimensions>::value, RetVal>
 {
     return dimensions;
 }
 
 template<typename Dim, typename RetVal = Dimensions>
-auto fromH5Dimensions(Dim const& dimensions)
+auto fromH5Dimensions(Dim&& dimensions)
     -> std::enable_if_t<!std::is_same<H5Dimensions, Dimensions>::value, RetVal>
 {
     Dimensions result(dimensions.size());
