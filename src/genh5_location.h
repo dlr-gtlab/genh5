@@ -12,6 +12,7 @@
 
 #include "genh5_object.h"
 #include "genh5_typedefs.h"
+#include "genh5_idcomponent.h"
 
 #include <memory>
 
@@ -21,9 +22,6 @@ namespace GenH5
 class File;
 class Attribute;
 class Reference;
-
-template <IdType>
-class IdComponent;
 
 /**
  * @brief The Location class
