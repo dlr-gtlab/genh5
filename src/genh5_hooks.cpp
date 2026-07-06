@@ -36,7 +36,7 @@ static std::shared_mutex& mutex()
 } // namespace
 
 GenH5::Hook
-GenH5::findHook(File file, HookType type) noexcept(false)
+GenH5::findHook(File const& file, HookType type) noexcept(false)
 {
     auto fileId = file.id();
     if (!isValidId(fileId) || classType(fileId) != IdType::File)
@@ -98,7 +98,7 @@ bool clearHook(hid_t fileId, HookType type)
 } // namespace GenH5
 
 bool
-GenH5::clearHook(File file, HookType type)
+GenH5::clearHook(File const& file, HookType type)
 {
     auto fileId = file.id();
     return clearHook(fileId, type);
@@ -111,14 +111,14 @@ GenH5::clearHooks(hid_t fileId)
 }
 
 bool
-GenH5::clearHooks(File file)
+GenH5::clearHooks(File const& file)
 {
     auto fileId = file.id();
     return clearHook(fileId, UnknownHook);
 }
 
 void
-GenH5::registerHook(File file, HookType type, Hook hook) noexcept(false)
+GenH5::registerHook(File const& file, HookType type, Hook hook) noexcept(false)
 {
     auto fileId = file.id();
     if (!isValidId(fileId) || classType(fileId) != IdType::File)

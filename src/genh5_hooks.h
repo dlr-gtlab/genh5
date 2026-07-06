@@ -114,7 +114,7 @@ using Hook = std::function<HookReturnValue(hid_t id, void* context)>;
  */
 GENH5_NODISCARD
 GENH5_EXPORT
-Hook findHook(File file, HookType type) noexcept(false);
+Hook findHook(File const& file, HookType type) noexcept(false);
 
 /**
  * @brief Unregisters all hooks from the file denoted by `fileId`.
@@ -132,7 +132,7 @@ bool clearHooks(hid_t fileId);
  * @return Success (if any hooks were registered)
  */
 GENH5_EXPORT
-bool clearHooks(File file);
+bool clearHooks(File const& file);
 
 /**
  * @brief Unregisters the hook of type `type` from `file`.
@@ -142,7 +142,7 @@ bool clearHooks(File file);
  * @return Success (if a hook was removed)
  */
 GENH5_EXPORT
-bool clearHook(File fileId, HookType type);
+bool clearHook(File const& file, HookType type);
 
 /**
  * @brief Registers the hook for the file object `file`.
@@ -152,7 +152,7 @@ bool clearHook(File fileId, HookType type);
  * @param hook Hook function
  */
 GENH5_EXPORT
-void registerHook(File file, HookType type, Hook hook) noexcept(false);
+void registerHook(File const& file, HookType type, Hook hook) noexcept(false);
 
 /**
  * @brief Converts `hook` into a compatible functor. Useful if `hook` does not
