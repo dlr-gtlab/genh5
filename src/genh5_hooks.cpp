@@ -45,7 +45,7 @@ GenH5::findHook(File file, HookType type) noexcept(false)
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"
         };
     }
-    if (type == UnknownHook || type > NumberOfHooks)
+    if (type == UnknownHook || type >= NumberOfHooks)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid hook type"
@@ -73,7 +73,7 @@ bool clearHook(hid_t fileId, HookType type)
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"
         };
     }
-    if (type > NumberOfHooks)
+    if (type >= NumberOfHooks)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid hook type"
@@ -127,7 +127,7 @@ GenH5::registerHook(File file, HookType type, Hook hook) noexcept(false)
             GENH5_MAKE_EXECEPTION_STR() "Invalid file id"
         };
     }
-    if (type == UnknownHook || type > NumberOfHooks)
+    if (type == UnknownHook || type >= NumberOfHooks)
     {
         throw IdComponentException{
             GENH5_MAKE_EXECEPTION_STR() "Invalid hook type"

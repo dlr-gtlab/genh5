@@ -44,6 +44,49 @@ TEST(Test_51_Hooks, register_and_unregister_hook)
     EXPECT_THROW((void)GenH5::findHook(file, GenH5::PreDataSetWriteHook), GenH5::IdComponentException);
     EXPECT_THROW((void)GenH5::findHook(file, GenH5::PostDataSetWriteHook), GenH5::IdComponentException);
 }
+
+TEST(Test_51_Hooks, number_of_hooks)
+{
+    auto hooks = {
+        GenH5::PreDataSetWriteHook,
+        GenH5::PostDataSetWriteHook,
+        GenH5::PreDataSetReadHook,
+        GenH5::PostDataSetReadHook,
+        GenH5::PreAttributeWriteHook,
+        GenH5::PostAttributeWriteHook,
+        GenH5::PreAttributeReadHook,
+        GenH5::PostAttributeReadHook
+    };
+
+    size_t max_value = std::max(hooks);
+
+    ASSERT_EQ(max_value, (GenH5::NumberOfHooks - 1));
+
+    GenH5::String filePath = h5TestHelper->newFilePath(test_info_);
+    GenH5::File file{filePath, GenH5::Create};
+
+    for (GenH5::HookType type : hooks)
+    {
+        GenH5::registerHook(file, type, GenH5::makeHook([](auto...){ }));
+        EXPECT_TRUE(GenH5::findHook(file, type));
+    }
+
+    for (GenH5::HookType type : hooks)
+    {
+        EXPECT_TRUE(GenH5::clearHook(file, type));
+        EXPECT_FALSE(GenH5::findHook(file, type));
+    }
+
+    EXPECT_THROW(GenH5::registerHook(file,
+                                     GenH5::NumberOfHooks,
+                                     GenH5::makeHook([](auto...){ })),
+                 GenH5::IdComponentException);
+    EXPECT_THROW((void)GenH5::findHook(file, GenH5::NumberOfHooks),
+                 GenH5::IdComponentException);
+    EXPECT_THROW(GenH5::clearHook(file, GenH5::NumberOfHooks),
+                 GenH5::IdComponentException);
+}
+
 TEST(Test_51_Hooks, execute_hook)
 {
     GenH5::String filePath = h5TestHelper->newFilePath(test_info_);

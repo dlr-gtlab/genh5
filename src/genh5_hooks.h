@@ -37,7 +37,7 @@ enum HookType : size_t
     PostAttributeWriteHook, /// After writing to an attribute
 
     /// Denotes the number of hooks, should not be used as a valid hook type
-    NumberOfHooks = PostAttributeWriteHook
+    NumberOfHooks = PostAttributeWriteHook + 1
 };
 
 /// Enum indicating valid return values for hooks
