@@ -210,7 +210,7 @@ TEST(Test_51_Hooks, execute_hook_closed_file)
 
     // dset is still open
     EXPECT_TRUE(dset.isValid());
-    EXPECT_TRUE(GenH5::isValidId(dset.fileId()));
+    EXPECT_TRUE(GenH5::isValidId(dset.fileId().raw()));
 
     // hooks are now deleted, since main handle is closed
     EXPECT_NE(dset.fileId(), fileId);
