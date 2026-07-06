@@ -12,6 +12,7 @@
 
 #include "genh5_object.h"
 #include "genh5_typedefs.h"
+#include "genh5_idcomponent.h"
 
 #include <memory>
 
@@ -84,7 +85,7 @@ public:
      * @brief Returns the file id associated with this object.
      * @return File id
      */
-    hid_t fileId() const noexcept;
+    IdComponent<IdType::File> fileId() const noexcept;
 
 protected:
 

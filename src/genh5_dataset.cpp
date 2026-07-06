@@ -27,7 +27,8 @@ inline bool writeImpl(GenH5::DataSet const& dset,
                       GenH5::DataSpace const& memSpace,
                       GenH5::DataType const& dtype)
 {
-    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetWriteHook)) {
+    GenH5::File file = dset.file();
+    if (auto hook = findHook(file, GenH5::PreDataSetWriteHook)) {
         GenH5::DataSetWriteHookContext context{data, &fileSpace, &memSpace, &dtype};
         GenH5::HookReturnValue rvalue = hook(dset.id(), &context);
         if (rvalue != GenH5::HookContinue)
@@ -38,7 +39,7 @@ inline bool writeImpl(GenH5::DataSet const& dset,
 
     herr_t err = H5Dwrite(dset.id(), dtype.id(), memSpace.id(), fileSpace.id(), H5P_DEFAULT, data);
 
-    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetWriteHook)) {
+    if (auto hook = findHook(file, GenH5::PostDataSetWriteHook)) {
         GenH5::DataSetWriteHookContext context{data, &fileSpace, &memSpace, &dtype};
         GenH5::HookReturnValue rvalue = hook(dset.id(), &context);
         if (rvalue != GenH5::HookContinue)
@@ -56,14 +57,15 @@ inline bool readImpl(GenH5::DataSet const& dset,
                      GenH5::DataSpace const& memSpace,
                      GenH5::DataType const& dtype)
 {
-    if (auto hook = findHook(dset.fileId(), GenH5::PreDataSetReadHook)) {
+    GenH5::File file = dset.file();
+    if (auto hook = findHook(file, GenH5::PreDataSetReadHook)) {
         GenH5::DataSetReadHookContext context{data, &fileSpace, &memSpace, &dtype};
         hook(dset.id(), &context);
     }
 
     herr_t err = H5Dread(dset.id(), dtype.id(), memSpace.id(), fileSpace.id(), H5P_DEFAULT, data);
 
-    if (auto hook = findHook(dset.fileId(), GenH5::PostDataSetReadHook)) {
+    if (auto hook = findHook(file, GenH5::PostDataSetReadHook)) {
         GenH5::DataSetReadHookContext context{data, &fileSpace, &memSpace, &dtype};
         hook(dset.id(), &context);
     }

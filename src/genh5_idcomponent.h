@@ -147,8 +147,14 @@ public:
         }
     }
 
-    inline operator hid_t() const noexcept { return m_id; }
-    inline hid_t get() const noexcept { return m_id; }
+    /// implicit getter, that only allows access to the underlying id on lvalues
+    inline operator hid_t() const & noexcept { return m_id; }
+    inline operator hid_t() && noexcept = delete;
+    /// explicit getter, that only allows access to the underlying id on lvalues
+    inline hid_t get() const & noexcept { return m_id; }
+    inline hid_t get() && noexcept = delete;
+    /// explicit getter, that allows access to the underlying id on rvalues too
+    inline hid_t raw() const noexcept { return m_id; };
 
     /// swaps all members
     void swap(IdComponent& other) noexcept

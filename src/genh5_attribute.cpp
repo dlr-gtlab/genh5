@@ -43,7 +43,8 @@ GenH5::Attribute::id() const noexcept
 bool
 GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 {
-    if (auto hook = findHook(fileId(), GenH5::PreAttributeWriteHook)) {
+    File file = this->file();
+    if (auto hook = findHook(file, GenH5::PreAttributeWriteHook)) {
         GenH5::AttributeWriteHookContext context{data, &dtype};
         GenH5::HookReturnValue rvalue = hook(id(), &context);
         if (rvalue != GenH5::HookContinue)
@@ -54,7 +55,7 @@ GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 
     herr_t err = H5Awrite(m_id, dtype.id(), data);
 
-    if (auto hook = findHook(fileId(), GenH5::PostAttributeWriteHook)) {
+    if (auto hook = findHook(file, GenH5::PostAttributeWriteHook)) {
         GenH5::AttributeWriteHookContext context{data, &dtype};
         GenH5::HookReturnValue rvalue = hook(id(), &context);
         if (rvalue != GenH5::HookContinue)
@@ -69,14 +70,15 @@ GenH5::Attribute::doWrite(void const* data, DataType const& dtype) const
 bool
 GenH5::Attribute::doRead(void* data, DataType const& dtype) const
 {
-    if (auto hook = findHook(fileId(), GenH5::PreAttributeReadHook)) {
+    File file = this->file();
+    if (auto hook = findHook(file, GenH5::PreAttributeReadHook)) {
         GenH5::AttributeReadHookContext context{data, &dtype};
         hook(id(), &context);
     }
 
     herr_t err = H5Aread(m_id, dtype.id(), data);
 
-    if (auto hook = findHook(fileId(), GenH5::PostAttributeReadHook)) {
+    if (auto hook = findHook(file, GenH5::PostAttributeReadHook)) {
         GenH5::AttributeReadHookContext context{data, &dtype};
         hook(id(), &context);
     }
