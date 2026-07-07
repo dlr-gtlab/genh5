@@ -241,10 +241,10 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
         // file space layout
         H5::DataSpace hspace{dspace.toH5()};
 
-        QVector<hsize_t> count{2, 5};
-        QVector<hsize_t> offset{0, 1};
-        QVector<hsize_t> stride{1, 1};
-        QVector<hsize_t> block{1, 1};
+        QVector<GenH5::hsize_t> count{2, 5};
+        QVector<GenH5::hsize_t> offset{0, 1};
+        QVector<GenH5::hsize_t> stride{1, 1};
+        QVector<GenH5::hsize_t> block{1, 1};
 
         // file space selection
         hspace.selectHyperslab(H5S_SELECT_SET,
@@ -254,7 +254,7 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
                                block.constData());
 
         // memory layout
-        QVector<hsize_t> memDims{10};
+        QVector<GenH5::hsize_t> memDims{10};
         H5::DataSpace memspace{memDims.length(), memDims.constData()};
 
         dset.toH5().write(plaindata,
@@ -329,4 +329,3 @@ TEST_F(TestH5DataSet, h5selection) // test selection in hdf5
     }
 }
 #endif
-

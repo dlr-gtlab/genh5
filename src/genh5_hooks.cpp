@@ -19,7 +19,7 @@ namespace HookDataBase
 /// Each item in the array corresponds to the HookType of value "index+1".
 using Entry = std::array<GenH5::Hook, GenH5::NumberOfHooks>;
 
-using DataBase = std::unordered_map<hid_t, Entry>;
+using DataBase = std::unordered_map<GenH5::hid_t, Entry>;
 
 static DataBase& instance()
 {

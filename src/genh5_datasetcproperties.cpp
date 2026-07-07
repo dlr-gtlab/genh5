@@ -56,15 +56,15 @@ GenH5::DataSetCProperties::autoChunk(DataSpace const& dataspace) noexcept
 
     std::replace_if(std::begin(dimensions), std::end(dimensions),
                     std::bind(std::less<>(),
-                              std::placeholders::_1, 1),
-                    1);
+                              std::placeholders::_1, 1ull),
+                    1ull);
 
     // TODO: implement logic to generate optimal chunking layout
 
     return dimensions;
 }
 
-hid_t
+GenH5::hid_t
 GenH5::DataSetCProperties::id() const noexcept
 {
     return m_id;
@@ -81,7 +81,8 @@ GenH5::DataSetCProperties::setChunkDimensions(Dimensions const& dimensions
         };
     }
 
-    if (H5Pset_chunk(m_id, dimensions.length(), dimensions.data()))
+    auto const& h5Dimensions = compat::toH5Dimensions(dimensions);
+    if (H5Pset_chunk(m_id, h5Dimensions.length(), h5Dimensions.constData()))
     {
         throw PropertyListException{
             GENH5_MAKE_EXECEPTION_STR() "Chunking failed"
@@ -172,10 +173,10 @@ GenH5::DataSetCProperties::chunkDimensions() const noexcept
     {
         return {};
     }
-
-    Dimensions dims(H5Pget_chunk(m_id, 0, nullptr));
-    H5Pget_chunk(m_id, dims.size(), dims.data());
-    return dims;
+    
+    compat::H5Dimensions dimensions(H5Pget_chunk(m_id, 0, nullptr));
+    H5Pget_chunk(m_id, dimensions.size(), dimensions.data());
+    return compat::fromH5Dimensions(dimensions);
 }
 
 void

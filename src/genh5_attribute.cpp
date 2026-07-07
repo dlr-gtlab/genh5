@@ -34,7 +34,7 @@ GenH5::Attribute::Attribute(hid_t id) :
     m_id.inc();
 }
 
-hid_t
+GenH5::hid_t
 GenH5::Attribute::id() const noexcept
 {
     return m_id;

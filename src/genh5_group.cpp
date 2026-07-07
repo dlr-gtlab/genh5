@@ -43,7 +43,7 @@ GenH5::Group::Group(hid_t id) :
     m_id.inc();
 }
 
-hid_t
+GenH5::hid_t
 GenH5::Group::id() const noexcept
 {
     return m_id;
@@ -256,7 +256,7 @@ GenH5::Group::findChildNodes(IterationType iterType,
 
     if (iterType == FindDirectOnly)
     {
-        hsize_t idx = 0;
+        ::hsize_t idx = 0;
         H5Literate(m_id, h5index, h5order, &idx, alg::accumulateNodes, &data);
     }
     else
@@ -267,7 +267,7 @@ GenH5::Group::findChildNodes(IterationType iterType,
     return nodes;
 }
 
-herr_t
+GenH5::herr_t
 GenH5::Group::iterateChildNodes(NodeIterationFunction iterFunction,
                                 IterationType iterType,
                                 IterationFilter iterFilter,
@@ -284,7 +284,7 @@ GenH5::Group::iterateChildNodes(NodeIterationFunction iterFunction,
 
     if (iterType == FindDirectOnly)
     {
-        hsize_t idx = 0;
+        ::hsize_t idx = 0;
         error = H5Literate(m_id, h5index, h5order, &idx,
                            alg::foreachNode, &data);
     }

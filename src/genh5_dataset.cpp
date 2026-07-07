@@ -90,7 +90,7 @@ GenH5::DataSet::swap(DataSet& other) noexcept
     swap(m_id, other.m_id);
 }
 
-hid_t
+GenH5::hid_t
 GenH5::DataSet::id() const noexcept
 {
     return m_id;
@@ -300,7 +300,8 @@ GenH5::DataSet::resize(Dimensions const& dimensions) noexcept(false)
     herr_t err = 0;
     if (dimensions != dspace.dimensions())
     {
-        err = H5Dset_extent(m_id, dimensions.constData());
+        auto const& h5Dimensions = compat::toH5Dimensions(dimensions);
+        err = H5Dset_extent(m_id, h5Dimensions.constData());
     }
     return err >= 0;
 }

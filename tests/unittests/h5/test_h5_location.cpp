@@ -79,7 +79,7 @@ TEST_F(TestH5Location, linkPath)
 
 TEST_F(TestH5Location, fileRefCount)
 {
-    hid_t id = 0;
+    GenH5::hid_t id = 0;
 
     {
         GenH5::Group _root;

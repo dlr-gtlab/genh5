@@ -263,7 +263,7 @@ GenH5::Node::findAttributes(String const& path,
 {
     GenH5::Vector<GenH5::AttributeInfo> attributes;
 
-    hsize_t idx_ = 0;
+    ::hsize_t idx_ = 0;
     H5Aiterate_by_name(id(), path.constData(),
                        static_cast<H5_index_t>(iterIndex),
                        static_cast<H5_iter_order_t>(iterOrder), &idx_,
@@ -272,7 +272,7 @@ GenH5::Node::findAttributes(String const& path,
     return attributes;
 }
 
-herr_t
+GenH5::herr_t
 GenH5::Node::iterateAttributes(AttributeIterationFunction iterFunction,
                                IterationIndex iterIndex,
                                IterationOrder iterOrder) const noexcept
@@ -281,7 +281,7 @@ GenH5::Node::iterateAttributes(AttributeIterationFunction iterFunction,
                              iterIndex, iterOrder);
 }
 
-herr_t
+GenH5::herr_t
 GenH5::Node::iterateAttributes(String const& path,
                                AttributeIterationFunction iterFunction,
                                IterationIndex iterIndex,
@@ -292,7 +292,7 @@ GenH5::Node::iterateAttributes(String const& path,
 
     alg::IterForeachAttrData data{this, &iterFunction};
 
-    hsize_t idx_ = 0;
+    ::hsize_t idx_ = 0;
     herr_t error = H5Aiterate_by_name(id(), path.constData(),
                                       static_cast<H5_index_t>(iterIndex),
                                       static_cast<H5_iter_order_t>(iterOrder),

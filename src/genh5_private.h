@@ -16,12 +16,88 @@
 #include <H5Lpublic.h>
 #include <H5Apublic.h>
 
+#include <algorithm>
+#include <type_traits>
 #include <utility>
 
+#include <QVarLengthArray>
 #include <QDebug>
 
 namespace GenH5
 {
+
+// HDF5 library compatibility
+namespace compat
+{
+
+static_assert(sizeof(hsize_t) == sizeof(::hsize_t),
+              "GenH5 and HDF5 hsize_t type must have the same size");
+static_assert(std::is_signed<hsize_t>::value == std::is_signed<::hsize_t>::value,
+              "GenH5 and HDF5 hsize_t type must have the same signedness");
+
+static_assert(sizeof(hssize_t) == sizeof(::hssize_t),
+              "GenH5 and HDF5 hssize_t type must have the same size");
+static_assert(std::is_signed<hssize_t>::value == std::is_signed<::hssize_t>::value,
+              "GenH5 and HDF5 hssize_t type must have the same signedness");
+
+// helper structs to resolve whether we need a conversion or not
+template<typename T>
+struct resolve_dimensions
+{
+    using type = QVarLengthArray<::hsize_t, 16>;
+};
+
+template<>
+struct resolve_dimensions<hsize_t>
+{
+    using type = Dimensions;
+};
+
+using H5Dimensions = typename resolve_dimensions<::hsize_t>::type;
+
+inline constexpr bool h5DimensionsMatch = std::is_same_v<H5Dimensions, Dimensions>;
+
+template<typename Dim>
+auto toH5Dimensions(Dim&& dimensions)
+{
+    if constexpr (h5DimensionsMatch)
+    {
+        return std::forward<Dim>(dimensions);
+    }
+    else
+    {
+        H5Dimensions result(dimensions.size());
+        std::transform(dimensions.cbegin(),
+                       dimensions.cend(),
+                       result.begin(),
+                       [](hsize_t dimension) {
+            return static_cast<::hsize_t>(dimension);
+         });
+        return result;
+    }
+}
+
+template<typename Dim>
+auto fromH5Dimensions(Dim&& dimensions)
+{
+    if constexpr (h5DimensionsMatch)
+    {
+        return std::forward<Dim>(dimensions);
+    }
+    else
+    {
+        Dimensions result(dimensions.size());
+        std::transform(dimensions.cbegin(),
+                       dimensions.cend(),
+                       result.begin(),
+                       [](hsize_t dimension) {
+            return static_cast<hsize_t>(dimension);
+        });
+        return result;
+    }
+}
+
+} // namespace compat
 
 namespace details
 {
