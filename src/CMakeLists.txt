@@ -112,8 +112,8 @@ target_include_directories(GenH5 PUBLIC
 install (TARGETS GenH5
          EXPORT GenH5Targets
          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/h5
-         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/h5
+         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # copy header files and keep directory structure

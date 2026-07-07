@@ -64,7 +64,7 @@ class GenH5Conan(ConanFile):
         self.cpp_info.includedirs.append(os.path.join("include", "h5"))
 
 
-        self.cpp_info.libdirs = ['lib', 'lib/h5']
+        self.cpp_info.libdirs = ['lib']
         
         if self.settings.build_type != "Debug":
             self.cpp_info.libs = ['genhfive4']
