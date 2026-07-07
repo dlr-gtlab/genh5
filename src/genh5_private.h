@@ -11,7 +11,6 @@
 #define GENH5_PRIVATE_H
 
 #include "genh5_group.h"
-#include "genh5_typetraits.h"
 
 #include <H5Ipublic.h>
 #include <H5Lpublic.h>
@@ -56,47 +55,46 @@ struct resolve_dimensions<hsize_t>
 
 using H5Dimensions = typename resolve_dimensions<::hsize_t>::type;
 
-template<typename Dim,
-         typename RetVal = Dimensions,
-         typename = std::enable_if_t<std::is_lvalue_reference<Dim>::value>>
+inline constexpr bool h5DimensionsMatch = std::is_same_v<H5Dimensions, Dimensions>;
+
+template<typename Dim>
 auto toH5Dimensions(Dim&& dimensions)
-    -> std::enable_if_t<std::is_same<H5Dimensions, Dimensions>::value, RetVal const&>
 {
-    return dimensions;
+    if constexpr (h5DimensionsMatch)
+    {
+        return std::forward<Dim>(dimensions);
+    }
+    else
+    {
+        H5Dimensions result(dimensions.size());
+        std::transform(dimensions.cbegin(),
+                       dimensions.cend(),
+                       result.begin(),
+                       [](hsize_t dimension) {
+            return static_cast<::hsize_t>(dimension);
+         });
+        return result;
+    }
 }
 
-template<typename Dim,
-         typename RetVal = H5Dimensions,
-         typename = std::enable_if_t<std::is_lvalue_reference<Dim>::value>>
-auto toH5Dimensions(Dim&& dimensions)
-    -> std::enable_if_t<!std::is_same<H5Dimensions, Dimensions>::value, RetVal>
-{
-    H5Dimensions result(dimensions.size());
-    std::transform(dimensions.cbegin(), dimensions.cend(), result.begin(),
-                   [](hsize_t dimension) {
-        return static_cast<::hsize_t>(dimension);
-    });
-    return result;
-}
-
-
-template<typename Dim, typename RetVal = Dimensions>
+template<typename Dim>
 auto fromH5Dimensions(Dim&& dimensions)
-     -> std::enable_if_t<std::is_same<H5Dimensions, Dimensions>::value, RetVal>
 {
-    return dimensions;
-}
-
-template<typename Dim, typename RetVal = Dimensions>
-auto fromH5Dimensions(Dim&& dimensions)
-    -> std::enable_if_t<!std::is_same<H5Dimensions, Dimensions>::value, RetVal>
-{
-    Dimensions result(dimensions.size());
-    std::transform(dimensions.cbegin(), dimensions.cend(), result.begin(),
-                   [](hsize_t dimension) {
-        return static_cast<hsize_t>(dimension);
-    });
-    return result;
+    if constexpr (h5DimensionsMatch)
+    {
+        return std::forward<Dim>(dimensions);
+    }
+    else
+    {
+        Dimensions result(dimensions.size());
+        std::transform(dimensions.cbegin(),
+                       dimensions.cend(),
+                       result.begin(),
+                       [](hsize_t dimension) {
+            return static_cast<hsize_t>(dimension);
+        });
+        return result;
+    }
 }
 
 } // namespace compat
