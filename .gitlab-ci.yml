@@ -40,6 +40,19 @@ windowsBuildDebug:
     - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2019-dbg -DBUILD_UNITTESTS=ON
     - cmake --build build --target install
 
+windowsBuildDebug_2.1:
+  stage: build
+  extends: 
+    - .build-win_21
+    - .run-always
+  script:
+    # install missing devtools packages that are not yet in the image
+    - C:\Python3\Scripts\install_missing_pkgs.exe $env:GTLAB_UPDATE_TOOL de.dlr.gtlab.dev.stable.2.1 --install
+
+    - $env:PATH+=(";.\build;"+$env:GTLAB_DEV_TOOLS+"\binDebug;")
+    - cmake -B build -S . -G "Ninja" -DGENH5_HDF5_STATIC=ON -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2026-dbg -DBUILD_UNITTESTS=ON
+    - cmake --build build --target install
+
 windowsBuildRelease:
   stage: build
   extends: 
@@ -47,6 +60,18 @@ windowsBuildRelease:
     - .run-master-and-tags
   script:
     - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2019
+    - cmake --build build --target install
+
+windowsBuildRelease_2.1:
+  stage: build
+  extends: 
+    - .build-win_21
+    - .run-master-and-tags
+  script:
+      # install missing devtools packages that are not yet in the image
+    - C:\Python3\Scripts\install_missing_pkgs.exe $env:GTLAB_UPDATE_TOOL de.dlr.gtlab.dev.stable.2.1 --install
+
+    - cmake -B build -S . -G "Ninja" -DGENH5_HDF5_STATIC=ON -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT="$env:GTLAB_DEV_TOOLS" -DCMAKE_INSTALL_PREFIX=install-msvc2026
     - cmake --build build --target install
 
 # build on Linux system
@@ -58,6 +83,17 @@ linuxBuildDebug:
   script:
     - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux-dbg -DBUILD_UNITTESTS=ON -DBUILD_WITH_COVERAGE=ON
     - cmake --build build --target install
+
+linuxBuildDebug_2.1:
+  stage: build
+  extends: 
+    - .build-linux_21
+    - .run-always
+  script:
+    - install_missing_pkgs "$GTLAB_UPDATE_TOOL" de.dlr.gtlab.dev.stable.2.1 --install
+
+    - cmake -B build -S . -G "Ninja" -DGENH5_HDF5_STATIC=ON -DCMAKE_BUILD_TYPE=Debug -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux-dbg -DBUILD_UNITTESTS=ON -DBUILD_WITH_COVERAGE=ON
+    - cmake --build build --target install
  
 linuxBuildRelease:
   stage: build
@@ -66,6 +102,17 @@ linuxBuildRelease:
     - .run-master-and-tags
   script:
     - cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux
+    - cmake --build build --target install
+
+linuxBuildRelease_2.1:
+  stage: build
+  extends: 
+    - .build-linux_21
+    - .run-master-and-tags
+  script:
+    - install_missing_pkgs "$GTLAB_UPDATE_TOOL" de.dlr.gtlab.dev.stable.2.1 --install
+
+    - cmake -B build -S . -G "Ninja" -DGENH5_HDF5_STATIC=ON -DCMAKE_BUILD_TYPE=Release -DGTlabDevtools_ROOT=$GTLAB_DEV_TOOLS -DCMAKE_INSTALL_PREFIX=install-linux
     - cmake --build build --target install
 
 # run tests using the binary built before
@@ -165,9 +212,21 @@ package-win-gtlab_2.0:
   variables:
     toolchain: msvc2019
 
+package-win-gtlab_2.1:
+  extends: [".package"]
+  needs: ["windowsBuildDebug_2.1", "windowsBuildRelease_2.1"]
+  variables:
+    toolchain: msvc2026
+
 package-linux-gtlab_2.0:
   extends: [".package"]
   needs: ["linuxBuildDebug", "linuxBuildRelease"]
+  variables:
+    toolchain: linux
+
+package-linux-gtlab_2.1:
+  extends: [".package"]
+  needs: ["linuxBuildDebug_2.1", "linuxBuildRelease_2.1"]
   variables:
     toolchain: linux
 
