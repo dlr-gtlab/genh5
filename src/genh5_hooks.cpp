@@ -11,6 +11,7 @@
 
 #include <unordered_map>
 #include <shared_mutex>
+#include <mutex>
 
 namespace HookDataBase
 {
